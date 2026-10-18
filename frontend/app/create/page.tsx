@@ -81,7 +81,7 @@ function CreateDealContent() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24 space-y-8">
       
       {/* Top Header Banner - Clean Web3 Dark Glass */}
-      <div className="p-6 sm:p-7 rounded-3xl bg-[#0f131c] border border-slate-700/60 shadow-md relative overflow-hidden">
+      <div className="p-6 sm:p-7 rounded-3xl bg-[#080B11]/90 border border-white/[0.08] shadow-md relative overflow-hidden">
         <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold mb-3">
           <Lock className="w-3.5 h-3.5" />
           <span>UniversalEscrow.sol — Két Sắt Ký Quỹ Ba Bên</span>
@@ -104,8 +104,8 @@ function CreateDealContent() {
           <div className="lg:col-span-7 space-y-6">
             
             {/* STEP 1: Đối Tác & Số Tiền Ký Quỹ */}
-            <div className="p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-5">
-              <div className="flex items-center space-x-3 pb-3.5 border-b border-slate-800">
+            <div className="p-6 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-md space-y-5">
+              <div className="flex items-center space-x-3 pb-3.5 border-b border-white/[0.06]">
                 <div className="w-7 h-7 rounded-lg bg-blue-600/15 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xs">
                   01
                 </div>
@@ -127,7 +127,7 @@ function CreateDealContent() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ví dụ: Chuyển giao tài sản kỹ thuật số, Bản quyền mã nguồn phần mềm..."
-                    className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                     required
                   />
                 </div>
@@ -140,7 +140,7 @@ function CreateDealContent() {
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
                     >
                       {categories.map((c) => (
                         <option key={c} value={c}>{c}</option>
@@ -157,7 +157,7 @@ function CreateDealContent() {
                       value={sellerAddress}
                       onChange={(e) => setSellerAddress(e.target.value)}
                       placeholder="0x..."
-                      className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                       required
                     />
                   </div>
@@ -180,10 +180,10 @@ function CreateDealContent() {
                       step="10"
                       value={dealAmount}
                       onChange={(e) => setDealAmount(Math.max(10, parseFloat(e.target.value) || 0))}
-                      className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl pl-4 pr-24 py-3 text-base sm:text-lg font-mono font-bold text-white focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl pl-4 pr-24 py-3 text-base sm:text-lg font-mono font-bold text-white focus:outline-none focus:border-blue-500 transition-colors"
                       required
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs font-medium text-slate-200">
                       <UsdcIcon className="w-4 h-4" />
                       <span>USDC</span>
                     </div>
@@ -199,7 +199,7 @@ function CreateDealContent() {
                         className={`py-1.5 rounded-lg text-xs font-mono transition-colors ${
                           dealAmount === preset
                             ? "bg-blue-600 text-white font-medium border border-blue-500"
-                            : "bg-slate-800/60 border border-slate-700/60 text-slate-400 hover:text-white"
+                            : "bg-white/[0.04] border border-white/[0.08] text-slate-400 hover:text-white"
                         }`}
                       >
                         ${preset}
@@ -211,8 +211,8 @@ function CreateDealContent() {
             </div>
 
             {/* STEP 2: Chọn Thương Nhân Bảo Chứng (Web3 Identicons & Staking Quota) */}
-            <div className="p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-4">
-              <div className="flex items-center space-x-3 pb-3.5 border-b border-slate-800">
+            <div className="p-6 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-md space-y-4">
+              <div className="flex items-center space-x-3 pb-3.5 border-b border-white/[0.06]">
                 <div className="w-7 h-7 rounded-lg bg-blue-600/15 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xs">
                   02
                 </div>
@@ -235,7 +235,7 @@ function CreateDealContent() {
                       className={`p-3.5 rounded-xl border cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
                         isSelected
                           ? "bg-blue-950/25 border-blue-500/60 shadow-sm"
-                          : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                          : "bg-[#05070B] border-white/[0.06] hover:border-white/[0.08]"
                       }`}
                     >
                       <div className="flex items-center space-x-3 min-w-0">
@@ -243,7 +243,7 @@ function CreateDealContent() {
                         <div className="min-w-0 flex-1">
                           <div className="text-xs sm:text-sm font-bold text-white flex items-center space-x-2">
                             <span className="truncate">{broker.name}</span>
-                            <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-white/[0.04] text-slate-400 shrink-0">
                               {broker.category}
                             </span>
                           </div>
@@ -261,7 +261,7 @@ function CreateDealContent() {
                         </div>
                       </div>
 
-                      <div className="text-right sm:border-l sm:border-slate-800 sm:pl-4 shrink-0">
+                      <div className="text-right sm:border-l sm:border-white/[0.06] sm:pl-4 shrink-0">
                         <div className="text-[11px] text-slate-400">Hạn mức nhận kèo:</div>
                         <div className="text-xs sm:text-sm font-mono font-bold text-white">
                           {broker.maxLimit.toLocaleString()} USDC
@@ -322,7 +322,7 @@ function CreateDealContent() {
                 <p>
                   Khi bật chế độ này, nguồn tiền {dealAmount.toLocaleString()} USDC của Bên Mua trong lúc chờ bàn giao sẽ được gửi tự động vào <strong>Lending Pool Aave V3 (Fuji C-Chain)</strong>.
                 </p>
-                <div className="p-3 rounded-xl bg-slate-900/80 border border-emerald-500/20 flex items-center justify-between font-mono">
+                <div className="p-3 rounded-xl bg-[#05070B] border border-emerald-500/20 flex items-center justify-between font-mono">
                   <span className="text-slate-400">Lợi tức thực nhận dự kiến:</span>
                   <span className="text-emerald-400 font-bold">
                     {enableAaveYield ? `~+${estDailyAaveYield} USDC / ngày` : "Đang tắt"}
@@ -342,9 +342,9 @@ function CreateDealContent() {
               ========================================================================= */}
           <div className="lg:col-span-5 sticky top-24 space-y-5">
             
-            <div className="p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-2xl space-y-5 relative overflow-hidden">
+            <div className="p-6 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-2xl space-y-5 relative overflow-hidden">
               {/* Receipt Header */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+              <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-4 h-4 text-blue-400" />
                   <span className="font-bold text-white text-sm">Hóa Đơn Smart Contract (Live Receipt)</span>
@@ -380,7 +380,7 @@ function CreateDealContent() {
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-slate-800 flex justify-between items-center">
+                <div className="pt-3 border-t border-white/[0.06] flex justify-between items-center">
                   <span className="font-bold text-white text-xs sm:text-sm">Bên Bán thực nhận khi hoàn tất:</span>
                   <span className="font-mono text-xl font-bold text-emerald-400">
                     {sellerReceives.toLocaleString()} USDC
@@ -390,7 +390,7 @@ function CreateDealContent() {
 
               {/* Chosen Broker Guarantee Card */}
               {chosenBroker && (
-                <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                <div className="p-3.5 rounded-xl bg-[#05070B] border border-white/[0.06] space-y-2">
                   <div className="text-[11px] text-slate-400 uppercase font-semibold">Bảo chứng bởi Thương nhân</div>
                   <div className="flex items-center space-x-2.5">
                     <Identicon address={chosenBroker.address} size={36} rankBadge={chosenBroker.badge} />
@@ -401,14 +401,14 @@ function CreateDealContent() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-[11px] text-slate-400 pt-1.5 border-t border-slate-800 leading-relaxed">
+                  <div className="text-[11px] text-slate-400 pt-1.5 border-t border-white/[0.06] leading-relaxed">
                     🛡️ Cơ chế Slashing: Sàn tự động trích cọc bồi thường 100% nếu phát hiện thương nhân gian lận.
                   </div>
                 </div>
               )}
 
               {/* Contract Target Address */}
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
+              <div className="p-3 rounded-xl bg-[#05070B] border border-white/[0.06] space-y-1">
                 <span className="text-[10px] text-slate-500 uppercase font-mono block">Kho Hợp Đồng Ký Quỹ</span>
                 <AddressCopy
                   address="0x51E2b1239c09d57aC7bAfF094553b6A1B022B854"
@@ -433,7 +433,7 @@ function CreateDealContent() {
                 disabled={isOverLimit}
                 className={`w-full py-3.5 rounded-xl font-semibold text-xs sm:text-sm shadow-md flex items-center justify-center space-x-2 transition-colors ${
                   isOverLimit
-                    ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    ? "bg-white/[0.04] text-slate-500 cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-500 text-white shadow-sm"
                 }`}
               >

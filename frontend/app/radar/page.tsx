@@ -116,13 +116,13 @@ export default function ScamRadarPage() {
       {/* =========================================================================
           SECURITY SCANNER HERO (De.Fi / GoPlus Style, Zero Static JPG)
           ========================================================================= */}
-      <div className="rounded-3xl bg-gradient-to-b from-[#0f1322] via-[#0b0e17] to-[#090b10] border border-slate-700/70 p-6 sm:p-9 shadow-2xl relative overflow-hidden space-y-7">
+      <div className="rounded-3xl bg-gradient-to-b from-[#0f1322] via-[#0b0e17] to-[#090b10] border border-white/[0.08] p-6 sm:p-9 shadow-2xl relative overflow-hidden space-y-7">
         
         {/* Glow Accent */}
         <div className="absolute top-0 right-1/4 w-96 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-wrap items-center justify-between gap-3 relative z-10">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-semibold text-slate-300">
             <AvalancheIcon className="w-3.5 h-3.5" />
             <span>Avalanche Custom L1 Subnet</span>
             <span className="text-slate-600">•</span>
@@ -150,7 +150,7 @@ export default function ScamRadarPage() {
         {/* Big Search Input Box */}
         <div className="max-w-2xl mx-auto space-y-2.5 relative z-10">
           <form onSubmit={handleScan} className="relative">
-            <div className="relative rounded-2xl bg-slate-900 border border-slate-700/80 focus-within:border-blue-500 shadow-xl p-1.5 flex items-center transition-colors">
+            <div className="relative rounded-2xl bg-[#05070B] border border-white/[0.08] focus-within:border-blue-500 shadow-xl p-1.5 flex items-center transition-colors">
               <Search className="w-5 h-5 text-slate-400 ml-3 shrink-0" />
               <input
                 type="text"
@@ -176,7 +176,7 @@ export default function ScamRadarPage() {
                 setSearchQuery("1903889922101");
                 setTimeout(() => handleScan(), 50);
               }}
-              className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-rose-400 text-[11px] font-mono border border-slate-700"
+              className="px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-rose-400 text-[11px] font-mono border border-white/[0.08]"
             >
               Kẻ lừa đảo: 1903889922101
             </button>
@@ -185,7 +185,7 @@ export default function ScamRadarPage() {
                 setSearchQuery("0x30F1492bC78E12a899Ad34De91eF11B12E7a889A");
                 setTimeout(() => handleScan(), 50);
               }}
-              className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-emerald-400 text-[11px] font-mono border border-slate-700"
+              className="px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-emerald-400 text-[11px] font-mono border border-white/[0.08]"
             >
               GDTG: 0x30F...889A
             </button>
@@ -198,7 +198,7 @@ export default function ScamRadarPage() {
             <div className={`p-6 rounded-2xl border shadow-xl space-y-4 ${
               scanResult.isScam
                 ? "bg-rose-950/20 border-rose-500/40"
-                : "bg-slate-900/90 border-slate-700"
+                : "bg-[#05070B] border-white/[0.08]"
             }`}>
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
                 {/* Left Gauge */}
@@ -257,7 +257,7 @@ export default function ScamRadarPage() {
           BLACKLIST REGISTRY TABLE (ON-CHAIN DATABASE)
           ========================================================================= */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
               <ShieldAlert className="w-4 h-4 text-rose-400" />
@@ -281,7 +281,7 @@ export default function ScamRadarPage() {
                 className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                   typeFilter === t.id
                     ? "bg-slate-700 text-white font-semibold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
                 }`}
               >
                 {t.label}
@@ -290,11 +290,11 @@ export default function ScamRadarPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#0f131c] border border-slate-700/60 overflow-hidden shadow-md">
+        <div className="rounded-2xl bg-[#080B11]/90 border border-white/[0.08] overflow-hidden shadow-md">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-slate-800 text-slate-400 bg-slate-900/60">
+                <tr className="border-b border-white/[0.06] text-slate-400 bg-[#05070B]">
                   <th className="py-3 px-5 font-semibold">Đối Tượng</th>
                   <th className="py-3 px-5 font-semibold">Hành Vi & Thủ Đoạn</th>
                   <th className="py-3 px-5 font-semibold">Bằng Chứng IPFS</th>
@@ -303,7 +303,7 @@ export default function ScamRadarPage() {
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {filteredReports.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={r.id} className="hover:bg-white/[0.04]/30 transition-colors">
                     <td className="py-3.5 px-5">
                       <span className="font-mono font-bold text-rose-400 block text-xs">
                         {r.identifier}
@@ -350,8 +350,8 @@ export default function ScamRadarPage() {
           ========================================================================= */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative bg-[#0f131c] border border-slate-700">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative bg-[#080B11]/90 border border-white/[0.08]">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
                 <ShieldAlert className="w-4 h-4 text-rose-400" />
                 <span>Báo Cáo Đối Tượng Gian Lận (0đ Gas On-Chain)</span>
@@ -370,7 +370,7 @@ export default function ScamRadarPage() {
                 <select
                   value={idType}
                   onChange={(e) => setIdType(e.target.value as "PHONE" | "BANK_ACCOUNT" | "WALLET")}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="BANK_ACCOUNT">Số Tài Khoản Ngân Hàng</option>
                   <option value="PHONE">Số Điện Thoại / Ứng Dụng OTT</option>
@@ -387,7 +387,7 @@ export default function ScamRadarPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="Ví dụ: 1903889922101 hoặc 0909999888..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
@@ -401,7 +401,7 @@ export default function ScamRadarPage() {
                   value={victimNote}
                   onChange={(e) => setVictimNote(e.target.value)}
                   placeholder="Làm giả chứng từ ủy nhiệm chi ngân hàng, nhận cọc rồi chặn liên lạc..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 resize-none"
                   required
                 />
               </div>
@@ -415,7 +415,7 @@ export default function ScamRadarPage() {
                   value={evidenceIPFS}
                   onChange={(e) => setEvidenceIPFS(e.target.value)}
                   placeholder="ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-[11px] focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-3 py-2 text-white font-mono text-[11px] focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -423,7 +423,7 @@ export default function ScamRadarPage() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition-colors"
+                  className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 font-medium text-xs transition-colors"
                 >
                   Hủy Bỏ
                 </button>

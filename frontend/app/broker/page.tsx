@@ -98,7 +98,7 @@ export default function BrokerStakingPage() {
       {/* =========================================================================
           SOULBOUND CERTIFICATE & BROKER PROFILE BANNER (Web3 Identicon)
           ========================================================================= */}
-      <div className="rounded-2xl bg-[#0f131c] border border-slate-700/60 p-5 sm:p-6 shadow-md relative overflow-hidden">
+      <div className="rounded-2xl bg-[#080B11]/90 border border-white/[0.08] p-5 sm:p-6 shadow-md relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center space-x-4">
             <Identicon address={brokerNam.address} size={56} rankBadge={brokerNam.badge} />
@@ -122,7 +122,7 @@ export default function BrokerStakingPage() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3 bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-800 shrink-0">
+          <div className="flex items-center space-x-3 bg-[#05070B] px-4 py-2.5 rounded-xl border border-white/[0.06] shrink-0">
             <div className="text-right">
               <span className="text-xs text-slate-400 block font-normal">Cơ Chế Phân Bổ Lợi Tức</span>
               <span className="text-xs sm:text-sm font-mono font-bold text-emerald-400">80% Trung Gian • 20% Sàn</span>
@@ -147,7 +147,7 @@ export default function BrokerStakingPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         
         {/* Staked Principal */}
-        <div className="rounded-2xl p-5 space-y-1 bg-[#0f131c] border border-slate-700/60 shadow-md">
+        <div className="rounded-2xl p-5 space-y-1 bg-[#080B11]/90 border border-white/[0.08] shadow-md">
           <span className="text-xs text-slate-400 block font-normal">Vốn Bảo Chứng Đang Ký Quỹ</span>
           <div className="text-xl sm:text-2xl font-bold font-mono text-white tracking-tight">
             {brokerNam.stakedAmount.toLocaleString()} USDC
@@ -158,7 +158,7 @@ export default function BrokerStakingPage() {
         </div>
 
         {/* Real-time Yield */}
-        <div className="rounded-2xl p-5 space-y-1 bg-[#0f131c] border border-emerald-500/30 shadow-md">
+        <div className="rounded-2xl p-5 space-y-1 bg-[#080B11]/90 border border-emerald-500/30 shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-xs text-emerald-400 block font-medium">Lợi Tức Thực Tích Lũy (80%)</span>
             <span className="relative flex h-2 w-2">
@@ -175,7 +175,7 @@ export default function BrokerStakingPage() {
         </div>
 
         {/* 120% Quota */}
-        <div className="rounded-2xl p-5 space-y-1 bg-[#0f131c] border border-slate-700/60 shadow-md">
+        <div className="rounded-2xl p-5 space-y-1 bg-[#080B11]/90 border border-white/[0.08] shadow-md">
           <span className="text-xs text-slate-400 block font-normal">Hạn Mức Hợp Đồng Tối Đa (≤120%)</span>
           <div className="text-xl sm:text-2xl font-bold font-mono text-slate-100 tracking-tight">
             {brokerNam.maxLimit.toLocaleString()} USDC
@@ -192,8 +192,8 @@ export default function BrokerStakingPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Nạp cọc */}
-        <div className="rounded-2xl p-6 sm:p-7 space-y-5 bg-[#0f131c] border border-slate-700/60 shadow-md">
-          <div className="flex items-center space-x-3 pb-4 border-b border-slate-800">
+        <div className="rounded-2xl p-6 sm:p-7 space-y-5 bg-[#080B11]/90 border border-white/[0.08] shadow-md">
+          <div className="flex items-center space-x-3 pb-4 border-b border-white/[0.06]">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center font-bold">
               <ArrowUpRight className="w-5 h-5" />
             </div>
@@ -218,7 +218,7 @@ export default function BrokerStakingPage() {
                   value={stakeInput}
                   onChange={(e) => setStakeInput(e.target.value)}
                   placeholder="Ví dụ: 1000"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold font-mono text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                  className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm font-bold font-mono text-white focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
@@ -227,7 +227,7 @@ export default function BrokerStakingPage() {
               </div>
             </div>
 
-            <div className="text-xs text-slate-300 bg-slate-900/60 rounded-xl p-3.5 space-y-1.5 border border-slate-800">
+            <div className="text-xs text-slate-300 bg-[#05070B] rounded-xl p-3.5 space-y-1.5 border border-white/[0.06]">
               <div className="flex justify-between">
                 <span>Hạn mức giao dịch mở rộng thêm:</span>
                 <strong className="text-emerald-400 font-mono">
@@ -252,9 +252,9 @@ export default function BrokerStakingPage() {
         </div>
 
         {/* Rút cọc */}
-        <div className="rounded-2xl p-6 sm:p-7 space-y-5 bg-[#0f131c] border border-slate-700/60 shadow-md">
-          <div className="flex items-center space-x-3 pb-4 border-b border-slate-800">
-            <div className="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold">
+        <div className="rounded-2xl p-6 sm:p-7 space-y-5 bg-[#080B11]/90 border border-white/[0.08] shadow-md">
+          <div className="flex items-center space-x-3 pb-4 border-b border-white/[0.06]">
+            <div className="w-8 h-8 rounded-lg bg-white/[0.04] text-slate-300 flex items-center justify-center font-bold">
               <ArrowDownLeft className="w-5 h-5" />
             </div>
             <div>
@@ -278,7 +278,7 @@ export default function BrokerStakingPage() {
                   value={unstakeInput}
                   onChange={(e) => setUnstakeInput(e.target.value)}
                   placeholder="Ví dụ: 500"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold font-mono text-white focus:outline-none focus:border-slate-500 transition-colors"
+                  className="w-full bg-[#05070B] border border-white/[0.08] rounded-xl px-4 py-2.5 text-sm font-bold font-mono text-white focus:outline-none focus:border-slate-500 transition-colors"
                   required
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
@@ -287,7 +287,7 @@ export default function BrokerStakingPage() {
               </div>
             </div>
 
-            <div className="text-xs text-slate-300 bg-slate-900/60 rounded-xl p-3.5 space-y-1.5 border border-slate-800">
+            <div className="text-xs text-slate-300 bg-[#05070B] rounded-xl p-3.5 space-y-1.5 border border-white/[0.06]">
               <div className="flex justify-between">
                 <span>Tổng vốn cọc hiện tại:</span>
                 <strong className="text-white font-mono">{brokerNam.stakedAmount.toLocaleString()} USDC</strong>
@@ -300,7 +300,7 @@ export default function BrokerStakingPage() {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium text-xs uppercase tracking-wider transition-colors"
+              className="w-full py-3 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white font-medium text-xs uppercase tracking-wider transition-colors"
             >
               Rút Vốn & Tất Toán Lợi Tức Về Ví
             </button>
@@ -309,7 +309,7 @@ export default function BrokerStakingPage() {
       </div>
 
       {/* Direct link back to Broker Directory */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#0f131c] flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-700/60 shadow-md">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#080B11]/90 flex flex-col sm:flex-row items-center justify-between gap-3 border border-white/[0.08] shadow-md">
         <div className="text-xs text-slate-300">
           Theo dõi vị trí xếp hạng tín nhiệm và hồ sơ chứng chỉ Soulbound Token trên thư viện:
         </div>

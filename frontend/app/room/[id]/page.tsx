@@ -131,7 +131,7 @@ export default function DealRoomPage() {
       {/* =========================================================================
           HEADER BAR: DEAL INFO & SHARE LINK
           ========================================================================= */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-md bg-blue-600/15 border border-blue-500/30 text-blue-400">
@@ -156,7 +156,7 @@ export default function DealRoomPage() {
         <div className="flex items-center space-x-2 w-full md:w-auto shrink-0">
           <button
             onClick={handleCopyLink}
-            className="w-full md:w-auto inline-flex items-center justify-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-xs text-slate-200 font-medium transition-colors"
+            className="w-full md:w-auto inline-flex items-center justify-center space-x-2 px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs text-slate-200 font-medium transition-colors"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? "Đã Sao Chép Liên Kết" : "Sao Chép Liên Kết Phòng"}</span>
@@ -187,18 +187,18 @@ export default function DealRoomPage() {
           />
 
           {/* Vault Balance Card */}
-          <div className="p-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="p-5 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-md space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center space-x-2 text-xs font-bold text-white uppercase tracking-wider">
                 <Lock className="w-4 h-4 text-emerald-400" />
                 <span>Kho Ký Quỹ Thông Minh</span>
               </div>
-              <span className="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
+              <span className="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08]">
                 UniversalEscrow.sol
               </span>
             </div>
 
-            <div className="bg-slate-900/90 rounded-xl p-4 text-center border border-slate-800 space-y-1">
+            <div className="bg-[#05070B] rounded-xl p-4 text-center border border-white/[0.06] space-y-1">
               <span className="text-xs text-slate-400 block font-normal">Giá Trị Ký Quỹ Được Bảo Chứng</span>
               <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 tracking-tight">
                 {currentDeal.amount.toLocaleString()} USDC
@@ -209,7 +209,7 @@ export default function DealRoomPage() {
             </div>
 
             {/* Participants Info with AddressCopy & Identicon */}
-            <div className="space-y-2.5 pt-2 text-xs border-t border-slate-800">
+            <div className="space-y-2.5 pt-2 text-xs border-t border-white/[0.06]">
               <div className="flex justify-between items-center text-slate-400">
                 <span>Bên Mua (Người nạp):</span>
                 <AddressCopy address={currentDeal.buyerAddress} truncateLength={4} showExplorerLink={false} />
@@ -227,7 +227,7 @@ export default function DealRoomPage() {
             </div>
 
             {/* Avalanche Core QR Code */}
-            <div className="space-y-2 pt-3 border-t border-slate-800 text-center">
+            <div className="space-y-2 pt-3 border-t border-white/[0.06] text-center">
               <span className="text-xs text-slate-300 block font-medium">
                 Quét Mã Thanh Toán Ví Avalanche Core:
               </span>
@@ -244,10 +244,10 @@ export default function DealRoomPage() {
         {/* =========================================================================
             MIDDLE COLUMN: 3-PARTY CHAT & CRYPTOGRAPHIC EVIDENCE TERMINAL (5 Cols)
             ========================================================================= */}
-        <div className="lg:col-span-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 flex flex-col h-[640px] overflow-hidden shadow-md">
+        <div className="lg:col-span-5 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] flex flex-col h-[640px] overflow-hidden shadow-md">
           
           {/* Chat Header */}
-          <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
+          <div className="px-5 py-3 border-b border-white/[0.06] bg-[#05070B] flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -268,7 +268,7 @@ export default function DealRoomPage() {
 
               if (isSys) {
                 return (
-                  <div key={m.id} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 space-y-1">
+                  <div key={m.id} className="p-3 rounded-xl bg-[#05070B] border border-white/[0.06] text-xs text-slate-300 space-y-1">
                     <div className="flex items-center justify-between text-slate-400 font-mono text-[10px]">
                       <span className="text-blue-400 font-semibold uppercase">{m.senderName}</span>
                       <span>{m.time}</span>
@@ -302,11 +302,11 @@ export default function DealRoomPage() {
                       ? "bg-amber-950/25 border border-amber-500/30 text-amber-100"
                       : isBuyer
                       ? "bg-blue-950/25 border border-blue-500/30 text-blue-100"
-                      : "bg-slate-900 border border-slate-800 text-slate-200"
+                      : "bg-[#05070B] border border-white/[0.06] text-slate-200"
                   }`}>
                     <p>{m.text}</p>
                     {m.image && (
-                      <div className="mt-2 rounded-lg overflow-hidden border border-slate-700">
+                      <div className="mt-2 rounded-lg overflow-hidden border border-white/[0.08]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={m.image} alt="Chứng từ xác thực" className="w-full h-auto object-cover max-h-48" />
                         <span className="block text-[10px] p-1 bg-black/80 text-slate-300 font-mono text-center">
@@ -322,7 +322,7 @@ export default function DealRoomPage() {
           </div>
 
           {/* Quick Actions Bar */}
-          <div className="px-4 py-2 bg-slate-900/40 border-t border-slate-800 flex items-center justify-between text-xs">
+          <div className="px-4 py-2 bg-[#05070B] border-t border-white/[0.06] flex items-center justify-between text-xs">
             <span className="text-slate-400">
               Đang thao tác: <strong className="text-white font-medium">{role === "buyer" ? "Bên Mua (Minh)" : role === "seller" ? "Bên Bán (Hùng)" : "Trung Gian (Nam)"}</strong>
             </span>
@@ -336,13 +336,13 @@ export default function DealRoomPage() {
           </div>
 
           {/* Chat Input Form */}
-          <form onSubmit={handleSendMessage} className="p-3 bg-slate-950 border-t border-slate-800 flex items-center space-x-2">
+          <form onSubmit={handleSendMessage} className="p-3 bg-slate-950 border-t border-white/[0.06] flex items-center space-x-2">
             <input
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Nhập nội dung trao đổi hoặc xác nhận bàn giao..."
-              className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+              className="flex-1 bg-[#05070B] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
             <button
               type="submit"
@@ -359,12 +359,12 @@ export default function DealRoomPage() {
         <div className="lg:col-span-3 space-y-5">
           
           {/* Action Box */}
-          <div className="p-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="p-5 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-md space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <span className="text-xs font-bold text-white uppercase tracking-wider">
                 Bảng Điều Khiển Nghiệp Vụ
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-mono font-medium">
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-300 font-mono font-medium">
                 {role === "broker" ? "TRUNG GIAN" : role === "buyer" ? "BÊN MUA" : "BÊN BÁN"}
               </span>
             </div>
@@ -388,14 +388,14 @@ export default function DealRoomPage() {
 
                     <button
                       onClick={onBrokerRefund}
-                      className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-rose-950/30 border border-rose-500/30 text-rose-400 font-medium text-xs transition-colors flex items-center justify-center space-x-2"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#05070B] hover:bg-rose-950/30 border border-rose-500/30 text-rose-400 font-medium text-xs transition-colors flex items-center justify-center space-x-2"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                       <span>Hoàn Quỹ 100% Cho Bên Mua</span>
                     </button>
                   </>
                 ) : (
-                  <div className="p-3 rounded-xl bg-slate-900 text-center text-xs text-slate-400 font-mono border border-slate-800">
+                  <div className="p-3 rounded-xl bg-[#05070B] text-center text-xs text-slate-400 font-mono border border-white/[0.06]">
                     Hợp đồng đã hoàn tất quy trình quyết toán ({currentDeal.status}).
                   </div>
                 )}
@@ -420,14 +420,14 @@ export default function DealRoomPage() {
                 )}
 
                 {/* Safety Mechanisms */}
-                <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
+                <div className="pt-2 border-t border-white/[0.06] space-y-2 text-xs">
                   <span className="text-slate-400 font-medium block uppercase text-[11px] tracking-wider">
                     Cơ Chế Bảo Vệ:
                   </span>
                   
                   <button
                     onClick={() => alert("Cơ chế Tự động Hoàn tiền Quá hạn (Timeout Auto-Refund): Nếu quá thời hạn quy định mà các bên không có phản hồi đối soát, hợp đồng thông minh cho phép Bên Mua tự động thu hồi 100% nguồn quỹ về ví an toàn.")}
-                    className="w-full text-left p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors flex items-center justify-between border border-slate-800"
+                    className="w-full text-left p-2.5 rounded-xl bg-[#05070B] hover:bg-white/[0.04] text-slate-300 hover:text-white transition-colors flex items-center justify-between border border-white/[0.06]"
                   >
                     <span>⏰ Tự động hoàn tiền quá hạn</span>
                     <Clock className="w-3.5 h-3.5 text-slate-500" />
@@ -435,7 +435,7 @@ export default function DealRoomPage() {
 
                   <button
                     onClick={() => alert("Cơ chế Khấu trừ Tài sản Đảm bảo (Economic Slashing): Trong trường hợp phát hiện Bên Trung Gian có dấu hiệu cấu kết gian lận, Hội đồng Giao thức có thẩm quyền kích hoạt lệnh chém cọc bảo chứng Aave V3 của Trung Gian để bồi hoàn 100% thiệt hại cho Bên Mua.")}
-                    className="w-full text-left p-2.5 rounded-xl bg-slate-900 hover:bg-rose-950/20 text-slate-300 hover:text-rose-300 transition-colors flex items-center justify-between border border-slate-800"
+                    className="w-full text-left p-2.5 rounded-xl bg-[#05070B] hover:bg-rose-950/20 text-slate-300 hover:text-rose-300 transition-colors flex items-center justify-between border border-white/[0.06]"
                   >
                     <span>🚨 Khiếu nại chém cọc (Slashing)</span>
                     <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
@@ -462,7 +462,7 @@ export default function DealRoomPage() {
           </div>
 
           {/* Broker Reputation Widget with Web3 Identicon */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-3 text-xs">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#080B11]/90 border border-white/[0.08] shadow-md space-y-3 text-xs">
             <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">
               Thương Nhân Bảo Chứng (SBT Verified)
             </span>
@@ -473,7 +473,7 @@ export default function DealRoomPage() {
                 <span className="text-[11px] text-amber-400 font-medium block truncate">{dealBroker.badge}</span>
               </div>
             </div>
-            <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 text-xs">
+            <div className="pt-2 border-t border-white/[0.06] grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-slate-500 block text-[11px]">Cọc Aave V3:</span>
                 <strong className="text-emerald-400 font-mono">{dealBroker.stakedAmount.toLocaleString()} USDC</strong>
@@ -497,7 +497,7 @@ export default function DealRoomPage() {
           ========================================================================= */}
       {ratingModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative bg-[#0f131c] border border-slate-700">
+          <div className="rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative bg-[#080B11]/90 border border-white/[0.08]">
             <button
               onClick={() => setRatingModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white"
@@ -554,7 +554,7 @@ export default function DealRoomPage() {
                       className={`py-2 rounded-lg text-xs font-mono transition-colors ${
                         tip === t
                           ? "bg-blue-600 text-white font-semibold"
-                          : "bg-slate-900 text-slate-300 border border-slate-800 hover:bg-slate-800"
+                          : "bg-[#05070B] text-slate-300 border border-white/[0.06] hover:bg-white/[0.04]"
                       }`}
                     >
                       +{t} USDC

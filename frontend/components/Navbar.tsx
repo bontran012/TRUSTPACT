@@ -73,14 +73,14 @@ export default function Navbar() {
     broker: { 
       label: "Trung Gian (Nam)", 
       shortLabel: "Trung Gian", 
-      chipStyle: "text-amber-400 bg-amber-500/15 border-amber-500/40 font-medium" 
+      chipStyle: "text-purple-400 bg-purple-500/15 border-purple-500/40 font-medium" 
     },
   };
 
   return (
     <header className="sticky top-0 z-50">
       {/* Top Protocol Telemetry Ticker */}
-      <div className="bg-[#080a0f]/90 border-b border-white/[0.06] py-1.5 px-4 text-[11px] text-zinc-400 backdrop-blur-md">
+      <div className="bg-[#06080D]/95 border-b border-white/[0.05] py-1.5 px-4 text-[11px] text-zinc-400 backdrop-blur-md">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <span className="flex items-center space-x-1.5 text-zinc-300 font-medium">
@@ -88,7 +88,7 @@ export default function Navbar() {
               <span>Avalanche Fuji C-Chain (43113)</span>
             </span>
             <span className="hidden sm:inline text-zinc-700">•</span>
-            <span className="hidden sm:flex items-center space-x-1 text-emerald-400 font-mono">
+            <span className="hidden sm:flex items-center space-x-1 text-[#2EBAC6] font-mono">
               <span>Aave V3 APY: 5.20%</span>
             </span>
             <span className="hidden md:inline text-zinc-700">•</span>
@@ -100,7 +100,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-3 text-[11px] font-mono text-zinc-400">
             <span>UniversalEscrow.sol v2.4</span>
             <span className="text-zinc-700">•</span>
-            <span className="text-emerald-400 flex items-center space-x-1">
+            <span className="text-emerald-400 flex items-center space-x-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Mạng Lưới Hoạt Động</span>
             </span>
@@ -109,13 +109,13 @@ export default function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <nav className="bg-[#0b0e14]/90 border-b border-white/[0.08] h-14 backdrop-blur-xl">
+      <nav className="bg-[#080B11]/90 border-b border-white/[0.07] h-14 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between">
           
           {/* Brand Logo */}
           <div className="flex items-center space-x-8">
             <Link href="/" className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]">
                 <Shield className="w-4 h-4" />
               </div>
               <div className="flex items-center space-x-2">
@@ -134,9 +134,9 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                       isActive
-                        ? "text-white bg-white/10 font-medium"
+                        ? "text-white bg-white/[0.08] border border-white/[0.08] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)] font-medium"
                         : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04]"
                     }`}
                   >
@@ -151,7 +151,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-2.5 text-xs">
             
             {/* Demo Persona Switcher */}
-            <div className="flex items-center space-x-1 bg-white/[0.03] border border-white/10 rounded-xl p-0.5">
+            <div className="flex items-center space-x-1 bg-[#05070B] border border-white/[0.08] rounded-xl p-1 shadow-inner">
               {(["buyer", "seller", "broker"] as UserRole[]).map((r) => (
                 <button
                   key={r}
@@ -169,14 +169,14 @@ export default function Navbar() {
 
             {/* Wallet Action Button */}
             {account ? (
-              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-zinc-200 font-mono text-xs">
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-zinc-200 font-mono text-xs shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{account.slice(0, 6)}...{account.slice(-4)}</span>
               </div>
             ) : (
               <button
                 onClick={connectWallet}
-                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white text-slate-900 hover:bg-slate-200 font-semibold text-xs transition-all shadow-sm"
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition-all shadow-md shadow-blue-600/20"
               >
                 <Wallet className="w-3.5 h-3.5" />
                 <span>Kết Nối Ví</span>
