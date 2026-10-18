@@ -5,13 +5,9 @@ import { Check, Clock, ShieldCheck, Zap, RotateCcw } from "lucide-react";
 
 
 interface StepProgressProps {
-
   currentStep: 1 | 2 | 3 | 4;
-
-  status: "LOCKED" | "COMPLETED" | "CANCELLED";
-
+  status: "LOCKED" | "COMPLETED" | "CANCELLED" | "SLASHED";
   className?: string;
-
 }
 
 
@@ -68,11 +64,9 @@ export function StepProgress({ currentStep, status, className = "" }: StepProgre
 
       tag: "STEP 04",
 
-      title: status === "CANCELLED" ? "Hoàn Quỹ Bảo Toàn" : "Quyết Toán (0.8s)",
-
-      desc: status === "CANCELLED" ? "Đã bồi hoàn 100% về ví" : "Giải ngân tức thì qua Snowman",
-
-      icon: status === "CANCELLED" ? RotateCcw : Check,
+      title: status === "SLASHED" ? "Chém Cọc Broker" : status === "CANCELLED" ? "Hoàn Quỹ Bảo Toàn" : "Quyết Toán (0.8s)",
+      desc: status === "SLASHED" ? "Bồi thường 100% cho Buyer" : status === "CANCELLED" ? "Đã bồi hoàn 100% về ví" : "Giải ngân tức thì qua Snowman",
+      icon: (status === "CANCELLED" || status === "SLASHED") ? RotateCcw : Check,
 
     },
 
@@ -91,11 +85,8 @@ export function StepProgress({ currentStep, status, className = "" }: StepProgre
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 sm:gap-3 relative">
 
         {steps.map((s, idx) => {
-
-          const isCancelledStep = status === "CANCELLED" && s.step === 4;
-
-          const isDone = status === "COMPLETED" || (status !== "CANCELLED" && s.step < currentStep);
-
+          const isCancelledStep = (status === "CANCELLED" || status === "SLASHED") && s.step === 4;
+          const isDone = status === "COMPLETED" || ((status !== "CANCELLED" && status !== "SLASHED") && s.step < currentStep);
           const isCurrent = status === "LOCKED" && s.step === currentStep;
 
           const StepIcon = s.icon;

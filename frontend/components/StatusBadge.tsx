@@ -7,6 +7,7 @@ export type StatusType =
   | "LOCKED" 
   | "COMPLETED" 
   | "CANCELLED" 
+  | "SLASHED"
   | "VERIFIED" 
   | "SCAM" 
   | "CLEAN" 
@@ -45,6 +46,14 @@ export function StatusBadge({ status, label, className = "", size = "md" }: Stat
         <span className={`inline-flex items-center space-x-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-medium ${sizeClasses} ${className}`}>
           <XCircle className="w-3 h-3" />
           <span>{label || "Đã Hoàn Quỹ"}</span>
+        </span>
+      );
+
+    case "SLASHED":
+      return (
+        <span className={`inline-flex items-center space-x-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 font-medium ${sizeClasses} ${className}`}>
+          <AlertTriangle className="w-3 h-3 text-rose-400" />
+          <span>{label || "Đã Chém Cọc"}</span>
         </span>
       );
 
