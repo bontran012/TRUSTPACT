@@ -35,5 +35,8 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 
-# Temporary archives (uncomment if you want to exclude zip files)
-# *.zip
+# Large binary assets & archives
+*.zip
+frontend/public/*.png
+frontend/public/images/
+frontend_code.txt
