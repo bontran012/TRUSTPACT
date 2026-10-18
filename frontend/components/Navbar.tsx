@@ -52,7 +52,8 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "/", label: "Check Scam & Tín Nhiệm (0đ Gas)" },
+    { href: "/", label: "Trang Chủ & Mô Phỏng" },
+    { href: "/radar", label: "Scam Radar (0đ Gas)" },
     { href: "/create", label: "Tạo Hợp Đồng Ký Quỹ" },
     { href: "/room/101", label: "Phòng Đối Soát #101" },
     { href: "/broker", label: "Cọc Aave V3 & Lợi Tức" },

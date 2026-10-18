@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { 
   ArrowUpRight, ArrowDownLeft, CheckCircle2, 
   Coins, TrendingUp, ArrowRight, Sparkles, ShieldCheck,
-  Zap, Lock, AlertTriangle
+  Zap, Lock, AlertTriangle, Award, Layers
 } from "lucide-react";
 import { AaveIcon, UsdcIcon, AvalancheIcon } from "../../components/CryptoIcons";
 import { useStore } from "../../lib/store";
+import { Identicon } from "../../components/Identicon";
+import { AddressCopy } from "../../components/AddressCopy";
+import { LiveYieldCounter } from "../../components/LiveYieldCounter";
 
 export default function BrokerStakingPage() {
   const { brokers, stakeInsurance, unstakeInsurance } = useStore();
@@ -17,16 +19,7 @@ export default function BrokerStakingPage() {
 
   const [stakeInput, setStakeInput] = useState("");
   const [unstakeInput, setUnstakeInput] = useState("");
-  const [accruedYield, setAccruedYield] = useState(18.6420);
   const [notice, setNotice] = useState<string | null>(null);
-
-  // Real-time Aave aUSDC Yield Ticker (ticks every 1.2s simulating block interest)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAccruedYield((prev) => +(prev + 0.00015).toFixed(4));
-    }, 1200);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleStake = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,11 +49,16 @@ export default function BrokerStakingPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-20 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24 space-y-8">
       
-      {/* Top Hero Banner with 3D Aave Vault Visual */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center p-6 sm:p-7 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md relative overflow-hidden">
+      {/* =========================================================================
+          TOP HERO BANNER: AAVE V3 YIELD VAULT (Pure CSS + Vector Glow, No JPG)
+          ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-emerald-950/30 via-[#0d121c] to-[#090b10] border border-emerald-500/30 shadow-2xl relative overflow-hidden">
         
+        {/* Glow backdrop */}
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Left Headline */}
         <div className="lg:col-span-7 space-y-3 relative z-10">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
@@ -72,7 +70,7 @@ export default function BrokerStakingPage() {
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-2xl font-normal">
             Nguồn vốn ký quỹ bảo chứng của Bên Trung Gian được tự động điều phối vào Lending Pool Aave V3.
-            Trung Gian thụ hưởng <strong className="text-emerald-400 font-medium">80% lợi tức thực tế (Real Yield)</strong>, 20% duy trì giao thức.
+            Trung Gian thụ hưởng <strong className="text-emerald-400 font-semibold">80% lợi tức thực tế (Real Yield)</strong>, 20% duy trì giao thức.
           </p>
           <div className="flex items-center space-x-4 pt-1 text-xs">
             <span className="flex items-center space-x-1.5 text-slate-400">
@@ -87,34 +85,23 @@ export default function BrokerStakingPage() {
           </div>
         </div>
 
-        {/* Right 3D Visual Box */}
-        <div className="lg:col-span-5 relative">
-          <div className="relative rounded-xl overflow-hidden aspect-video border border-slate-700/80 shadow-md bg-black">
-            <Image
-              src="/images/aave-yield-vault.jpg"
-              alt="Aave Yield Vault 3D"
-              fill
-              className="object-cover"
-            />
-            <div className="absolute top-2 right-2 px-2.5 py-1 rounded-md bg-black/80 border border-slate-700 backdrop-blur-md text-[10px] font-mono text-emerald-400">
-              80/20 Yield Split
-            </div>
-          </div>
+        {/* Right Dynamic Live Yield Counter Component */}
+        <div className="lg:col-span-5 relative z-10">
+          <LiveYieldCounter
+            principalAmount={brokerNam.stakedAmount}
+            apy={5.2}
+            baseYield={18.642}
+          />
         </div>
       </div>
 
-      {/* Soulbound Certificate & Broker Profile Banner */}
+      {/* =========================================================================
+          SOULBOUND CERTIFICATE & BROKER PROFILE BANNER (Web3 Identicon)
+          ========================================================================= */}
       <div className="rounded-2xl bg-[#0f131c] border border-slate-700/60 p-5 sm:p-6 shadow-md relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center space-x-4">
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-slate-700 shadow-md shrink-0">
-              <Image
-                src="/images/avatar-nam.jpg"
-                alt="Nguyen Nam Avatar"
-                fill
-                className="object-cover"
-              />
-            </div>
+            <Identicon address={brokerNam.address} size={56} rankBadge={brokerNam.badge} />
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-base sm:text-lg font-bold text-white">{brokerNam.name}</span>
@@ -123,9 +110,10 @@ export default function BrokerStakingPage() {
                   <span>{brokerNam.badge}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
-                Soulbound Token #889A (ERC-721 Bất biến) • Địa chỉ ví: <span className="font-mono text-slate-300">{brokerNam.address.slice(0, 8)}...{brokerNam.address.slice(-6)}</span>
-              </p>
+              <div className="flex items-center space-x-2 text-xs text-slate-400">
+                <span>Soulbound Token #889A (ERC-721 Bất biến) •</span>
+                <AddressCopy address={brokerNam.address} truncateLength={5} />
+              </div>
               <div className="flex items-center space-x-3 text-xs text-slate-400 pt-0.5">
                 <span>Số kèo hoàn tất: <strong className="text-white font-mono">{brokerNam.completedDeals}</strong></span>
                 <span>•</span>
@@ -153,7 +141,9 @@ export default function BrokerStakingPage() {
         </div>
       )}
 
-      {/* 3 Overview Metrics Cards */}
+      {/* =========================================================================
+          3 OVERVIEW METRICS CARDS
+          ========================================================================= */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         
         {/* Staked Principal */}
@@ -177,7 +167,7 @@ export default function BrokerStakingPage() {
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 tracking-tight">
-            +{accruedYield} USDC
+            +18.6420 USDC
           </div>
           <span className="text-xs text-slate-400 block font-normal">
             Tăng trưởng liên tục theo từng block qua aUSDC
@@ -196,7 +186,9 @@ export default function BrokerStakingPage() {
         </div>
       </div>
 
-      {/* 2 Action Panels: Stake & Unstake */}
+      {/* =========================================================================
+          2 ACTION PANELS: STAKE & UNSTAKE
+          ========================================================================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Nạp cọc */}

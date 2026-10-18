@@ -2,16 +2,20 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { 
   Search, ShieldAlert, ShieldCheck, Lock, Star, 
   ArrowRight, CheckCircle2, AlertTriangle, ExternalLink,
   Coins, Zap, RefreshCw, Check, Sparkles, UserCheck, ChevronRight,
-  PlusCircle, FileText, X, Layers, AlertOctagon
+  PlusCircle, FileText, X, Layers, AlertOctagon, Award
 } from "lucide-react";
-import { AvalancheIcon, UsdcIcon, AaveIcon, SbtBadgeIcon } from "../components/CryptoIcons";
+import { AvalancheIcon, UsdcIcon, AaveIcon } from "../components/CryptoIcons";
 import { useStore } from "../lib/store";
+import { EscrowSimulationHero } from "../components/EscrowSimulationHero";
+import { Identicon } from "../components/Identicon";
+import { AddressCopy } from "../components/AddressCopy";
+import { StatusBadge } from "../components/StatusBadge";
+import { TrustPassportCard } from "../components/TrustPassportCard";
 
 export default function HomePage() {
   const router = useRouter();
@@ -67,7 +71,7 @@ export default function HomePage() {
       (b) =>
         b.name.toLowerCase().includes(query) ||
         b.address.toLowerCase().includes(query) ||
-        b.title.toLowerCase().includes(query)
+        b.badge.toLowerCase().includes(query)
     );
 
     if (brokerFound) {
@@ -115,73 +119,72 @@ export default function HomePage() {
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-10 pb-20">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-12 pb-24">
       
       {/* =========================================================================
-          HERO: TRUNG TÂM TRA CỨU TÍN NHIỆM & PHÒNG CHỐNG GIAN LẬN
+          PILLAR 1: INTERACTIVE ESCROW SIMULATION HERO (V2)
           ========================================================================= */}
-      <section className="text-center space-y-4 pt-2">
-        
-        {/* Network Eyebrow Badge */}
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs font-medium text-slate-300">
-          <AvalancheIcon className="w-3.5 h-3.5" />
-          <span>Avalanche Custom L1 Subnet</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-emerald-400 font-semibold">Miễn Phí 0đ Gas</span>
-        </div>
+      <EscrowSimulationHero />
 
-        {/* Clean, Professional Title (Not screaming 5xl/6xl) */}
-        <div className="space-y-2 max-w-2xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+      {/* =========================================================================
+          PILLAR 2: ON-CHAIN SCAM RADAR & SECURITY LOOKUP
+          ========================================================================= */}
+      <section className="space-y-6 pt-4">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+            <Layers className="w-3.5 h-3.5" />
+            <span>Avalanche Custom L1 • Miễn Phí 0đ Gas</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Tra Cứu Gian Lận & Xác Thực Tín Nhiệm On-Chain
-          </h1>
+          </h2>
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-normal">
-            Cơ sở dữ liệu phòng chống lừa đảo P2P phi tập trung trên Avalanche. Kiểm tra tức thời số tài khoản ngân hàng, số điện thoại hoặc địa chỉ ví trước khi giao dịch.
+            Kiểm tra ngay số tài khoản ngân hàng, số điện thoại hoặc địa chỉ ví trước khi giao dịch P2P.
           </p>
         </div>
 
-        {/* Professional Search Input Box */}
-        <div className="max-w-2xl mx-auto space-y-2.5 pt-2">
+        {/* Search Bar Input */}
+        <div className="max-w-2xl mx-auto space-y-2.5">
           <form onSubmit={handleSearch} className="relative">
-            <div className="relative rounded-xl bg-[#0f131c] border border-slate-700/70 focus-within:border-blue-500/80 shadow-md p-1.5 flex items-center transition-colors">
-              <Search className="w-4 h-4 text-slate-400 ml-2.5 shrink-0" />
+            <div className="relative rounded-2xl bg-[#0f131c] border border-slate-700/80 focus-within:border-blue-500/80 shadow-md p-1.5 flex items-center transition-colors">
+              <Search className="w-4 h-4 text-slate-400 ml-3 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Nhập số tài khoản ngân hàng (vd: 1903889922101), số điện thoại hoặc địa chỉ ví..."
-                className="w-full bg-transparent px-3 py-1.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none"
+                placeholder="Nhập STK ngân hàng (vd: 1903889922101), SĐT hoặc địa chỉ ví..."
+                className="w-full bg-transparent px-3 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none"
               />
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm transition-colors shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm transition-colors shrink-0"
               >
                 Tra Cứu
               </button>
             </div>
           </form>
 
-          {/* Clean Quick Preset Pills */}
+          {/* Quick preset chips */}
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-            <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-2">
               <span className="text-slate-500 text-[11px]">Thử nhanh:</span>
               <button
                 onClick={() => {
                   setSearchQuery("1903889922101");
                   setTimeout(() => handleSearch(), 50);
                 }}
-                className="px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-300 font-mono text-[11px] transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-300 font-mono text-[11px] transition-colors"
               >
                 STK: 1903889922101
               </button>
               <button
                 onClick={() => {
-                  setSearchQuery("Nguyễn Nam");
+                  setSearchQuery("0x30F1492bC78E12a899Ad34De91eF11B12E7a889A");
                   setTimeout(() => handleSearch(), 50);
                 }}
-                className="px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-emerald-400 text-[11px] font-medium transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-emerald-400 font-mono text-[11px] transition-colors"
               >
-                Thương nhân: Nguyễn Nam
+                Ví GDTG: 0x30F...889A
               </button>
             </div>
 
@@ -196,7 +199,7 @@ export default function HomePage() {
         </div>
 
         {reportSuccessNotice && (
-          <div className="max-w-2xl mx-auto p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2">
+          <div className="max-w-2xl mx-auto p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{reportSuccessNotice}</span>
           </div>
@@ -206,12 +209,12 @@ export default function HomePage() {
         {searchResult && (
           <div className="max-w-2xl mx-auto text-left pt-2">
             {searchResult.type === "SCAM" && (
-              <div className="p-5 rounded-xl bg-rose-950/20 border border-rose-500/40 shadow-md space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="w-9 h-9 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+              <div className="p-5 rounded-2xl bg-rose-950/20 border border-rose-500/40 shadow-md space-y-3">
+                <div className="flex items-start space-x-3.5">
+                  <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
                     <AlertOctagon className="w-5 h-5" />
                   </div>
-                  <div className="space-y-1 flex-1">
+                  <div className="space-y-1.5 flex-1">
                     <div className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-rose-500/15 text-rose-400 text-[10px] font-semibold uppercase font-mono">
                       <span>Đã Xác Thực On-Chain (Subnet L1)</span>
                     </div>
@@ -232,33 +235,26 @@ export default function HomePage() {
             )}
 
             {searchResult.type === "VERIFIED_BROKER" && (
-              <div className="p-5 rounded-xl bg-slate-900 border border-emerald-500/40 shadow-md space-y-3">
+              <div className="p-5 rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-md space-y-3">
                 <div className="flex items-start space-x-3.5">
-                  <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-emerald-500/30 shrink-0">
-                    <Image
-                      src={searchResult.details?.avatar || "/images/avatar-nam.jpg"}
-                      alt={searchResult.identifier}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                  <Identicon address={searchResult.details?.address || "0x00"} size={44} rankBadge="Verified" />
                   <div className="space-y-1 flex-1">
                     <div className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-semibold font-mono">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>Soulbound Token (ERC-721 Bất Biến)</span>
                     </div>
                     <h3 className="text-sm font-bold text-white">{searchResult.identifier}</h3>
-                    <div className="text-xs text-slate-400">{searchResult.details?.title}</div>
-                    <p className="text-xs text-slate-300 leading-relaxed pt-0.5">{searchResult.description}</p>
-                    
-                    <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs">
-                      <span className="text-emerald-400 font-mono font-medium">Cọc Aave: {searchResult.details?.stakedAmount?.toLocaleString()} USDC</span>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {searchResult.description}
+                    </p>
+                    <div className="pt-2 flex items-center justify-between">
+                      <AddressCopy address={searchResult.details?.address} />
                       <Link
                         href={`/create?broker=${searchResult.details?.id}`}
-                        className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center space-x-1"
+                        className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-colors"
                       >
-                        <span>Ủy Thác Ký Quỹ</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <span>Ủy Thác Giám Định</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>
@@ -267,224 +263,174 @@ export default function HomePage() {
             )}
 
             {searchResult.type === "CLEAN" && (
-              <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-md space-y-2">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <h3 className="text-xs font-semibold text-white">{searchResult.title}</h3>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">{searchResult.description}</p>
-                <div className="pt-1">
-                  <Link
-                    href="/create"
-                    className="inline-flex items-center space-x-1 text-xs text-blue-400 hover:underline font-medium"
-                  >
-                    <span>Mở Hợp Đồng Ký Quỹ Ba Bên Để Bảo Vệ Tiền</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </Link>
+              <div className="p-5 rounded-2xl bg-slate-900 border border-slate-700 shadow-md space-y-2">
+                <div className="flex items-start space-x-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <h3 className="text-sm font-bold text-white">{searchResult.title}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                      {searchResult.description}
+                    </p>
+                    <div className="pt-2">
+                      <Link
+                        href="/create"
+                        className="inline-flex items-center space-x-1.5 text-xs text-blue-400 hover:text-blue-300 font-medium"
+                      >
+                        <span>Tạo phòng ký quỹ ba bên ngay</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         )}
-
       </section>
 
       {/* =========================================================================
-          SỔ ĐEN GIAN LẬN ON-CHAIN (RECENT BLACKLIST RECORDS)
+          PILLAR 3: VERIFIED BROKER GUILD (Web3 Identicons & On-chain Staking)
           ========================================================================= */}
-      <section className="space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-slate-800">
+      <section className="space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
-            <h2 className="text-base font-semibold text-white flex items-center space-x-2">
-              <ShieldAlert className="w-4 h-4 text-slate-400" />
-              <span>Sổ Đen Gian Lận Được Ghi Nhận On-Chain</span>
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Hợp đồng <code>ScamRegistryL1.sol</code> trên Avalanche Custom L1.
-            </p>
-          </div>
-
-          {/* Filter Pills */}
-          <div className="flex items-center space-x-1.5 text-xs">
-            {[
-              { id: "ALL", label: "Tất Cả" },
-              { id: "BANK_ACCOUNT", label: "STK Ngân Hàng" },
-              { id: "PHONE", label: "Số Điện Thoại" },
-              { id: "WALLET", label: "Địa Chỉ Ví" },
-            ].map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setActiveFilter(f.id as any)}
-                className={`px-2.5 py-1 rounded-lg text-xs transition-colors ${
-                  activeFilter === f.id
-                    ? "bg-slate-800 text-white font-medium border border-slate-700"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Clean Data Table */}
-        <div className="rounded-xl bg-[#0f131c] border border-slate-800 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-800/80 text-[11px] text-slate-400 font-medium uppercase font-mono">
-                  <th className="py-2.5 px-3">Đối Tượng</th>
-                  <th className="py-2.5 px-3">Hành Vi & Thủ Đoạn</th>
-                  <th className="py-2.5 px-3">Bằng Chứng IPFS</th>
-                  <th className="py-2.5 px-3 text-right">Trạng Thái</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/50">
-                {filteredScamList.map((r, i) => (
-                  <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      <div className="font-mono font-medium text-slate-200">{r.identifier}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{r.type}</div>
-                    </td>
-                    <td className="py-3 px-3 max-w-sm">
-                      <p className="text-slate-300 text-xs leading-relaxed">{r.victimNote}</p>
-                    </td>
-                    <td className="py-3 px-3 font-mono text-[11px] whitespace-nowrap">
-                      <span className="text-slate-400 flex items-center space-x-1">
-                        <FileText className="w-3.5 h-3.5 text-slate-500" />
-                        <span className="truncate max-w-[140px]">{r.evidenceIPFS}</span>
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right whitespace-nowrap">
-                      <div className="text-[10px] text-slate-500 font-mono">{r.timestamp}</div>
-                      <span className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px] font-mono mt-0.5">
-                        <Check className="w-3 h-3 text-emerald-400" />
-                        <span>Đã xác thực</span>
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          HỘI ĐỒNG THƯƠNG NHÂN UY TÍN (CỌC BẢO CHỨNG AAVE V3)
-          ========================================================================= */}
-      <section className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-slate-800">
-          <div>
-            <h2 className="text-base font-semibold text-white flex items-center space-x-2">
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Thương Nhân Trung Gian Đạt Chuẩn Tín Nhiệm (Cọc Aave V3)</span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Được bảo chứng bởi Soulbound Token và tài sản đảm bảo ký thác trong Aave V3.
+              Được bảo chứng bởi Soulbound Token và tài sản cọc bảo hiểm điều phối vào Aave V3.
             </p>
           </div>
           <Link
             href="/broker"
-            className="text-xs text-slate-400 hover:text-white flex items-center space-x-1 transition-colors"
+            className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center space-x-1 transition-colors self-start sm:self-auto"
           >
             <span>Quản lý cọc Aave</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 3 Staked Broker Cards using Web3 Identicons */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {brokers.map((broker) => (
             <div
               key={broker.id}
-              className="p-4 rounded-xl bg-[#0f131c] border border-slate-800 hover:border-slate-700 transition-colors flex flex-col justify-between space-y-4"
+              className="rounded-2xl bg-[#0f131c] border border-slate-700/60 p-5 space-y-4 hover:border-slate-600 transition-all shadow-md flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
-                  <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-slate-700 shrink-0">
-                    <Image
-                      src={broker.avatar || "/images/avatar-nam.jpg"}
-                      alt={broker.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">{broker.name}</h3>
-                    <div className="text-[11px] text-slate-400">{broker.title}</div>
-                    <div className="flex items-center space-x-1 text-amber-400 text-[11px] font-medium mt-0.5">
-                      <Star className="w-3 h-3 fill-amber-400" />
-                      <span>{broker.rating} ({broker.dealsCount} kèo)</span>
+                  <Identicon address={broker.address} size={44} rankBadge={broker.badge} />
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-bold text-white truncate">{broker.name}</h3>
+                    <div className="flex items-center space-x-2 text-xs text-slate-400 mt-0.5">
+                      <span className="text-amber-400 flex items-center font-semibold">
+                        <Star className="w-3 h-3 fill-amber-400 mr-1" />
+                        {broker.rating}
+                      </span>
+                      <span>•</span>
+                      <span className="text-[11px] font-mono text-slate-400">{broker.completedDeals} kèo</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800/80 space-y-1.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[11px]">Tiền cọc Aave:</span>
-                    <span className="font-mono font-medium text-emerald-400">{broker.stakedAmount.toLocaleString()} USDC</span>
+                <div className="space-y-1.5 pt-2 border-t border-slate-800/80 text-xs">
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Tiền cọc Aave:</span>
+                    <span className="font-mono font-semibold text-emerald-400 flex items-center space-x-1">
+                      <AaveIcon className="w-3 h-3" />
+                      <span>{broker.stakedAmount.toLocaleString()} USDC</span>
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[11px]">Hạn mức kèo:</span>
-                    <span className="font-mono font-medium text-slate-200">{broker.maxLimit.toLocaleString()} USDC</span>
+
+                  <div className="flex justify-between items-center text-slate-400">
+                    <span>Hạn mức kèo:</span>
+                    <span className="font-mono font-bold text-white">
+                      {broker.maxLimit.toLocaleString()} USDC
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400 text-[11px]">Chứng chỉ SBT:</span>
-                    <span className="font-mono text-slate-300 text-[11px]">{broker.badge}</span>
+
+                  <div className="pt-1">
+                    <span className="text-[10px] text-amber-300 font-mono block">
+                      {broker.badge}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <Link
-                href={`/create?broker=${broker.id}`}
-                className="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium text-center transition-colors flex items-center justify-center space-x-1"
-              >
-                <span>Ủy Thác Giám Định</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <div className="pt-2">
+                <Link
+                  href={`/create?broker=${broker.id}`}
+                  className="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700/80 text-slate-200 hover:text-white font-medium text-xs flex items-center justify-center space-x-1.5 transition-colors"
+                >
+                  <span>Ủy Thác Giám Định</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       {/* =========================================================================
-          BANNER KÝ QUÝ: CHUYỂN ĐỔI SANG KÝ QUÝ BA BÊN
+          PILLAR 4: SOULBOUND REPUTATION TOKEN SHOWCASE (Pure CSS, No Static JPG)
           ========================================================================= */}
-      <section className="p-5 sm:p-6 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2 text-slate-400 text-xs">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Két Sắt Bảo Lưu Tiền Ba Bên (UniversalEscrow.sol)</span>
-          </div>
-          <h2 className="text-base sm:text-lg font-semibold text-white">
-            Chuẩn Bị Giao Dịch? Sử Dụng Phòng Ký Quỹ Ba Bên
+      <section className="space-y-5">
+        <div className="border-b border-slate-800 pb-3">
+          <h2 className="text-base sm:text-lg font-bold text-white flex items-center space-x-2">
+            <Award className="w-4 h-4 text-amber-400" />
+            <span>Hệ Thống Tín Nhiệm Bất Biến TrustPassport (SBT)</span>
           </h2>
-          <p className="text-xs text-slate-400 max-w-xl font-normal">
-            Khóa tiền vào Smart Contract, bên bán giao hàng, trung gian kiểm định và giải ngân tức thời 0.8s.
+          <p className="text-xs text-slate-400 mt-0.5">
+            Mỗi bên trung gian được cấp Soulbound Token (ERC-721 không thể chuyển nhượng) lưu trữ điểm tín nhiệm, tiền cọc và lịch sử giao dịch on-chain.
           </p>
         </div>
 
-        <Link
-          href="/create"
-          className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shrink-0 flex items-center space-x-1.5 transition-colors shadow-sm"
-        >
-          <Lock className="w-3.5 h-3.5" />
-          <span>Tạo Hợp Đồng Ký Quỹ</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <TrustPassportCard
+            name="Nguyễn Nam (Giám Định Tài Sản Số)"
+            address="0x30F1492bC78E12a899Ad34De91eF11B12E7a889A"
+            tokenId="889A"
+            tierTitle="Master Auditor (Cấp 4)"
+            score={99}
+            dealsCount={128}
+            successRate={100}
+            stakedAmount={5000}
+          />
+
+          <div className="space-y-3.5 text-xs text-slate-300 leading-relaxed p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60">
+            <h3 className="text-sm font-bold text-white">Tại sao Soulbound Token loại bỏ gian lận?</h3>
+            <ul className="space-y-2.5">
+              <li className="flex items-start space-x-2">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Không thể mua bán hay chuyển nhượng:</strong> Huy hiệu gắn chặt vĩnh viễn với địa chỉ ví của thương nhân qua chuẩn ERC-721 Soulbound.</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Cơ chế Chém Cọc (Slashing) tức thì:</strong> Nếu có hành vi cấu kết chiếm đoạt, hợp đồng UniversalEscrow tự động kích hoạt lệnh bồi hoàn 100% cho Bên Mua từ cọc Aave của GDTG.</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span><strong>Chấm điểm & Tip trực tiếp on-chain:</strong> Người dùng sau khi nhận hàng có thể đánh giá số sao và gửi khoản tip USDC khích lệ trực tiếp vào SBT của Broker.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* =========================================================================
-          MODAL: BÁO CÁO VI PHẠM SCAM ON-CHAIN
+          REPORT SCAM MODAL (0đ GAS AVALANCHE CUSTOM L1)
           ========================================================================= */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="relative w-full max-w-md p-6 rounded-2xl bg-[#0f131c] border border-slate-700 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
-              <div className="flex items-center space-x-2 text-slate-200">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative bg-[#0f131c] border border-slate-700">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
                 <ShieldAlert className="w-4 h-4 text-rose-400" />
-                <h3 className="font-semibold text-white text-sm">Gửi Báo Cáo Gian Lận On-Chain</h3>
-              </div>
+                <span>Gửi Báo Cáo Vi Phạm (0đ Gas On-Chain)</span>
+              </h2>
               <button
                 onClick={() => setShowReportModal(false)}
                 className="text-slate-400 hover:text-white"
@@ -493,90 +439,80 @@ export default function HomePage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateReport} className="space-y-3">
+            <form onSubmit={handleCreateReport} className="space-y-3.5 text-xs">
               <div>
-                <label className="text-[11px] font-medium text-slate-400 block mb-1">
-                  Phân loại đối tượng:
-                </label>
+                <label className="text-slate-300 font-medium block mb-1">Loại Định Danh:</label>
                 <select
                   value={reportIdType}
-                  onChange={(e) => setReportIdType(e.target.value as any)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                  onChange={(e) => setReportIdType(e.target.value as "PHONE" | "BANK_ACCOUNT" | "WALLET")}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                 >
-                  <option value="BANK_ACCOUNT">Số tài khoản ngân hàng</option>
-                  <option value="PHONE">Số điện thoại / Telegram</option>
-                  <option value="WALLET">Địa chỉ ví Web3</option>
+                  <option value="BANK_ACCOUNT">Số Tài Khoản Ngân Hàng</option>
+                  <option value="PHONE">Số Điện Thoại / Ứng Dụng OTT</option>
+                  <option value="WALLET">Địa Chỉ Ví Tiền Mã Hóa</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-[11px] font-medium text-slate-400 block mb-1">
-                  Thông tin đối tượng:
+                <label className="text-slate-300 font-medium block mb-1">
+                  Định danh đối tượng nghi vấn (STK / SĐT / Ví):
                 </label>
                 <input
                   type="text"
                   value={reportIdentifier}
                   onChange={(e) => setReportIdentifier(e.target.value)}
-                  placeholder="Ví dụ: 1903889922101 Techcombank..."
+                  placeholder="Ví dụ: 1903889922101 hoặc 0909999888..."
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500"
                   required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-medium text-slate-400 block mb-1">
-                  Mô tả thủ đoạn:
+                <label className="text-slate-300 font-medium block mb-1">
+                  Mô tả chi tiết hành vi gian lận:
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={reportNote}
                   onChange={(e) => setReportNote(e.target.value)}
-                  placeholder="Mô tả cụ thể hành vi vi phạm..."
+                  placeholder="Mô tả thủ đoạn: Fake bill ngân hàng, nhận cọc rồi chặn liên lạc..."
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-blue-500 resize-none"
                   required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 resize-none"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-medium text-slate-400 block mb-1">
-                  Liên kết bằng chứng IPFS:
+                <label className="text-slate-300 font-medium block mb-1">
+                  Mã băm chứng cứ IPFS (Tùy chọn):
                 </label>
                 <input
                   type="text"
                   value={reportIPFS}
                   onChange={(e) => setReportIPFS(e.target.value)}
-                  placeholder="ipfs://QmXoypizjW... (để trống nếu mặc định)"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                  placeholder="ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-[11px] focus:outline-none focus:border-blue-500"
                 />
               </div>
 
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition-colors shadow-sm"
-              >
-                Ghi Nhận Vào Sổ Đen On-Chain (0đ Gas)
-              </button>
+              <div className="pt-2 flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition-colors"
+                >
+                  Hủy Bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs transition-colors"
+                >
+                  Lưu Trữ On-Chain (0đ Gas)
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <div className="flex items-center space-x-2">
-          <span className="font-medium text-slate-300">TrustPact (UyTinNet) v2.4</span>
-          <span>—</span>
-          <span>Avalanche Custom L1 Subnet & Fuji C-Chain</span>
-        </div>
-        <div className="font-mono text-[11px] text-slate-500 flex items-center space-x-3">
-          <span>Subnet Gas: 0đ</span>
-          <span>•</span>
-          <span>Aave V3 Lending Pool</span>
-          <span>•</span>
-          <span className="text-emerald-400">Snowman 0.8s</span>
-        </div>
-      </footer>
-
     </div>
   );
 }

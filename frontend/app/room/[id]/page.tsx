@@ -5,15 +5,21 @@ import { useParams } from "next/navigation";
 import { 
   CheckCircle2, Send, Star, RefreshCw, Copy, Check, 
   Lock, AlertTriangle, Image as ImageIcon, 
-  Clock, Zap, Sparkles, X
+  Clock, Zap, Sparkles, X, ShieldCheck, FileCheck, ExternalLink
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import confetti from "canvas-confetti";
 import { useStore } from "../../../lib/store";
+import { Identicon } from "../../../components/Identicon";
+import { AddressCopy } from "../../../components/AddressCopy";
+import { StatusBadge } from "../../../components/StatusBadge";
+import { StepProgress } from "../../../components/StepProgress";
+import { LiveYieldCounter } from "../../../components/LiveYieldCounter";
 
 export default function DealRoomPage() {
   const params = useParams();
-  const dealId = (params?.id as string) || "101";
+  const rawId = (params?.id as string) || "101";
+  const dealId = rawId === "1" ? "101" : rawId;
 
   const { 
     role, getDeal, getMessagesForDeal, 
@@ -70,11 +76,10 @@ export default function DealRoomPage() {
     setInputMessage("");
   };
 
-  const handleSendSampleImage = () => {
+  const handleSendSampleEvidence = () => {
     sendMessage(
       dealId,
-      "Đã tải lên chứng từ bàn giao tài sản & biên bản xác minh quyền sở hữu hợp lệ.",
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60"
+      "Đã gửi mã băm IPFS: ipfs://QmZtMD2qtWBS7Y6Yv4zF8... Biên bản kiểm định quyền sở hữu tài sản hợp lệ."
     );
   };
 
@@ -109,94 +114,81 @@ export default function DealRoomPage() {
     });
   };
 
+  // Determine active step for Stepper (1 to 4)
+  const activeStep: 1 | 2 | 3 | 4 = 
+    currentDeal.status === "COMPLETED" || currentDeal.status === "CANCELLED"
+      ? 4
+      : currentDeal.deliveryConfirmed
+      ? 3
+      : 2;
+
   // Dynamic QR Code data for Avalanche Core Wallet
   const qrData = `ethereum:0x51E2b1239c09d57aC7bAfF094553b6A1B022B854@43113?uint256=${currentDeal.amount}e6`;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-20 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-24 space-y-6">
       
-      {/* Deal Room Header Bar */}
+      {/* =========================================================================
+          HEADER BAR: DEAL INFO & SHARE LINK
+          ========================================================================= */}
       <div className="p-5 sm:p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-blue-600/15 border border-blue-500/30 text-blue-400">
+            <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded-md bg-blue-600/15 border border-blue-500/30 text-blue-400">
               HỢP ĐỒNG #{currentDeal.id}
             </span>
-            <span className="text-base sm:text-lg font-bold text-white tracking-tight">
+            <span className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
               {currentDeal.title}
             </span>
-            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
-              currentDeal.status === "COMPLETED"
-                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                : currentDeal.status === "CANCELLED"
-                ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
-                : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-            }`}>
-              {currentDeal.status === "COMPLETED" 
-                ? "✓ ĐÃ THANH TOÁN HOÀN TẤT" 
-                : currentDeal.status === "CANCELLED" 
-                ? "✕ ĐÃ HOÀN TRẢ QUỸ" 
-                : "🔒 NGUỒN QUỸ ĐƯỢC PHONG TỎA"}
-            </span>
+            <StatusBadge status={currentDeal.status} />
           </div>
+
           <div className="text-xs text-slate-400 flex flex-wrap items-center gap-2.5 font-normal">
             <span>Danh mục: <strong className="text-slate-200">{currentDeal.category}</strong></span>
             <span>•</span>
             <span>Trung gian giám sát: <strong className="text-amber-400 font-medium">{currentDeal.brokerName}</strong></span>
             <span>•</span>
-            <span>Thời điểm: <strong className="text-slate-300 font-mono">{currentDeal.createdAt}</strong></span>
+            <span>Khởi tạo: <strong className="text-slate-300 font-mono">{currentDeal.createdAt}</strong></span>
           </div>
         </div>
 
         {/* Share Room Button */}
-        <div className="flex items-center space-x-2 w-full md:w-auto">
+        <div className="flex items-center space-x-2 w-full md:w-auto shrink-0">
           <button
             onClick={handleCopyLink}
-            className="w-full md:w-auto inline-flex items-center justify-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-xs text-slate-200 font-medium transition-colors"
+            className="w-full md:w-auto inline-flex items-center justify-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-xs text-slate-200 font-medium transition-colors"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copied ? "Đã Sao Chép Liên Kết" : "Sao Chép Liên Kết Phòng Đối Soát"}</span>
+            <span>{copied ? "Đã Sao Chép Liên Kết" : "Sao Chép Liên Kết Phòng"}</span>
           </button>
         </div>
       </div>
 
-      {/* 4-Step Milestone Progress Bar */}
-      <div className="p-4 rounded-xl bg-[#0f131c] border border-slate-700/60">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-medium">
-          <div className="flex items-center space-x-2 text-emerald-400">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>1. Nguồn Quỹ Phong Tỏa</span>
-          </div>
-          <div className={`flex items-center space-x-2 ${
-            currentDeal.status === "COMPLETED" || currentDeal.deliveryConfirmed ? "text-emerald-400" : "text-amber-400"
-          }`}>
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>2. Bàn Giao & Đối Soát</span>
-          </div>
-          <div className={`flex items-center space-x-2 ${
-            currentDeal.status === "COMPLETED" ? "text-emerald-400" : "text-slate-500"
-          }`}>
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>3. Giám Định Xác Nhận</span>
-          </div>
-          <div className={`flex items-center space-x-2 ${
-            currentDeal.status === "COMPLETED" ? "text-emerald-400" : "text-slate-600"
-          }`}>
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>4. Quyết Toán Tức Thời (0.8s)</span>
-          </div>
-        </div>
-      </div>
+      {/* =========================================================================
+          HORIZONTAL STEPPER (1. Created -> 2. Funded & Yield -> 3. Delivered -> 4. Settled)
+          ========================================================================= */}
+      <StepProgress currentStep={activeStep} status={currentDeal.status} />
 
-      {/* 3-Column Work Area */}
+      {/* =========================================================================
+          3-COLUMN WORK TERMINAL
+          ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left Column: Escrow Vault & Core QR (4 cols) */}
+        {/* =========================================================================
+            LEFT COLUMN: ESCROW VAULT, LIVE AAVE YIELD COUNTER & CORE QR (4 Cols)
+            ========================================================================= */}
         <div className="lg:col-span-4 space-y-5">
           
+          {/* Real-time Aave Yield Ticker Component (The "Showstopper") */}
+          <LiveYieldCounter
+            principalAmount={currentDeal.amount}
+            apy={5.2}
+            baseYield={0.0428}
+          />
+
           {/* Vault Balance Card */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-5">
-            <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+          <div className="p-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center space-x-2 text-xs font-bold text-white uppercase tracking-wider">
                 <Lock className="w-4 h-4 text-emerald-400" />
                 <span>Kho Ký Quỹ Thông Minh</span>
@@ -207,57 +199,55 @@ export default function DealRoomPage() {
             </div>
 
             <div className="bg-slate-900/90 rounded-xl p-4 text-center border border-slate-800 space-y-1">
-              <span className="text-xs text-slate-400 block font-normal">Giá Trị Ký Quỹ Đang Được Bảo Chứng</span>
+              <span className="text-xs text-slate-400 block font-normal">Giá Trị Ký Quỹ Được Bảo Chứng</span>
               <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 tracking-tight">
                 {currentDeal.amount.toLocaleString()} USDC
               </div>
-              <span className="text-xs text-slate-400 block font-mono">
-                (~{(currentDeal.amount * 25400).toLocaleString()} VNĐ tương đương)
+              <span className="text-xs text-slate-500 block font-mono">
+                (~{(currentDeal.amount * 25400).toLocaleString()} VNĐ quy đổi)
               </span>
             </div>
 
-            {/* Avalanche Core QR Code */}
-            <div className="space-y-2.5 pt-1 text-center">
-              <span className="text-xs text-slate-300 block font-medium">
-                Quét Mã Qua Ví Avalanche Core / EIP-681:
-              </span>
-              <div className="inline-block p-3 bg-white rounded-xl shadow-md">
-                <QRCodeSVG value={qrData} size={135} level="M" />
-              </div>
-              <span className="text-[11px] text-slate-400 block">
-                Quyết toán dưới 1 giây qua cơ chế đồng thuận Avalanche Snowman
-              </span>
-            </div>
-
-            {/* Participants Info */}
-            <div className="space-y-2.5 pt-3 border-t border-slate-800 text-xs">
+            {/* Participants Info with AddressCopy & Identicon */}
+            <div className="space-y-2.5 pt-2 text-xs border-t border-slate-800">
               <div className="flex justify-between items-center text-slate-400">
-                <span>Bên Mua (Người đặt cọc):</span>
-                <span className="font-mono text-white text-xs font-medium">
-                  {currentDeal.buyerAddress.slice(0, 6)}...{currentDeal.buyerAddress.slice(-4)}
-                </span>
+                <span>Bên Mua (Người nạp):</span>
+                <AddressCopy address={currentDeal.buyerAddress} truncateLength={4} showExplorerLink={false} />
               </div>
               <div className="flex justify-between items-center text-slate-400">
-                <span>Bên Bán (Người thụ hưởng):</span>
-                <span className="font-mono text-white text-xs font-medium">
-                  {currentDeal.sellerAddress.slice(0, 6)}...{currentDeal.sellerAddress.slice(-4)}
-                </span>
+                <span>Bên Bán (Thụ hưởng):</span>
+                <AddressCopy address={currentDeal.sellerAddress} truncateLength={4} showExplorerLink={false} />
               </div>
               <div className="flex justify-between items-center text-slate-400">
-                <span>Trung gian giám định:</span>
-                <span className="font-medium text-amber-400 text-xs">
+                <span>Thương nhân giám định:</span>
+                <span className="font-semibold text-amber-400 text-xs">
                   {currentDeal.brokerName}
                 </span>
               </div>
             </div>
+
+            {/* Avalanche Core QR Code */}
+            <div className="space-y-2 pt-3 border-t border-slate-800 text-center">
+              <span className="text-xs text-slate-300 block font-medium">
+                Quét Mã Thanh Toán Ví Avalanche Core:
+              </span>
+              <div className="inline-block p-2.5 bg-white rounded-xl shadow-md">
+                <QRCodeSVG value={qrData} size={125} level="M" />
+              </div>
+              <span className="text-[11px] text-slate-400 block font-mono">
+                Finality 0.8s • Gas &lt; $0.01
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Middle Column: 3-Party Chat & Evidence (5 cols) */}
-        <div className="lg:col-span-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 flex flex-col h-[620px] overflow-hidden shadow-md">
+        {/* =========================================================================
+            MIDDLE COLUMN: 3-PARTY CHAT & CRYPTOGRAPHIC EVIDENCE TERMINAL (5 Cols)
+            ========================================================================= */}
+        <div className="lg:col-span-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 flex flex-col h-[640px] overflow-hidden shadow-md">
           
           {/* Chat Header */}
-          <div className="px-5 py-3.5 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
+          <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -269,7 +259,7 @@ export default function DealRoomPage() {
           </div>
 
           {/* Chat Messages Body */}
-          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3.5">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((m) => {
               const isSys = m.sender === "system";
               const isBroker = m.sender === "broker";
@@ -337,15 +327,15 @@ export default function DealRoomPage() {
               Đang thao tác: <strong className="text-white font-medium">{role === "buyer" ? "Bên Mua (Minh)" : role === "seller" ? "Bên Bán (Hùng)" : "Trung Gian (Nam)"}</strong>
             </span>
             <button
-              onClick={handleSendSampleImage}
+              onClick={handleSendSampleEvidence}
               className="text-slate-300 hover:text-white flex items-center space-x-1 font-medium transition-colors text-[11px]"
             >
-              <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
-              <span>Đính Kèm Chứng Từ Bàn Giao</span>
+              <FileCheck className="w-3.5 h-3.5 text-blue-400" />
+              <span>Gửi Chứng Từ IPFS</span>
             </button>
           </div>
 
-          {/* Chat Input */}
+          {/* Chat Input Form */}
           <form onSubmit={handleSendMessage} className="p-3 bg-slate-950 border-t border-slate-800 flex items-center space-x-2">
             <input
               type="text"
@@ -363,11 +353,14 @@ export default function DealRoomPage() {
           </form>
         </div>
 
-        {/* Right Column: Role-Based Action Panel (3 cols) */}
+        {/* =========================================================================
+            RIGHT COLUMN: ROLE-BASED ACTION PANEL & BROKER REPUTATION (3 Cols)
+            ========================================================================= */}
         <div className="lg:col-span-3 space-y-5">
           
-          <div className="p-5 sm:p-6 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-4">
-            <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+          {/* Action Box */}
+          <div className="p-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <span className="text-xs font-bold text-white uppercase tracking-wider">
                 Bảng Điều Khiển Nghiệp Vụ
               </span>
@@ -378,9 +371,9 @@ export default function DealRoomPage() {
 
             {/* Actions for GDTG / Broker */}
             {role === "broker" && (
-              <div className="space-y-3.5">
+              <div className="space-y-3">
                 <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                  Quý vị chịu trách nhiệm giám định tính toàn vẹn của hợp đồng. Khi hồ sơ bàn giao đã hợp lệ, vui lòng phê duyệt thực thi:
+                  Quý vị chịu trách nhiệm kiểm định tính toàn vẹn của hợp đồng. Khi hồ sơ bàn giao đã đầy đủ, phê duyệt thực thi:
                 </p>
 
                 {currentDeal.status === "LOCKED" ? (
@@ -411,9 +404,9 @@ export default function DealRoomPage() {
 
             {/* Actions for Buyer */}
             {role === "buyer" && (
-              <div className="space-y-3.5">
+              <div className="space-y-3">
                 <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                  Quý vị là Bên Mua. Vui lòng đối soát và kiểm tra cẩn trọng tính hợp lệ của tài sản trước khi yêu cầu Bên Trung Gian giải ngân.
+                  Quý vị là Bên Mua. Vui lòng đối soát tài sản cẩn trọng trước khi yêu cầu Bên Trung Gian giải ngân.
                 </p>
 
                 {currentDeal.status === "COMPLETED" && (
@@ -422,27 +415,29 @@ export default function DealRoomPage() {
                     className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition-colors flex items-center justify-center space-x-2 shadow-sm"
                   >
                     <Star className="w-3.5 h-3.5 fill-current" />
-                    <span>Đánh Giá Uy Tín & Thưởng Khích Lệ</span>
+                    <span>Đánh Giá Uy Tín & Gửi Tip</span>
                   </button>
                 )}
 
                 {/* Safety Mechanisms */}
-                <div className="pt-3 border-t border-slate-800 space-y-2 text-xs">
-                  <span className="text-slate-400 font-medium block uppercase text-[11px] tracking-wider">Cơ Chế Bảo Vệ Quyền Lợi:</span>
+                <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
+                  <span className="text-slate-400 font-medium block uppercase text-[11px] tracking-wider">
+                    Cơ Chế Bảo Vệ:
+                  </span>
                   
                   <button
-                    onClick={() => alert("Cơ chế Tự động Hoàn tiền Quá hạn (Timeout Auto-Refund): Nếu quá thời hạn 24h quy định mà các bên không có phản hồi đối soát, hợp đồng thông minh cho phép Bên Mua tự động thu hồi 100% nguồn quỹ về ví an toàn.")}
+                    onClick={() => alert("Cơ chế Tự động Hoàn tiền Quá hạn (Timeout Auto-Refund): Nếu quá thời hạn quy định mà các bên không có phản hồi đối soát, hợp đồng thông minh cho phép Bên Mua tự động thu hồi 100% nguồn quỹ về ví an toàn.")}
                     className="w-full text-left p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors flex items-center justify-between border border-slate-800"
                   >
-                    <span>⏰ Tự động thu hồi quỹ khi quá hạn</span>
+                    <span>⏰ Tự động hoàn tiền quá hạn</span>
                     <Clock className="w-3.5 h-3.5 text-slate-500" />
                   </button>
 
                   <button
-                    onClick={() => alert("Cơ chế Xử phạt & Khấu trừ Tài sản Đảm bảo (Economic Slashing): Trong trường hợp phát hiện Bên Trung Gian có dấu hiệu cấu kết gian lận, Hội đồng Giao thức có thẩm quyền kích hoạt lệnh chém cọc bảo chứng Aave V3 của Trung Gian để bồi hoàn 100% thiệt hại cho Bên Mua.")}
+                    onClick={() => alert("Cơ chế Khấu trừ Tài sản Đảm bảo (Economic Slashing): Trong trường hợp phát hiện Bên Trung Gian có dấu hiệu cấu kết gian lận, Hội đồng Giao thức có thẩm quyền kích hoạt lệnh chém cọc bảo chứng Aave V3 của Trung Gian để bồi hoàn 100% thiệt hại cho Bên Mua.")}
                     className="w-full text-left p-2.5 rounded-xl bg-slate-900 hover:bg-rose-950/20 text-slate-300 hover:text-rose-300 transition-colors flex items-center justify-between border border-slate-800"
                   >
-                    <span>🚨 Khiếu nại khấu trừ cọc (Slashing)</span>
+                    <span>🚨 Khiếu nại chém cọc (Slashing)</span>
                     <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
                   </button>
                 </div>
@@ -451,9 +446,9 @@ export default function DealRoomPage() {
 
             {/* Actions for Seller */}
             {role === "seller" && (
-              <div className="space-y-3.5">
+              <div className="space-y-3">
                 <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                  Quý vị là Bên Bán. Nguồn quỹ ký quỹ của Bên Mua đã được Kho Hợp Đồng Thông Minh phong tỏa an toàn. Quý vị có thể yên tâm bàn giao quyền sở hữu tài sản.
+                  Quý vị là Bên Bán. Tiền của Bên Mua đã được Smart Contract phong tỏa an toàn. Quý vị có thể yên tâm bàn giao tài sản.
                 </p>
 
                 <button
@@ -466,28 +461,25 @@ export default function DealRoomPage() {
             )}
           </div>
 
-          {/* Broker Reputation Widget with 3D Avatar */}
+          {/* Broker Reputation Widget with Web3 Identicon */}
           <div className="p-4 sm:p-5 rounded-2xl bg-[#0f131c] border border-slate-700/60 shadow-md space-y-3 text-xs">
             <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider block">
-              Bên Trung Gian Phụ Trách
+              Thương Nhân Bảo Chứng (SBT Verified)
             </span>
             <div className="flex items-center space-x-3">
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-slate-700 shadow-sm shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={dealBroker.avatar} alt={dealBroker.name} className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <span className="font-bold text-white block text-xs sm:text-sm">{dealBroker.name}</span>
-                <span className="text-[11px] text-amber-400 font-medium">{dealBroker.badge}</span>
+              <Identicon address={dealBroker.address} size={42} rankBadge={dealBroker.badge} />
+              <div className="min-w-0 flex-1">
+                <span className="font-bold text-white block text-xs sm:text-sm truncate">{dealBroker.name}</span>
+                <span className="text-[11px] text-amber-400 font-medium block truncate">{dealBroker.badge}</span>
               </div>
             </div>
-            <div className="pt-2.5 border-t border-slate-800 grid grid-cols-2 gap-2 text-xs">
+            <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-slate-500 block text-[11px]">Bảo chứng Aave V3:</span>
+                <span className="text-slate-500 block text-[11px]">Cọc Aave V3:</span>
                 <strong className="text-emerald-400 font-mono">{dealBroker.stakedAmount.toLocaleString()} USDC</strong>
               </div>
               <div>
-                <span className="text-slate-500 block text-[11px]">Chỉ số tín nhiệm:</span>
+                <span className="text-slate-500 block text-[11px]">Tín nhiệm:</span>
                 <strong className="text-amber-400 flex items-center font-medium">
                   <Star className="w-3 h-3 fill-amber-400 mr-1" />
                   {dealBroker.rating} ({dealBroker.completedDeals} kèo)
@@ -495,13 +487,17 @@ export default function DealRoomPage() {
               </div>
             </div>
           </div>
+
         </div>
+
       </div>
 
-      {/* Rating & Tip Modal */}
+      {/* =========================================================================
+          RATING & TIP MODAL (ON-CHAIN TRUSTPASSPORT RECORDING)
+          ========================================================================= */}
       {ratingModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="rounded-2xl max-w-md w-full p-6 sm:p-7 space-y-5 shadow-2xl relative bg-[#0f131c] border border-slate-700">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative bg-[#0f131c] border border-slate-700">
             <button
               onClick={() => setRatingModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-white"
@@ -509,23 +505,22 @@ export default function DealRoomPage() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1.5">
               <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h2 className="text-lg font-bold text-white tracking-tight">
-                Đánh Giá Tín Nhiệm & Thưởng Khích Lệ
+              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                Đánh Giá Tín Nhiệm & Gửi Tiền Thưởng (Tip)
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                Giao dịch đã quyết toán thành công! Kính mời quý vị ghi nhận chỉ số tín nhiệm và gửi khoản thưởng khích lệ on-chain đến Soulbound Token (SBT) của <strong>{currentDeal.brokerName}</strong>.
+                Giao dịch đã giải ngân thành công! Kính mời quý vị ghi nhận đánh giá tín nhiệm on-chain vào Soulbound Token của <strong>{currentDeal.brokerName}</strong>.
               </p>
             </div>
 
-            <form onSubmit={onSubmitRating} className="space-y-4">
-              
+            <form onSubmit={onSubmitRating} className="space-y-4 pt-1">
               {/* Star Rating Select */}
-              <div className="text-center space-y-2">
-                <span className="text-xs font-medium text-slate-300 block">Mức độ hài lòng & tín nhiệm:</span>
+              <div className="text-center space-y-1.5">
+                <span className="text-xs font-medium text-slate-300 block">Mức độ hài lòng & uy tín:</span>
                 <div className="flex justify-center space-x-2">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
@@ -549,7 +544,7 @@ export default function DealRoomPage() {
 
               {/* Tip Amount Quick Select */}
               <div className="space-y-1.5">
-                <span className="text-xs font-medium text-slate-300 block">Thưởng khích lệ chất lượng dịch vụ (USDC):</span>
+                <span className="text-xs font-medium text-slate-300 block">Gửi tiền tip khích lệ (USDC):</span>
                 <div className="grid grid-cols-4 gap-2">
                   {["1", "2", "5", "10"].map((t) => (
                     <button
@@ -579,6 +574,7 @@ export default function DealRoomPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
