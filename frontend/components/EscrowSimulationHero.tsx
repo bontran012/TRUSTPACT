@@ -69,7 +69,7 @@ export function EscrowSimulationHero() {
               className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.12] text-white font-semibold text-xs sm:text-sm transition-all"
             >
               <Zap className="w-4 h-4 text-amber-400" />
-              <span>Vào Phòng Đối Soát #101</span>
+              <span>Phòng Giao Dịch #101</span>
             </Link>
             <Link
               href="/radar"
@@ -106,7 +106,7 @@ export function EscrowSimulationHero() {
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-                  Mô Phỏng Luồng Ký Quỹ (UniversalEscrow.sol)
+                  Luồng Ký Quỹ Ba Bên (UniversalEscrow.sol)
                 </span>
               </div>
               <div className="flex items-center space-x-1.5">
