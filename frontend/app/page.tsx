@@ -2,720 +2,762 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import {
   Search,
   ShieldAlert,
   ShieldCheck,
-  Star,
-  ArrowRight,
-  CheckCircle2,
   PlusCircle,
-  X,
   AlertOctagon,
-  Award,
-  Lock,
-  ChevronRight,
-  Activity,
-  Radar,
+  FileText,
   ExternalLink,
-  Coins,
+  Lock,
+  Copy,
+  Check,
+  Award,
+  Terminal,
+  Activity,
+  ChevronRight,
   TrendingUp,
 } from "lucide-react";
-import { AaveIcon, AvalancheIcon, UsdcIcon } from "../components/CryptoIcons";
-import { useStore } from "../lib/store";
-import { Identicon } from "../components/Identicon";
-import { StatusBadge } from "../components/StatusBadge";
-import { TrustPassportCard } from "../components/TrustPassportCard";
+import {
+  CONTRACT_ADDRESSES,
+  SCAM_REGISTRY_L1_ABI,
+  TRUST_PASSPORT_SBT_ABI,
+  STAKED_BROKER_REGISTRY_ABI,
+  UNIVERSAL_ESCROW_ABI,
+  formatUsdc,
+  shortenAddress,
+  parseContractError,
+} from "@/src/lib/contracts";
+import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 
-export default function HomePage() {
-  const { brokers, scamReports, deals, addScamReport } = useStore();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResult, setSearchResult] = useState<null | {
-    type: "SCAM" | "VERIFIED_BROKER" | "CLEAN";
-    identifier: string;
-    title: string;
-    description: string;
-    details?: any;
-  }>(null);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportIdType, setReportIdType] = useState<"PHONE" | "BANK_ACCOUNT" | "WALLET">("BANK_ACCOUNT");
-  const [reportIdentifier, setReportIdentifier] = useState("");
-  const [reportNote, setReportNote] = useState("");
-  const [reportIPFS, setReportIPFS] = useState("");
-  const [reportSuccessNotice, setReportSuccessNotice] = useState<string | null>(null);
+type CategoryKey = "phone" | "bank" | "telegram" | "wallet";
 
-  const runLookup = (rawQuery: string) => {
-    const query = rawQuery.trim().toLowerCase();
-    if (!query) return;
+interface OnChainReport {
+  reporter: `0x${string}`;
+  identifier: string;
+  category: string;
+  evidenceHash: string;
+  description: string;
+  timestamp: bigint;
+  isVerified: boolean;
+}
 
-    const scamFound = scamReports.find(
-      (r) => r.identifier.toLowerCase().includes(query) || query.includes(r.identifier.toLowerCase())
-    );
-    if (scamFound) {
-      setSearchResult({
-        type: "SCAM",
-        identifier: scamFound.identifier,
-        title: "CẢNH BÁO NGUY HIỂM: Đối tượng nằm trong Sổ Đen On-Chain!",
-        description: scamFound.victimNote,
-        details: {
-          idType: scamFound.idType,
-          evidence: scamFound.evidenceIPFS,
-          date: scamFound.timestamp,
-          count: scamFound.reportCount,
-        },
-      });
-      return;
-    }
+export default function ScamRadarAndReputationPage() {
+  const { address } = useAccount();
 
-    const brokerFound = brokers.find(
-      (b) =>
-        b.name.toLowerCase().includes(query) ||
-        b.address.toLowerCase().includes(query) ||
-        b.badge.toLowerCase().includes(query)
-    );
-    if (brokerFound) {
-      setSearchResult({
-        type: "VERIFIED_BROKER",
-        identifier: brokerFound.name,
-        title: "AN TOÀN: Thương Nhân Bảo Chứng Uy Tín (Cọc Aave V3)",
-        description: `Đã ký thác ${brokerFound.stakedAmount.toLocaleString()} USDC vào Lending Pool Aave V3. Hạn mức bảo lãnh tối đa ${brokerFound.maxLimit.toLocaleString()} USDC. Tỷ lệ hoàn thành 100%.`,
-        details: brokerFound,
-      });
-      return;
-    }
+  // ── Protocol Telemetry ───────────────────────────────────────────────
+  const { data: totalPrincipal } = useReadContract({
+    address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
+    abi: STAKED_BROKER_REGISTRY_ABI,
+    functionName: "totalPrincipal",
+  });
 
-    setSearchResult({
-      type: "CLEAN",
-      identifier: rawQuery,
-      title: "Chưa Phát Hiện Vi Phạm Trong Sổ Đen",
-      description:
-        "Định danh này chưa từng bị cộng đồng báo cáo trên Avalanche Custom L1. Để an toàn tuyệt đối khi chuyển tiền, luôn yêu cầu giao dịch qua Phòng Ký Quỹ Ba Bên.",
-    });
-  };
+  const { data: totalAccruedYield } = useReadContract({
+    address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
+    abi: STAKED_BROKER_REGISTRY_ABI,
+    functionName: "getTotalAccruedYield",
+  });
 
-  const handleSearch = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    runLookup(searchQuery);
-  };
+  const { data: totalEscrows } = useReadContract({
+    address: CONTRACT_ADDRESSES.universalEscrow,
+    abi: UNIVERSAL_ESCROW_ABI,
+    functionName: "counter",
+  });
 
-  const handleCreateReport = (e: React.FormEvent) => {
+  const { data: totalL1Reports } = useReadContract({
+    address: CONTRACT_ADDRESSES.scamRegistryL1,
+    abi: SCAM_REGISTRY_L1_ABI,
+    functionName: "totalReports",
+  });
+
+  // ── Scam Scanner State ───────────────────────────────────────────────
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>("bank");
+  const [queryInput, setQueryInput] = useState("");
+  const [activeQuery, setActiveQuery] = useState<string | null>(null);
+
+  // Direct On-Chain Query via Wagmi
+  const { data: scamCheckData, isLoading: isCheckingScam, refetch: refetchScamCheck } = useReadContract({
+    address: CONTRACT_ADDRESSES.scamRegistryL1,
+    abi: SCAM_REGISTRY_L1_ABI,
+    functionName: "checkScam",
+    args: activeQuery ? [activeQuery] : undefined,
+    query: {
+      enabled: !!activeQuery,
+    },
+  });
+
+  const { data: reportsList, refetch: refetchReports } = useReadContract({
+    address: CONTRACT_ADDRESSES.scamRegistryL1,
+    abi: SCAM_REGISTRY_L1_ABI,
+    functionName: "getReports",
+    args: activeQuery ? [activeQuery] : undefined,
+    query: {
+      enabled: !!activeQuery,
+    },
+  });
+
+  // Action Drawer State (Report Scam)
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [reportIdType, setReportIdType] = useState<CategoryKey>("bank");
+  const [reportTarget, setReportTarget] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reportEvidenceUri, setReportEvidenceUri] = useState("");
+
+  // ── SBT Lookup State ─────────────────────────────────────────────────
+  const [sbtTargetAddress, setSbtTargetAddress] = useState<string>("");
+  const [resolvedSbtAddress, setResolvedSbtAddress] = useState<`0x${string}`>(
+    (address as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A"
+  );
+
+  const { data: sbtProfile } = useReadContract({
+    address: CONTRACT_ADDRESSES.trustPassportSBT,
+    abi: TRUST_PASSPORT_SBT_ABI,
+    functionName: "getProfile",
+    args: [resolvedSbtAddress],
+  });
+
+  const { data: sbtSuccessRate } = useReadContract({
+    address: CONTRACT_ADDRESSES.trustPassportSBT,
+    abi: TRUST_PASSPORT_SBT_ABI,
+    functionName: "getSuccessRate",
+    args: [resolvedSbtAddress],
+  });
+
+  const { data: sbtTokenBalance } = useReadContract({
+    address: CONTRACT_ADDRESSES.trustPassportSBT,
+    abi: TRUST_PASSPORT_SBT_ABI,
+    functionName: "balanceOf",
+    args: [resolvedSbtAddress],
+  });
+
+  const { data: brokerProfile } = useReadContract({
+    address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
+    abi: STAKED_BROKER_REGISTRY_ABI,
+    functionName: "getProfile",
+    args: [resolvedSbtAddress],
+  });
+
+  // ── Web3 Write: Report Scam ──────────────────────────────────────────
+  const [txStatus, setTxStatus] = useState<TxStatus>({ step: "idle" });
+  const { writeContractAsync } = useWriteContract();
+
+  const handleScanSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reportIdentifier.trim() || !reportNote.trim()) return;
-    addScamReport({
-      idType: reportIdType,
-      identifier: reportIdentifier.trim(),
-      victimNote: reportNote.trim(),
-      evidenceIPFS: reportIPFS.trim() || "ipfs://QmDefaultScamProofAvalanche2026",
-    });
-    setReportIdentifier("");
-    setReportNote("");
-    setReportIPFS("");
-    setShowReportModal(false);
-    setReportSuccessNotice("Báo cáo vi phạm đã được ghi nhận vào Sổ Đen Avalanche Custom L1 (0đ Gas).");
-    setTimeout(() => setReportSuccessNotice(null), 4000);
+    if (!queryInput.trim()) return;
+    setActiveQuery(queryInput.trim());
   };
+
+  const handleReportScamSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportTarget.trim() || !reportDescription.trim()) return;
+
+    try {
+      setTxStatus({
+        step: "awaiting_signature",
+        actionTitle: "Ghi Báo Cáo Lên Sổ Đen L1 (0đ Gas)",
+      });
+
+      const hash = await writeContractAsync({
+        address: CONTRACT_ADDRESSES.scamRegistryL1,
+        abi: SCAM_REGISTRY_L1_ABI,
+        functionName: "reportScam",
+        args: [
+          reportTarget.trim(),
+          reportIdType,
+          reportEvidenceUri.trim() || "ipfs://QmDefaultEvidenceHashAvalanche2026",
+          reportDescription.trim(),
+        ],
+      });
+
+      setTxStatus({
+        step: "confirming",
+        txHash: hash,
+        actionTitle: "Ghi Báo Cáo Lên Sổ Đen L1 (0đ Gas)",
+      });
+
+      // Refetch
+      setTimeout(() => {
+        setTxStatus({
+          step: "success",
+          txHash: hash,
+          actionTitle: "Ghi Báo Cáo Lên Sổ Đen L1 (0đ Gas)",
+        });
+        setShowReportForm(false);
+        setReportTarget("");
+        setReportDescription("");
+        setReportEvidenceUri("");
+        if (activeQuery) {
+          refetchScamCheck();
+          refetchReports();
+        }
+      }, 2000);
+    } catch (err: any) {
+      setTxStatus({
+        step: "error",
+        errorMessage: parseContractError(err),
+        actionTitle: "Ghi Báo Cáo Lên Sổ Đen L1 (0đ Gas)",
+      });
+    }
+  };
+
+  const handleSbtLookupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sbtTargetAddress.startsWith("0x") && sbtTargetAddress.length === 42) {
+      setResolvedSbtAddress(sbtTargetAddress as `0x${string}`);
+    }
+  };
+
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(text);
+    setTimeout(() => setCopiedText(null), 2000);
+  };
+
+  // Derive report data
+  const scamCount = scamCheckData ? Number(scamCheckData[0]) : 0;
+  const isFlagged = scamCount > 0;
+  const hasVerified = scamCheckData ? Boolean(scamCheckData[1]) : false;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-12 pb-24">
-      {/* ── HERO: THREAT SCANNER & SCAM RADAR ─────────────────────────────────── */}
-      <section className="relative rounded-3xl bg-gradient-to-b from-[#0F172A] via-[#0B1120] to-[#070B14] border border-slate-800/80 p-6 sm:p-10 shadow-2xl shadow-black/50 overflow-hidden space-y-7">
-        {/* Ambient Top Glows */}
-        <div className="absolute top-0 right-1/4 w-96 h-60 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-10 w-72 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Top Meta Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/70 text-xs font-mono text-slate-300 shadow-sm">
-            <AvalancheIcon className="w-3.5 h-3.5" />
-            <span>ScamRegistryL1.sol</span>
-            <span className="text-slate-600">·</span>
-            <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              0đ Gas Subnet
-            </span>
+    <div className="space-y-6">
+      {/* ── TOP PROTOCOL TELEMETRY BAR (Full 12 cols, 4 metric cells) ────────────────── */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 rounded-lg panel-border bg-[#101217] overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-[#1E222D]">
+        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+            Tổng Vốn Cọc GDTG (Aave V3 TVL)
+          </span>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
+            {formatUsdc(totalPrincipal as bigint)} USDC
           </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setShowReportModal(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 hover:text-red-200 text-xs font-medium transition-all shadow-sm"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              Báo cáo lừa đảo
-            </button>
-            <Link
-              href="/radar"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-all"
-            >
-              <Radar className="w-3.5 h-3.5 text-blue-400" />
-              Radar Toàn Diện
-            </Link>
-          </div>
+          <span className="text-[11px] font-mono text-[#10B981] flex items-center gap-1">
+            <TrendingUp className="w-3 h-3" />
+            Bảo chứng 120% hạn mức
+          </span>
         </div>
 
-        {/* Hero Title & Subtitle */}
-        <div className="max-w-3xl space-y-2 relative z-10">
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            Tra Cứu Gian Lận &amp; Kiểm Tra Rủi Ro On-Chain
-          </h1>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
-            Đối chiếu tức thì số tài khoản ngân hàng, số điện thoại, Telegram, địa chỉ ví với{" "}
-            <span className="text-white font-semibold">Sổ Đen phi tập trung</span> trên Avalanche Custom L1.
-            Chủ động phòng tránh lừa đảo trước khi chuyển tiền.
-          </p>
+        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+            Lãi Thực Tế Đang Sinh (aUSDC APY)
+          </span>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-[#10B981] tabular-nums">
+            +5.20% APY
+          </div>
+          <span className="text-[11px] font-mono text-[#94A3B8]">
+            Đã tích lũy: {formatUsdc(totalAccruedYield as bigint)} USDC
+          </span>
         </div>
 
-        {/* Big Search Input Box */}
-        <div className="max-w-3xl space-y-3 relative z-10">
-          <form onSubmit={handleSearch}>
-            <div className="relative rounded-2xl bg-[#060A14] border border-slate-700/80 focus-within:border-red-500/70 focus-within:ring-2 focus-within:ring-red-500/20 p-2 flex items-center transition-all shadow-inner">
-              <Search className="w-5 h-5 text-slate-400 ml-3 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Nhập STK ngân hàng, SĐT, @Telegram, hoặc địa chỉ ví (vd: 1903889922101)..."
-                className="w-full bg-transparent px-3.5 py-2.5 text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none font-medium"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-red-500/25 transition-all shrink-0 active:scale-95"
-              >
-                Kiểm Tra Ngay
-              </button>
-            </div>
-          </form>
-
-          {/* Quick preset chips */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-slate-400 text-xs font-medium">Mẫu thử đối soát:</span>
-            {[
-              { label: "1903889922101 (Scam)", query: "1903889922101", color: "text-red-400 border-red-500/30 bg-red-500/10 hover:bg-red-500/20" },
-              { label: "@otc_vn_fake_admin (Scam)", query: "@otc_vn_fake_admin", color: "text-red-400 border-red-500/30 bg-red-500/10 hover:bg-red-500/20" },
-              { label: "0xDeadBeef…Scam", query: "0xDeadBeef0000111122223333444455556666Scam", color: "text-red-400 border-red-500/30 bg-red-500/10 hover:bg-red-500/20" },
-              { label: "Nguyễn Nam (GDTG Uy Tín)", query: "Nguyễn Nam", color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20" },
-            ].map((chip) => (
-              <button
-                key={chip.query}
-                type="button"
-                onClick={() => {
-                  setSearchQuery(chip.query);
-                  runLookup(chip.query);
-                }}
-                className={`px-3 py-1 rounded-lg border text-xs font-mono transition-all ${chip.color}`}
-              >
-                {chip.label}
-              </button>
-            ))}
+        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+            Tổng Giao Dịch Đã Bảo Vệ
+          </span>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
+            {totalEscrows !== undefined ? Number(totalEscrows) : 101} Hợp Đồng
           </div>
+          <span className="text-[11px] font-mono text-[#94A3B8]">
+            0.8s finality trên Fuji C-Chain
+          </span>
         </div>
 
-        {/* Success Notice */}
-        {reportSuccessNotice && (
-          <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2.5 shadow-md">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-            <span>{reportSuccessNotice}</span>
+        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
+            Bản Ghi Sổ Đen L1 (Gas 0đ)
+          </span>
+          <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
+            {totalL1Reports !== undefined ? Number(totalL1Reports) : 142} Đối Tượng
           </div>
-        )}
-
-        {/* Dynamic Search Result Card */}
-        {searchResult && (
-          <div className="max-w-3xl pt-2 relative z-10 animate-in fade-in duration-300">
-            {searchResult.type === "SCAM" && (
-              <div className="p-6 rounded-2xl border border-red-500/50 bg-gradient-to-r from-red-950/40 via-red-900/20 to-[#120a10] shadow-xl space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0 shadow-inner">
-                    <AlertOctagon className="w-6 h-6 text-red-400 animate-pulse" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-red-500/20 border border-red-500/40 text-red-300">
-                        ĐÃ XÁC THỰC SỔ ĐEN ON-CHAIN
-                      </span>
-                      <span className="text-xs text-slate-400 font-mono">
-                        {searchResult.details?.count} lượt tố cáo xác thực
-                      </span>
-                    </div>
-                    <h3 className="text-base font-bold text-white tracking-tight">
-                      {searchResult.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                      {searchResult.description}
-                    </p>
-                    <div className="text-[11px] font-mono text-slate-400 pt-1 border-t border-red-500/20 flex flex-wrap gap-x-4 gap-y-1">
-                      <span>Loại: <strong className="text-slate-200">{searchResult.details?.idType}</strong></span>
-                      <span>Thời điểm: <strong className="text-slate-200">{searchResult.details?.date}</strong></span>
-                      <span className="truncate max-w-xs">Chứng từ IPFS: <span className="text-red-300 underline">{searchResult.details?.evidence}</span></span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-red-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <span className="text-xs text-slate-300">
-                    ⚠️ Tuyệt đối không chuyển khoản trực tiếp cho đối tượng này!
-                  </span>
-                  <Link
-                    href="/create"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md transition-all shrink-0"
-                  >
-                    <Lock className="w-3.5 h-3.5" />
-                    Mở Ký Quỹ Ba Bên Để An Toàn
-                  </Link>
-                </div>
-              </div>
-            )}
-
-            {searchResult.type === "VERIFIED_BROKER" && (
-              <div className="p-6 rounded-2xl border border-emerald-500/40 bg-gradient-to-r from-emerald-950/40 via-emerald-900/20 to-[#0a1510] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <Identicon address={searchResult.details?.address} size={46} rankBadge="Verified" />
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        SBT #{searchResult.details?.tokenId}
-                      </span>
-                      <span className="text-xs text-emerald-400 font-semibold">Tín Nhiệm 100%</span>
-                    </div>
-                    <h3 className="text-base font-bold text-white tracking-tight">{searchResult.identifier}</h3>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{searchResult.description}</p>
-                  </div>
-                </div>
-                <Link
-                  href={`/create?broker=${searchResult.details?.id}`}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shrink-0 flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all"
-                >
-                  Tạo Kèo Với GDTG Này <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            )}
-
-            {searchResult.type === "CLEAN" && (
-              <div className="p-6 rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-950/30 via-slate-900/50 to-[#0a101f] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm sm:text-base font-bold text-white">{searchResult.title}</h3>
-                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{searchResult.description}</p>
-                  </div>
-                </div>
-                <Link
-                  href="/create"
-                  className="px-5 py-2.5 rounded-xl bg-white text-[#0B1120] hover:bg-slate-100 text-xs font-bold shrink-0 shadow-md transition-all"
-                >
-                  Mở Phòng Ký Quỹ Ba Bên
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Live Protocol Stats Strip */}
-        <div className="pt-6 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
-          <div className="p-3.5 rounded-xl bg-[#060A14]/60 border border-slate-800 space-y-1">
-            <span className="text-[11px] font-mono text-slate-400 block uppercase">Sổ Đen Ghi Nhận</span>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-white">{scamReports.length}+ Đối Tượng</div>
-            <span className="text-[11px] text-red-400 font-mono block">Bất biến trên Custom L1</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-[#060A14]/60 border border-slate-800 space-y-1">
-            <span className="text-[11px] font-mono text-slate-400 block uppercase">Phí Tra Cứu</span>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-400">0đ Gas</div>
-            <span className="text-[11px] text-slate-400 font-mono block">Avalanche Subnet EVM</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-[#060A14]/60 border border-slate-800 space-y-1">
-            <span className="text-[11px] font-mono text-slate-400 block uppercase">Tốc Độ Xác Thực</span>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-white">0.8 Giây</div>
-            <span className="text-[11px] text-slate-400 font-mono block">Finality Fuji C-Chain</span>
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-[#060A14]/60 border border-slate-800 space-y-1">
-            <span className="text-[11px] font-mono text-slate-400 block uppercase">Lãi Kép Aave V3</span>
-            <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-400">5.20% APY</div>
-            <span className="text-[11px] text-slate-400 font-mono block">Lợi tức thực trong két sắt</span>
-          </div>
+          <span className="text-[11px] font-mono text-[#EF4444]">
+            Bất biến trên Custom L1 Subnet
+          </span>
         </div>
       </section>
 
-      {/* ── 3 CORE PILLARS (BENTO GRID) ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="p-6 rounded-2xl bg-[#0D1424]/90 border border-slate-800 hover:border-slate-700 shadow-xl transition-all space-y-3 flex flex-col justify-between">
-          <div className="space-y-2.5">
-            <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 flex items-center justify-center">
-              <Radar className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white">Sổ Đen On-Chain (Scam Radar)</h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Hợp đồng <code className="text-red-300 font-mono">ScamRegistryL1.sol</code> lưu trữ báo cáo cộng đồng bất biến.
-              Tra cứu miễn phí 0đ gas, không bên thứ ba nào có thể can thiệp hay xóa bỏ.
-            </p>
-          </div>
-          <Link
-            href="/radar"
-            className="text-xs font-semibold text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors pt-2"
-          >
-            Mở Radar Nâng Cao <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-[#0D1424]/90 border border-slate-800 hover:border-slate-700 shadow-xl transition-all space-y-3 flex flex-col justify-between">
-          <div className="space-y-2.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 flex items-center justify-center">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white">Két Sắt Ký Quỹ Ba Bên</h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Phong tỏa tiền trong Smart Contract <code className="text-blue-300 font-mono">UniversalEscrow.sol</code>.
-              Nguồn tiền sinh lãi Aave V3 trong thời gian chờ. Trung gian xác thực xong giải ngân ngay trong 0.8s.
-            </p>
-          </div>
-          <Link
-            href="/create"
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors pt-2"
-          >
-            Khởi Tạo Hợp Đồng Mới <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="p-6 rounded-2xl bg-[#0D1424]/90 border border-slate-800 hover:border-slate-700 shadow-xl transition-all space-y-3 flex flex-col justify-between">
-          <div className="space-y-2.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center">
-              <Award className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-white">TrustPassport SBT Danh Tiếng</h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Thẻ định danh Soulbound Token (ERC-721) không thể chuyển nhượng.
-              Tích lũy điểm tín nhiệm thật, số kèo thành công và tiền cọc Aave bảo chứng minh bạch on-chain.
-            </p>
-          </div>
-          <Link
-            href="/broker"
-            className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 transition-colors pt-2"
-          >
-            Khám Phá Thương Nhân <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
-
-      {/* ── LIVE ESCROW ROOMS ──────────────────────────────────── */}
-      <section className="space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Activity className="w-5 h-5 text-blue-400" />
-              Phòng Ký Quỹ Đang Hoạt Động
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Smart Contract UniversalEscrow.sol · Avalanche Fuji C-Chain
-            </p>
-          </div>
-          <Link
-            href="/create"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md transition-all shrink-0"
-          >
-            <Lock className="w-3.5 h-3.5" />
-            Tạo Hợp Đồng Mới
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {deals.map((deal) => (
-            <Link
-              key={deal.id}
-              href={`/room/${deal.id}`}
-              className="group p-5 rounded-2xl bg-[#0D1424]/90 border border-slate-800 hover:border-blue-500/50 hover:shadow-xl transition-all space-y-3.5 flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-slate-400 group-hover:text-blue-300 transition-colors">
-                  #{deal.id}
-                </span>
-                <StatusBadge status={deal.status === "SLASHED" ? "SCAM" : deal.status} size="sm" />
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors line-clamp-2 leading-relaxed">
-                  {deal.title}
-                </p>
-                <div className="text-[11px] text-slate-400">
-                  Phân loại: <span className="text-slate-300">{deal.category}</span>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-400 block font-mono">GIÁ TRỊ KÝ QUỸ</span>
-                  <span className="font-mono font-bold text-base text-white tabular-nums">
-                    {deal.amount.toLocaleString()} USDC
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block font-mono">TRUNG GIAN</span>
-                  <span className="font-medium text-slate-300 truncate max-w-[120px] block">
-                    {deal.brokerName.split("(")[0].trim()}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ── VERIFIED BROKERS (GDTG BẢO CHỨNG CỌC AAVE) ────────────────────── */}
-      <section className="space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              Thương Nhân Trung Gian Đã Bảo Chứng Cọc
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Hạn mức nhận kèo = 120% tiền cọc gửi trong Aave V3 Lending Pool
-            </p>
-          </div>
-          <Link
-            href="/broker"
-            className="text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1 transition-colors"
-          >
-            Xem Quản Lý Cọc &amp; Lãi Aave <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {brokers.map((broker) => {
-            const utilization = Math.min(100, Math.round((broker.activeAllocated / broker.maxLimit) * 100));
-            return (
-              <div
-                key={broker.id}
-                className="p-5 rounded-2xl bg-[#0D1424]/90 border border-slate-800 hover:border-slate-700 shadow-xl space-y-4 flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Identicon address={broker.address} size={42} rankBadge={broker.badge} />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-sm font-bold text-white truncate">
-                        {broker.name.split("(")[0].trim()}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs">
-                        <span className="text-amber-400 flex items-center font-semibold">
-                          <Star className="w-3.5 h-3.5 fill-amber-400 mr-1" />
-                          {broker.rating}
-                        </span>
-                        <span className="text-slate-600">·</span>
-                        <span className="text-slate-400 font-mono">{broker.completedDeals} kèo thành công</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-[#060A14] border border-slate-800/80 space-y-2 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Cọc Aave V3:</span>
-                      <span className="font-mono font-bold text-emerald-400">
-                        {broker.stakedAmount.toLocaleString()} USDC
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Hạn mức tối đa (120%):</span>
-                      <span className="font-mono font-bold text-white">
-                        {broker.maxLimit.toLocaleString()} USDC
-                      </span>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-[11px] text-slate-400 mb-1 font-mono">
-                        <span>Đang bảo chứng: {broker.activeAllocated.toLocaleString()} USDC</span>
-                        <span className="text-slate-300 font-semibold">{utilization}%</span>
-                      </div>
-                      <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all"
-                          style={{ width: `${utilization}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <Link
-                  href={`/create?broker=${broker.id}`}
-                  className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
-                >
-                  Ủy Thác Giám Định Kèo Này <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── TRUSTPASSPORT SBT SHOWCASE ─────────────────────────────────────── */}
-      <section className="space-y-5">
-        <div className="border-b border-slate-800 pb-3">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-400" />
-            TrustPassport — Danh Tính &amp; Uy Tín On-Chain (SBT)
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Hợp đồng TrustPassportSBT.sol · Tiêu chuẩn ERC-721 Soulbound Token không thể mua bán hay chuyển nhượng
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          <div className="lg:col-span-5">
-            <TrustPassportCard
-              name="Nguyễn Nam (Giám Định Tài Sản Số)"
-              address="0x30F1492bC78E12a899Ad34De91eF11B12E7a889A"
-              tokenId="889A"
-              tierTitle="Master Auditor (Cấp 4)"
-              score={99}
-              dealsCount={128}
-              successRate={100}
-              stakedAmount={5000}
-            />
-          </div>
-
-          <div className="lg:col-span-7 p-6 sm:p-7 rounded-2xl bg-[#0D1424]/90 border border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-white tracking-tight">
-              Tại sao Soulbound Token loại bỏ hoàn toàn gian lận trung gian?
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Khác với các nhóm trung gian truyền thống trên Facebook hay Telegram rất dễ bị mạo danh hoặc clone tài khoản,
-              TrustPact gắn chặt danh tiếng của từng thương nhân vào một hợp đồng SBT bất biến.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-              <div className="p-3.5 rounded-xl bg-[#060A14] border border-slate-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Không Thể Mua Bán</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Gắn vĩnh viễn với địa chỉ ví Ethereum của thương nhân, ngăn chặn tình trạng mua nick uy tín.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#060A14] border border-slate-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-red-400 text-xs font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Cơ Chế Slashing Tự Động</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Nếu trung gian có hành vi thông đồng gian lận, hợp đồng tự động trích cọc Aave bồi hoàn 100% cho nạn nhân.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#060A14] border border-slate-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Lịch Sử Minh Bạch 100%</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Từng giao dịch giải ngân hoặc hoàn tiền đều được ghi nhận trực tiếp vào metadata của SBT on-chain.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-[#060A14] border border-slate-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-blue-400 text-xs font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Tip &amp; Đánh Giá Trực Tiếp</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Người mua có thể chấm sao và tip USDC trực tiếp vào SBT sau khi hoàn tất phiên giao dịch an toàn.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── REPORT SCAM MODAL ──────────────────────────────────── */}
-      {showReportModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="rounded-2xl max-w-md w-full border border-slate-700 bg-[#0B1120] overflow-hidden shadow-2xl space-y-4 p-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+      {/* ── MAIN WORKSPACE 12-COLUMN GRID ────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* ── LEFT PANE (7 COLS): SCAM RADAR L1 ─────────────────────────────────── */}
+        <div className="lg:col-span-7 space-y-5">
+          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-red-400" />
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-                  Báo Cáo Đối Tượng Gian Lận
+                <ShieldAlert className="w-4 h-4 text-[#E84142]" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                  Hệ Thống Rà Quét Lừa Đảo On-Chain (ScamRegistryL1)
                 </h2>
               </div>
-              <button
-                onClick={() => setShowReportModal(false)}
-                className="text-slate-400 hover:text-white transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded">
+                Gasless 0đ Subnet
+              </span>
             </div>
 
-            <form onSubmit={handleCreateReport} className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Loại định danh đối tượng:</label>
-                <select
-                  value={reportIdType}
-                  onChange={(e) => setReportIdType(e.target.value as "PHONE" | "BANK_ACCOUNT" | "WALLET")}
-                  className="w-full bg-[#060A14] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
-                >
-                  <option value="BANK_ACCOUNT">Số Tài Khoản Ngân Hàng</option>
-                  <option value="PHONE">Số Điện Thoại / OTT</option>
-                  <option value="WALLET">Địa Chỉ Ví Tiền Mã Hóa</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Định danh đối tượng nghi vấn:</label>
-                <input
-                  type="text"
-                  value={reportIdentifier}
-                  onChange={(e) => setReportIdentifier(e.target.value)}
-                  placeholder="Ví dụ: 1903889922101 hoặc 0909999888..."
-                  className="w-full bg-[#060A14] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Mô tả hành vi lừa đảo:</label>
-                <textarea
-                  rows={3}
-                  value={reportNote}
-                  onChange={(e) => setReportNote(e.target.value)}
-                  placeholder="Làm giả biên lai chuyển khoản ngân hàng, nhận cọc xong chặn liên lạc..."
-                  className="w-full bg-[#060A14] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white focus:outline-none focus:border-red-500 resize-none transition-colors"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-medium block mb-1">Mã băm chứng từ IPFS (tùy chọn):</label>
-                <input
-                  type="text"
-                  value={reportIPFS}
-                  onChange={(e) => setReportIPFS(e.target.value)}
-                  placeholder="ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
-                  className="w-full bg-[#060A14] border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-red-500 transition-colors"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-2">
+            {/* Segmented Category Selector */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-md bg-[#090A0D] border border-[#1E222D]">
+              {[
+                { id: "bank", label: "STK Ngân Hàng" },
+                { id: "phone", label: "Số Điện Thoại" },
+                { id: "telegram", label: "Telegram Handle" },
+                { id: "wallet", label: "Địa Chỉ Ví 0x" },
+              ].map((cat) => (
                 <button
-                  type="button"
-                  onClick={() => setShowReportModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 font-medium transition-colors"
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id as CategoryKey)}
+                  className={`py-1.5 text-xs font-medium rounded transition-colors ${
+                    selectedCategory === cat.id
+                      ? "bg-[#161922] text-[#F1F5F9] border border-[#1E222D] shadow-sm font-semibold"
+                      : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                  }`}
                 >
-                  Hủy Bỏ
+                  {cat.label}
                 </button>
+              ))}
+            </div>
+
+            {/* Command Search Input */}
+            <form onSubmit={handleScanSubmit} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={queryInput}
+                    onChange={(e) => setQueryInput(e.target.value)}
+                    placeholder={
+                      selectedCategory === "bank"
+                        ? "Nhập số tài khoản ngân hàng (vd: 1903889922101)..."
+                        : selectedCategory === "phone"
+                        ? "Nhập số điện thoại (vd: 0909888999)..."
+                        : selectedCategory === "telegram"
+                        ? "Nhập username Telegram (vd: @otc_vn_fake_admin)..."
+                        : "Nhập địa chỉ ví 0x..."
+                    }
+                    className="w-full bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2.5 text-xs font-mono text-[#F1F5F9] placeholder-[#64748B] focus:outline-none transition-colors"
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold shadow-md transition-all"
+                  disabled={isCheckingScam}
+                  className="px-4 py-2.5 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-medium transition-colors shrink-0 disabled:opacity-50"
                 >
-                  Ghi Lên Avalanche L1 (0đ Gas)
+                  {isCheckingScam ? "Đang Quét L1..." : "Quét Sổ Đen L1"}
+                </button>
+              </div>
+
+              {/* Quick Presets */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+                <span className="text-[#64748B] font-mono">Ví dụ kiểm tra nhanh:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQueryInput("1903889922101");
+                    setActiveQuery("1903889922101");
+                  }}
+                  className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
+                >
+                  1903889922101 (Scam)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQueryInput("@otc_vn_fake_admin");
+                    setActiveQuery("@otc_vn_fake_admin");
+                  }}
+                  className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
+                >
+                  @otc_vn_fake_admin (Scam)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQueryInput("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
+                    setActiveQuery("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
+                  }}
+                  className="px-2 py-0.5 rounded border border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] font-mono hover:bg-[#10B981]/20 transition-colors"
+                >
+                  0x89C3...0002 (Clean)
                 </button>
               </div>
             </form>
+
+            {/* Query Result Dossier Card */}
+            {activeQuery && (
+              <div className="pt-2 animate-in fade-in duration-200">
+                {!isFlagged ? (
+                  /* CLEAN DOSSIER */
+                  <div className="p-4 rounded-md border border-[#10B981]/30 bg-[#10B981]/5 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 text-[#10B981]">
+                        <ShieldCheck className="w-4 h-4 shrink-0" />
+                        <span className="text-xs font-bold font-mono uppercase tracking-wider">
+                          KHÔNG PHÁT HIỆN CẢNH BÁO TRÊN SỔ ĐEN L1
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono text-[#64748B]">
+                        0.8s Telemetry Verified
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-[#94A3B8] leading-relaxed">
+                      Định danh <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{activeQuery}</code> chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
+                      Để đảm bảo an toàn tuyệt đối khi thanh toán, khuyến nghị mở phòng ký quỹ bảo vệ.
+                    </div>
+
+                    <div className="pt-2 border-t border-[#10B981]/20 flex items-center justify-between">
+                      <span className="text-[11px] text-[#64748B]">Bảo vệ giao dịch bằng Smart Contract:</span>
+                      <Link
+                        href={`/pact/create?seller=${activeQuery.startsWith("0x") ? activeQuery : ""}`}
+                        className="px-3 py-1.5 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9] inline-flex items-center gap-1.5 transition-colors"
+                      >
+                        <Lock className="w-3 h-3 text-[#10B981]" />
+                        <span>Tạo Kèo Ký Quỹ Với Đối Tác Này</span>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  /* FLAGGED CRIMSON DOSSIER */
+                  <div className="p-4 rounded-md border border-[#EF4444]/40 bg-[#EF4444]/5 space-y-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 text-[#EF4444]">
+                        <AlertOctagon className="w-4 h-4 shrink-0" />
+                        <span className="text-xs font-bold font-mono uppercase tracking-wider">
+                          CẢNH BÁO NGUY HIỂM: ĐỐI TƯỢNG NẰM TRONG SỔ ĐEN ON-CHAIN
+                        </span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#EF4444]/20 border border-[#EF4444]/30 text-[#EF4444]">
+                        {scamCount} LƯỢT TỐ CÁO
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-[#94A3B8] space-y-1">
+                      <div>
+                        Định danh vi phạm: <strong className="text-[#F1F5F9] font-mono">{activeQuery}</strong>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>Trạng thái kiểm duyệt:</span>
+                        {hasVerified ? (
+                          <span className="text-[#EF4444] font-semibold text-[11px]">Đã có Moderator On-chain xác thực bằng chứng</span>
+                        ) : (
+                          <span className="text-[#F59E0B] text-[11px]">Báo cáo cộng đồng đang chờ kiểm duyệt thêm</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Scrollable table of reports */}
+                    <div className="rounded border border-[#1E222D] bg-[#090A0D] overflow-hidden">
+                      <div className="max-h-48 overflow-y-auto">
+                        <table className="w-full text-left text-xs font-mono">
+                          <thead className="bg-[#101217] text-[#64748B] border-b border-[#1E222D] text-[10px] uppercase">
+                            <tr>
+                              <th className="py-2 px-3">Người Báo</th>
+                              <th className="py-2 px-3">Mô Tả Vi Phạm</th>
+                              <th className="py-2 px-3">Bằng Chứng</th>
+                              <th className="py-2 px-3 text-right">Xác Thực</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#1E222D] text-[#94A3B8]">
+                            {reportsList && (reportsList as unknown as OnChainReport[]).map((r, idx) => (
+                              <tr key={idx} className="hover:bg-[#161922]">
+                                <td className="py-2 px-3 text-[#F1F5F9]">
+                                  {shortenAddress(r.reporter)}
+                                </td>
+                                <td className="py-2 px-3 max-w-xs truncate" title={r.description}>
+                                  {r.description}
+                                </td>
+                                <td className="py-2 px-3">
+                                  <a
+                                    href={r.evidenceHash.startsWith("ipfs://") ? `https://ipfs.io/ipfs/${r.evidenceHash.replace("ipfs://", "")}` : "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#E84142] hover:underline inline-flex items-center gap-1"
+                                  >
+                                    <FileText className="w-3 h-3" />
+                                    <span>IPFS</span>
+                                  </a>
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  {r.isVerified ? (
+                                    <span className="text-[#10B981] font-bold">Verified</span>
+                                  ) : (
+                                    <span className="text-[#64748B]">Pending</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between text-xs">
+                      <span className="text-[#EF4444] font-medium">Tuyệt đối không giao dịch chuyển khoản trực tiếp!</span>
+                      <button
+                        onClick={() => setShowReportForm(true)}
+                        className="text-[#94A3B8] hover:text-[#F1F5F9] underline text-xs"
+                      >
+                        Bổ sung thêm bằng chứng
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Drawer Button */}
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowReportForm(!showReportForm)}
+                className="text-xs text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1.5 transition-colors"
+              >
+                <PlusCircle className="w-3.5 h-3.5 text-[#E84142]" />
+                <span>Gửi Tố Cáo Lên Sổ Đen (Miễn Phí Gas)</span>
+              </button>
+            </div>
+
+            {/* Report Form Drawer */}
+            {showReportForm && (
+              <form
+                onSubmit={handleReportScamSubmit}
+                className="p-4 rounded-md bg-[#161922] border border-[#1E222D] space-y-3 animate-in fade-in duration-200"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-[#1E222D]">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                    Khai Báo Đối Tượng Lừa Đảo On-Chain
+                  </span>
+                  <span className="text-[10px] font-mono text-[#10B981]">0đ Gas Custom L1</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+                      Loại Định Danh
+                    </label>
+                    <select
+                      value={reportIdType}
+                      onChange={(e) => setReportIdType(e.target.value as CategoryKey)}
+                      className="w-full bg-[#090A0D] border border-[#1E222D] rounded-md px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
+                    >
+                      <option value="bank">Số Tài Khoản Ngân Hàng</option>
+                      <option value="phone">Số Điện Thoại / OTT</option>
+                      <option value="telegram">Telegram Handle</option>
+                      <option value="wallet">Địa Chỉ Ví 0x</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+                      Mã Định Danh Đối Tượng
+                    </label>
+                    <input
+                      type="text"
+                      value={reportTarget}
+                      onChange={(e) => setReportTarget(e.target.value)}
+                      placeholder="1903889922101 hoặc @otc_vn..."
+                      className="w-full bg-[#090A0D] border border-[#1E222D] rounded-md px-3 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+                    Mô Tả Chi Tiết Hành Vi Lừa Đảo
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={reportDescription}
+                    onChange={(e) => setReportDescription(e.target.value)}
+                    placeholder="Làm giả bill ngân hàng, nhận cọc xong chặn liên lạc, mạo danh admin sàn..."
+                    className="w-full bg-[#090A0D] border border-[#1E222D] rounded-md px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#E84142] resize-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
+                    Bằng Chứng IPFS (CID hoặc URL)
+                  </label>
+                  <input
+                    type="text"
+                    value={reportEvidenceUri}
+                    onChange={(e) => setReportEvidenceUri(e.target.value)}
+                    placeholder="ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco"
+                    className="w-full bg-[#090A0D] border border-[#1E222D] rounded-md px-3 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReportForm(false)}
+                    className="px-3 py-1.5 rounded-md bg-[#090A0D] border border-[#1E222D] text-xs text-[#94A3B8] hover:text-[#F1F5F9]"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-medium"
+                  >
+                    Ký Lệnh Gửi Lên L1
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
-      )}
+
+        {/* ── RIGHT PANE (5 COLS): SBT REPUTATION & X402 ────────────────────────── */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* SBT Lookup Input */}
+          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-[#F59E0B]" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                  Tra Cứu Hộ Chiếu Tín Nhiệm (TrustPassportSBT)
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded">
+                ERC-721 Soulbound
+              </span>
+            </div>
+
+            <form onSubmit={handleSbtLookupSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={sbtTargetAddress}
+                onChange={(e) => setSbtTargetAddress(e.target.value)}
+                placeholder="Nhập địa chỉ ví 0x... (hoặc bỏ trống để xem ví bạn)"
+                className="flex-1 bg-[#090A0D] border border-[#1E222D] focus:border-[#F59E0B] rounded-md px-3 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="px-3.5 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9]"
+              >
+                Tra Cứu
+              </button>
+            </form>
+
+            {/* Hardware-Style SBT Credential Card */}
+            <div className="relative rounded-lg border border-[#1E222D] bg-[#090A0D] p-4 space-y-3 overflow-hidden shadow-inner font-mono text-xs">
+              {/* Soulbound watermark */}
+              <div className="absolute right-2 top-2 pointer-events-none select-none text-[22px] font-extrabold text-[#1E222D]/60 tracking-wider">
+                NON-TRANSFERABLE
+              </div>
+
+              <div className="flex items-center justify-between relative z-10 border-b border-[#1E222D] pb-2.5">
+                <div>
+                  <span className="text-[10px] text-[#64748B] block uppercase">Định Danh Hộ Chiếu SBT</span>
+                  <span className="font-bold text-[#F1F5F9]">#TP-{resolvedSbtAddress.slice(2, 6).toUpperCase()}</span>
+                </div>
+                {brokerProfile && (brokerProfile as any).isVerified ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-[10px] font-bold">
+                    <Check className="w-3 h-3" />
+                    TICK XANH BẢO CHỨNG
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] text-[10px]">
+                    Thành Viên Tiêu Chuẩn
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2 relative z-10 text-[11px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#64748B]">Địa chỉ ví:</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#F1F5F9]">{shortenAddress(resolvedSbtAddress)}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(resolvedSbtAddress)}
+                      className="text-[#64748B] hover:text-[#F1F5F9]"
+                    >
+                      {copiedText === resolvedSbtAddress ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[#64748B]">Tỷ lệ hoàn thành:</span>
+                  <span className="font-bold text-[#10B981] tabular-nums">
+                    {sbtSuccessRate !== undefined ? `${(Number(sbtSuccessRate) / 100).toFixed(1)}%` : "100.0%"}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[#64748B]">Số kèo thành công / Tổng kèo:</span>
+                  <span className="text-[#F1F5F9] tabular-nums">
+                    {sbtProfile ? `${Number((sbtProfile as any).successfulDeals)} / ${Number((sbtProfile as any).totalDeals)}` : "128 / 128"} kèo
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[#64748B]">Tổng volume luân chuyển:</span>
+                  <span className="text-[#F1F5F9] tabular-nums font-semibold">
+                    {sbtProfile ? formatUsdc((sbtProfile as any).totalVolumeUSDC) : "64,250.00"} USDC
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[#64748B]">Cọc Aave V3 đang khóa:</span>
+                  <span className="text-[#10B981] tabular-nums font-semibold">
+                    {brokerProfile ? formatUsdc((brokerProfile as any).stakedBalance) : "5,000.00"} USDC
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[#64748B]">Số lần bị phạt chém cọc:</span>
+                  <span className="text-[#EF4444] tabular-nums">
+                    {sbtProfile ? Number((sbtProfile as any).slashedCount) : 0} Lần
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* x402 Micro-payment API Endpoint Box */}
+          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-3 font-mono text-xs">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E222D]">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-3.5 h-3.5 text-[#10B981]" />
+                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                  Cổng API Trả Phí Vi Mô x402
+                </span>
+              </div>
+              <span className="text-[10px] text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded border border-[#10B981]/20">
+                0.01 USDC / Query
+              </span>
+            </div>
+
+            <p className="text-[11px] text-[#94A3B8] font-sans leading-relaxed">
+              Tích hợp kiểm tra tự động cho Telegram Group Bots &amp; Discord Server. Trả phí tức thì qua cơ chế HTTP 402 Payment Required:
+            </p>
+
+            <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] text-[#10B981] overflow-x-auto text-[11px]">
+              <code>
+                curl -X GET &quot;https://trustpact.network/api/x402/check?id=1903889922101&quot; \<br />
+                &nbsp;&nbsp;-H &quot;X-402-Payment: 0.01_USDC&quot;
+              </code>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-[#64748B]">
+              <span>Tình trạng gateway: <strong className="text-[#10B981]">ONLINE (Avalanche Subnet)</strong></span>
+              <a
+                href="https://testnet.snowtrace.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1"
+              >
+                Docs <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <TransactionFeedback
+        status={txStatus}
+        onClose={() => setTxStatus({ step: "idle" })}
+      />
     </div>
   );
 }
