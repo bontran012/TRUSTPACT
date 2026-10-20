@@ -21,6 +21,7 @@ import {
   BadgeAlert,
   ShieldCheck,
   Copy,
+  Headphones,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -160,19 +161,19 @@ export default function AdminDisputesPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-md bg-[#EF4444]/15 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] shrink-0">
-              <Scale className="w-5 h-5" />
+              <Headphones className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold tracking-tight text-[#F1F5F9]">
-                  Hội Đồng Phân Xử & Chém Cọc On-Chain
+                  Trung Tâm CSKH &amp; Xử Lý Khiếu Nại (Admin Sàn)
                 </h1>
                 <span className="text-[10px] font-mono uppercase bg-[#161922] border border-[#1E222D] px-2 py-0.5 rounded text-[#94A3B8]">
-                  Arbitration Tribunal
+                  Cấp Quản Trị Cao Nhất
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] mt-1">
-                Thực thi quyền tài phán tối cao theo cơ chế Két Sắt 3 Bên. Đền bù 100% cho nạn nhân và trừ trực tiếp vào Quỹ Cọc Sinh Lãi Aave V3 của GDTG gian lận.
+                Bộ phận CSKH cấp cao nhất trực thuộc Admin sàn. Tiếp nhận đơn khiếu nại, xử lý trường hợp GDTG bịp, câu kết hoặc không chịu giải ngân để chém cọc đền bù 100% cho nạn nhân.
               </p>
             </div>
           </div>
@@ -182,12 +183,12 @@ export default function AdminDisputesPage() {
             {isAdminOrTreasury ? (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] text-xs font-mono font-medium">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Quyền Phân Xử Hợp Lệ (Admin / Treasury)</span>
+                <span>Quyền CSKH Hợp Lệ (Admin Sàn)</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-mono">
                 <Lock className="w-4 h-4" />
-                <span>Chế Độ Kiểm Toán Công Khai (Audit Mode)</span>
+                <span>Chế Độ Xem Khiếu Nại (Chỉ Admin CSKH mới có quyền chém cọc)</span>
               </div>
             )}
           </div>
@@ -198,7 +199,7 @@ export default function AdminDisputesPage() {
           <div className="mt-4 pt-3 border-t border-[#1E222D] flex items-center gap-2.5 text-xs text-[#94A3B8]">
             <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0" />
             <span>
-              <strong className="text-[#F1F5F9]">Chế độ Minh Bạch Công Khai:</strong> Bất kỳ ai cũng có thể tra cứu hồ sơ vụ việc và bằng chứng vi phạm. Chỉ các ví quản trị được cấp quyền (<code className="text-[#F1F5F9] font-mono">{shortenAddress(adminAddress as string || "0x0")}</code> hoặc Kho bạc) mới có thể ký lệnh Chém Cọc.
+              <strong className="text-[#F1F5F9]">Chế độ Minh Bạch Công Khai:</strong> Bất kỳ ai cũng có thể tra cứu tiến độ xử lý khiếu nại. Chỉ tài khoản CSKH trực thuộc Admin sàn (<code className="text-[#F1F5F9] font-mono">{shortenAddress(adminAddress as string || "0x0")}</code>) mới có quyền ký lệnh Chém Cọc đền bù.
             </span>
           </div>
         )}
@@ -416,7 +417,7 @@ export default function AdminDisputesPage() {
                 <span>Cảnh Báo Dấu Hiệu Vi Phạm Nghiêm Trọng</span>
               </div>
               <p className="text-[#94A3B8] text-[11px] leading-relaxed">
-                Nếu Broker không phản hồi, câu kết với bên gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng thỏa thuận, Hội Đồng có thể áp dụng lệnh Chém Cọc để bồi hoàn cho bên bị hại.
+                Nếu Broker có dấu hiệu bịp, câu kết với bên gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng thỏa thuận, CSKH Admin sẽ áp dụng lệnh Chém Cọc để bồi hoàn ngay 100% cho bên bị hại.
               </p>
             </div>
           </div>
@@ -535,7 +536,7 @@ export default function AdminDisputesPage() {
                   className="mt-0.5 rounded border-[#1E222D] bg-[#090A0D] text-[#EF4444] focus:ring-0 disabled:opacity-50"
                 />
                 <span className="text-[11px] text-[#94A3B8] leading-tight select-none">
-                  Tôi xác nhận đã kiểm toán toàn bộ chứng từ, nhật ký chat và mã băm bằng chứng On-chain. Tôi thực thi lệnh xử phạt theo thẩm quyền của Hội Đồng Phân Xử TrustPact.
+                  Tôi là CSKH Admin (cấp cao nhất), xác nhận đã kiểm toán toàn bộ bằng chứng vi phạm của Broker. Tôi thực thi lệnh chém cọc đền bù trực tiếp cho nạn nhân.
                 </span>
               </label>
 
@@ -562,7 +563,7 @@ export default function AdminDisputesPage() {
                     ? "Đang Chờ Ký Ví..."
                     : isSlashConfirming
                     ? "Đang Xác Nhận Giao Dịch..."
-                    : "BẤM CHÉM CỌC BROKER & ĐỀN BÙ NẠN NHÂN (SLASH & PENALIZE)"}
+                    : "CSKH BẤM CHÉM CỌC BROKER & ĐỀN BÙ NẠN NHÂN (SLASH & PENALIZE)"}
                 </span>
               </button>
             </form>

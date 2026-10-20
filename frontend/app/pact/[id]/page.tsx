@@ -19,6 +19,7 @@ import {
   Check,
   AlertOctagon,
   Award,
+  Headphones,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -516,14 +517,14 @@ export default function EscrowPactRoomPage() {
                   </div>
                 </div>
 
-                {/* 4. Escalation */}
+                {/* 4. Escalation to CSKH */}
                 <div className="pt-2 border-t border-[#1E222D]">
                   <Link
                     href={`/admin/disputes?id=${escrowItem.id.toString()}`}
-                    className="w-full py-2 px-3 rounded-md bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 text-xs font-medium text-[#EF4444] flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full py-2 px-3 rounded-md bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 text-xs font-bold text-[#EF4444] flex items-center justify-center gap-1.5 transition-colors"
                   >
-                    <AlertOctagon className="w-3.5 h-3.5" />
-                    <span>Tố Cáo GDTG Thông Đồng (Chém Cọc)</span>
+                    <Headphones className="w-3.5 h-3.5" />
+                    <span>Báo Cáo CSKH Xử Lý (GDTG Bịp / Không Giải Ngân)</span>
                   </Link>
                 </div>
               </div>

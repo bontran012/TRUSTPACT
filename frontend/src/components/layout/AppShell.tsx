@@ -21,6 +21,7 @@ import {
   ExternalLink,
   User,
   Users,
+  Headphones,
 } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import { AuthModal } from "@/src/components/auth/AuthModal";
@@ -101,8 +102,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/broker/stake", label: "Cọc Aave", icon: Landmark },
     {
       href: "/admin/disputes",
-      label: "Tòa Trọng Tài",
-      icon: Scale,
+      label: "CSKH Khiếu Nại",
+      icon: Headphones,
       isRestricted: true,
       hasAccess: isAdminOrTreasury,
     },
