@@ -17,6 +17,8 @@ import {
   LogOut,
   ChevronDown,
   Layers,
+  Coins,
+  ExternalLink,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -174,6 +176,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
             )}
+
+            {/* Faucet Link for Testers / Judges */}
+            <a
+              href="https://core.app/tools/testnet-faucet/?subnet=c&token=c"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[11px] font-mono text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+              title="Nhận Testnet AVAX & USDC miễn phí để thử nghiệm giao dịch"
+            >
+              <Coins className="w-3.5 h-3.5 text-[#F59E0B]" />
+              <span>Faucet Fuji</span>
+              <ExternalLink className="w-2.5 h-2.5 text-[#64748B]" />
+            </a>
 
             {/* Network Warning Switch Button */}
             {isWrongChain && (
