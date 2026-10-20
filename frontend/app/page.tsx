@@ -44,6 +44,57 @@ interface OnChainReport {
   isVerified: boolean;
 }
 
+const RECENT_L1_REPORTS = [
+  {
+    target: "1903889922101",
+    type: "bank",
+    bankName: "Techcombank",
+    owner: "NGUYEN VAN DUC",
+    description: "Mạo danh Admin OTC lừa chuyển khoản chiếm đoạt 1,200 USDT",
+    flagsCount: 5,
+    status: "VERIFIED",
+    verifiedBy: "Moderator L1 #0x44B1",
+    timeAgo: "12 phút trước",
+    amountLoss: "31,200,000 đ",
+  },
+  {
+    target: "@otc_vn_fake_admin",
+    type: "telegram",
+    bankName: "Telegram ID",
+    owner: "Fake Handle",
+    description: "Tạo nhóm chat 3 bên giả mạo GDTG Nguyễn Nam để quỵt cọc",
+    flagsCount: 4,
+    status: "VERIFIED",
+    verifiedBy: "Moderator L1 #0x77D1",
+    timeAgo: "45 phút trước",
+    amountLoss: "50,000,000 đ",
+  },
+  {
+    target: "0x71C84043CD9c86523674805113B78444499c0009",
+    type: "wallet",
+    bankName: "Avalanche C-Chain",
+    owner: "Malicious Contract",
+    description: "Phishing link giả mạo cổng ký quỹ TrustPact rút cạn tiền ví",
+    flagsCount: 3,
+    status: "PENDING_AUDIT",
+    verifiedBy: "Community Flagged",
+    timeAgo: "2 giờ trước",
+    amountLoss: "2,500 USDC",
+  },
+  {
+    target: "0982736182",
+    type: "phone",
+    bankName: "Momo / ViettelPay",
+    owner: "TRAN THI MAI",
+    description: "Làm giả bill biến động số dư ngân hàng mua tài khoản game",
+    flagsCount: 3,
+    status: "VERIFIED",
+    verifiedBy: "Moderator L1 #0x30F1",
+    timeAgo: "4 giờ trước",
+    amountLoss: "8,500,000 đ",
+  },
+];
+
 export default function ScamRadarAndReputationPage() {
   const { address } = useAccount();
 
@@ -499,6 +550,91 @@ export default function ScamRadarAndReputationPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* REAL-TIME L1 BLACKLIST STREAM (When no query active & not submitting report) */}
+            {!activeQuery && !showReportForm && (
+              <div className="pt-2 space-y-2.5 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between pb-2 border-b border-[#1E222D]">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                      Sổ Đen Mới Nhất Trên L1 Subnet
+                    </span>
+                    <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/15 px-1.5 py-0.2 rounded border border-[#10B981]/30">
+                      Live Stream · 0đ Gas
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#64748B]">
+                    Cập nhật từng block (0.8s)
+                  </span>
+                </div>
+
+                {/* Live Stream Table */}
+                <div className="rounded-md border border-[#1E222D] bg-[#090A0D] overflow-hidden">
+                  <div className="divide-y divide-[#1E222D]">
+                    {RECENT_L1_REPORTS.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-[#161922]/60 transition-colors"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono font-bold text-[#EF4444]">
+                              {item.target}
+                            </span>
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-[#161922] border border-[#1E222D] text-[#94A3B8]">
+                              {item.bankName}
+                            </span>
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30">
+                              {item.flagsCount} Lượt Tố Cáo
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#94A3B8] line-clamp-1">
+                            {item.description}
+                          </p>
+                          <div className="flex items-center gap-3 text-[10px] font-mono text-[#64748B]">
+                            <span>
+                              Chủ sở hữu: <strong className="text-[#F1F5F9]">{item.owner}</strong>
+                            </span>
+                            <span>·</span>
+                            <span>
+                              Thiệt hại: <strong className="text-[#EF4444]">{item.amountLoss}</strong>
+                            </span>
+                            <span>·</span>
+                            <span>{item.timeAgo}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQueryInput(item.target);
+                              setActiveQuery(item.target);
+                            }}
+                            className="px-2.5 py-1.5 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[11px] font-medium text-[#F1F5F9] transition-colors"
+                          >
+                            Kiểm Tra Ngay
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer summary inside left box */}
+                <div className="pt-1 flex items-center justify-between text-[11px] text-[#64748B]">
+                  <span>🛡️ Dữ liệu được đồng bộ phi tập trung trên Avalanche Subnet EVM.</span>
+                  <button
+                    onClick={() => setShowReportForm(true)}
+                    className="text-[#E84142] hover:underline font-medium inline-flex items-center gap-1"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>Gửi tố cáo đối tượng mới</span>
+                  </button>
+                </div>
               </div>
             )}
 
