@@ -524,7 +524,7 @@ export default function EscrowPactRoomPage() {
                     className="w-full py-2 px-3 rounded-md bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 text-xs font-bold text-[#EF4444] flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Headphones className="w-3.5 h-3.5" />
-                    <span>Báo Cáo CSKH Xử Lý (GDTG Bịp / Không Giải Ngân)</span>
+                    <span>Khiếu Nại Lên CSKH (Quá Hạn / Gian Lận)</span>
                   </Link>
                 </div>
               </div>

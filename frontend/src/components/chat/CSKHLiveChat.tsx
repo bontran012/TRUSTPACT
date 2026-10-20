@@ -35,7 +35,7 @@ export function CSKHLiveChat() {
 
   // Form states
   const [dealIdInput, setDealIdInput] = useState("101");
-  const [issueType, setIssueType] = useState("GDTG có dấu hiệu bịp / ôm tiền");
+  const [issueType, setIssueType] = useState("Trung gian quá hạn không giải ngân");
   const [inputText, setInputText] = useState("");
   const [hasStartedChat, setHasStartedChat] = useState(false);
 
@@ -55,15 +55,15 @@ export function CSKHLiveChat() {
       {
         id: "msg-init-1",
         sender: "cskh",
-        senderName: "CSKH Admin Sàn (Cấp Cao Nhất)",
+        senderName: "CSKH Admin Sàn (Hỗ Trợ 24/7)",
         text: `Chào ${userName}! Đây là kênh hỗ trợ khẩn cấp trực thuộc Admin sàn TrustPact.`,
         timestamp: "Vừa xong",
       },
       {
         id: "msg-init-2",
         sender: "cskh",
-        senderName: "CSKH Admin Sàn (Cấp Cao Nhất)",
-        text: `Nếu bạn gặp vấn đề GDTG (Trung gian) có dấu hiệu bịp, câu kết gian lận hoặc không chịu giải ngân, hãy gửi Mã Kèo và bằng chứng tại đây. Admin sẽ kiểm tra on-chain và kích hoạt lệnh Chém Cọc đền bù 100% tiền két sắt ngay lập tức!`,
+        senderName: "CSKH Admin Sàn (Hỗ Trợ 24/7)",
+        text: `Nếu bạn gặp sự cố trong quá trình giao dịch, trung gian quá hạn không giải ngân hoặc có dấu hiệu vi phạm thỏa thuận, vui lòng gửi Mã Kèo và tài liệu bằng chứng tại đây. Đội ngũ CSKH Admin sẽ đối soát on-chain và kích hoạt cơ chế bồi hoàn bảo vệ quyền lợi của bạn ngay lập tức!`,
         timestamp: "Vừa xong",
         isProofAlert: true,
       },
@@ -107,7 +107,7 @@ export function CSKHLiveChat() {
           {/* Tooltip Pill */}
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#101217] border border-[#1E222D] shadow-xl text-xs font-medium text-[#F1F5F9] animate-bounce duration-1000">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-            <span>Gặp GDTG bịp? Báo CSKH Admin 24/7</span>
+            <span>Khiếu nại giao dịch? CSKH hỗ trợ 24/7</span>
           </div>
 
           <button
@@ -134,12 +134,12 @@ export function CSKHLiveChat() {
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-xs font-bold text-[#F1F5F9]">CSKH Admin Sàn TrustPact</h3>
-                  <span className="px-1.5 py-0.2 rounded bg-[#EF4444]/15 border border-[#EF4444]/30 text-[9px] font-mono text-[#EF4444] font-bold">
-                    CẤP CAO NHẤT
+                  <span className="px-1.5 py-0.2 rounded bg-[#10B981]/15 border border-[#10B981]/30 text-[9px] font-mono text-[#10B981] font-bold">
+                    HỖ TRỢ 24/7
                   </span>
                 </div>
                 <p className="text-[10px] text-[#94A3B8]">
-                  Trực thuộc Admin sàn · Xử lý GDTG bịp &amp; Chém cọc đền bù
+                  Bộ phận hỗ trợ trực thuộc Admin sàn · Giải quyết tranh chấp &amp; Bảo vệ giao dịch
                 </p>
               </div>
             </div>
@@ -195,10 +195,11 @@ export function CSKHLiveChat() {
                   onChange={(e) => setIssueType(e.target.value)}
                   className="w-full bg-[#161922] border border-[#1E222D] rounded px-1.5 py-1 text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
                 >
-                  <option value="GDTG bịp / ôm tiền">GDTG bịp / ôm tiền</option>
-                  <option value="GDTG thông đồng seller">GDTG thông đồng seller</option>
-                  <option value="GDTG không giải ngân">GDTG không giải ngân</option>
-                  <option value="Hỏi hỗ trợ kỹ thuật">Hỏi hỗ trợ kỹ thuật</option>
+                  <option value="Trung gian quá hạn không giải ngân">Trung gian quá hạn không giải ngân</option>
+                  <option value="Nghi vấn gian lận / Vi phạm thỏa thuận">Nghi vấn gian lận / Vi phạm thỏa thuận</option>
+                  <option value="Bên bán không bàn giao tài sản">Bên bán không bàn giao tài sản</option>
+                  <option value="Tranh chấp phân chia số tiền">Tranh chấp phân chia số tiền</option>
+                  <option value="Hỗ trợ kỹ thuật & Kiểm tra giao dịch">Hỗ trợ kỹ thuật &amp; Kiểm tra giao dịch</option>
                 </select>
               </div>
             </div>
@@ -239,11 +240,11 @@ export function CSKHLiveChat() {
           <div className="px-3.5 py-2 bg-[#161922]/50 border-t border-[#1E222D] flex items-center gap-2 overflow-x-auto no-scrollbar text-[11px]">
             <button
               onClick={() => {
-                setInputText(`Admin ơi, GDTG kèo #${dealIdInput} có dấu hiệu bịp không chịu giải ngân!`);
+                setInputText(`Chào CSKH, kèo #${dealIdInput} hiện tại đã quá hạn nhưng trung gian chưa giải ngân, nhờ Admin hỗ trợ kiểm tra giúp tôi.`);
               }}
               className="px-2 py-1 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] whitespace-nowrap text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
             >
-              🚨 Báo GDTG Bịp Kèo #{dealIdInput}
+              🚨 Khiếu Nại Kèo #{dealIdInput}
             </button>
             <button
               onClick={() => {

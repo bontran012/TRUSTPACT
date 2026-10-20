@@ -173,7 +173,7 @@ export default function AdminDisputesPage() {
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] mt-1">
-                Bộ phận CSKH cấp cao nhất trực thuộc Admin sàn. Tiếp nhận đơn khiếu nại, xử lý trường hợp GDTG bịp, câu kết hoặc không chịu giải ngân để chém cọc đền bù 100% cho nạn nhân.
+                Bộ phận CSKH trực thuộc Admin sàn. Tiếp nhận và xử lý các trường hợp trung gian vi phạm, câu kết gian lận hoặc quá hạn không chịu giải ngân để chém cọc đền bù 100% cho nạn nhân.
               </p>
             </div>
           </div>
@@ -417,7 +417,7 @@ export default function AdminDisputesPage() {
                 <span>Cảnh Báo Dấu Hiệu Vi Phạm Nghiêm Trọng</span>
               </div>
               <p className="text-[#94A3B8] text-[11px] leading-relaxed">
-                Nếu Broker có dấu hiệu bịp, câu kết với bên gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng thỏa thuận, CSKH Admin sẽ áp dụng lệnh Chém Cọc để bồi hoàn ngay 100% cho bên bị hại.
+                Nếu Broker có dấu hiệu vi phạm thỏa thuận, gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng cam kết, CSKH Admin sẽ áp dụng lệnh Chém Cọc để bồi hoàn ngay 100% cho bên bị hại.
               </p>
             </div>
           </div>
