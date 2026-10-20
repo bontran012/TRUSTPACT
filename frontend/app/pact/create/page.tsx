@@ -662,54 +662,80 @@ export default function CreateEscrowPactPage() {
               </div>
             </div>
 
-            {/* 2-Step ERC-20 Execution Engine */}
-            <div className="pt-3 border-t border-[#1E222D] space-y-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] font-sans block">
-                Thực Thi Giao Dịch 2 Bước:
-              </span>
+            {/* 2-Step Execution Engine & Fast Sandbox */}
+            <div className="pt-3 border-t border-[#1E222D] space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] font-sans block">
+                  Thực Thi Giao Dịch:
+                </span>
+                <span className="text-[10px] text-[#F59E0B] font-mono">
+                  {isApproved ? "✓ Đã Approve — Sẵn sàng ký tạo" : "Cần bấm Bước 1 trước"}
+                </span>
+              </div>
 
               {/* Step 1: Approve Button */}
               <button
                 type="button"
                 onClick={handleApprove}
                 disabled={isApproved || dealAmountBigInt === 0n || txStatus.step === "confirming"}
-                className={`w-full py-2.5 px-3 rounded-md text-xs font-sans font-semibold transition-colors flex items-center justify-center gap-2 ${
+                className={`w-full py-2.5 px-3 rounded-md text-xs font-sans font-semibold transition-all flex items-center justify-center gap-2 ${
                   isApproved
                     ? "bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] cursor-default"
-                    : "bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#F1F5F9]"
+                    : "bg-[#1E222D] hover:bg-[#282E3D] border border-[#E84142]/40 text-[#F1F5F9] shadow-sm hover:border-[#E84142]"
                 }`}
               >
                 {isApproved ? (
                   <>
                     <Check className="w-3.5 h-3.5" />
-                    <span>Đã Cấp Quyền (Approved) {formatUsdc(allowanceBigInt)} USDC</span>
+                    <span>✓ Bước 1: Đã Cấp Quyền (Approved) {formatUsdc(allowanceBigInt)} USDC</span>
                   </>
                 ) : (
-                  <span>1. Cấp Quyền (Approve) {dealAmountNumber.toFixed(2)} USDC</span>
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-[#E84142] animate-pulse" />
+                    <span>Bước 1: Bấm Cấp Quyền (Approve) {dealAmountNumber.toFixed(2)} USDC</span>
+                  </>
                 )}
               </button>
 
               {/* Step 2: Create Escrow Button */}
               <button
                 type="button"
-                onClick={handleCreateEscrow}
-                disabled={!isApproved || isOverBrokerQuota || hasRoleConflict || txStatus.step === "confirming"}
-                className="w-full py-2.5 px-3 rounded-md text-xs font-sans font-bold bg-[#E84142] hover:bg-[#D13637] text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                onClick={isApproved ? handleCreateEscrow : handleApprove}
+                disabled={isOverBrokerQuota || hasRoleConflict || txStatus.step === "confirming"}
+                className={`w-full py-2.5 px-3 rounded-md text-xs font-sans font-bold transition-all flex items-center justify-center gap-2 ${
+                  isApproved
+                    ? "bg-[#E84142] hover:bg-[#D13637] text-white shadow-lg shadow-[#E84142]/30 cursor-pointer"
+                    : "bg-[#161922] border border-[#1E222D] text-[#64748B] hover:text-[#94A3B8]"
+                }`}
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span>2. Ký Giao Dịch &amp; Khóa Tiền Vào Két Sắt</span>
+                <span>
+                  {isApproved
+                    ? "Bước 2: Ký Giao Dịch & Khóa Tiền Vào Két Sắt"
+                    : "Bước 2: Ký Giao Dịch (Mở khóa sau Bước 1)"}
+                </span>
               </button>
 
-              {/* Fast Sandbox / Demo Mode for quick review */}
+              {/* Divider */}
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-[#1E222D]"></div>
+                <span className="flex-shrink mx-2 text-[10px] uppercase font-mono text-[#64748B]">hoặc kiểm thử nhanh</span>
+                <div className="flex-grow border-t border-[#1E222D]"></div>
+              </div>
+
+              {/* Fast Sandbox / Demo Mode Button - Prominent */}
               <button
                 type="button"
                 onClick={handleSimulatedCreate}
-                className="w-full py-2 px-3 rounded-md text-[11px] font-sans font-medium bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors flex items-center justify-center gap-1.5"
-                title="Khởi tạo đối soát 2 bên và mở phòng giao dịch ngay để kiểm thử nhanh"
+                className="w-full py-3 px-3 rounded-md text-xs font-sans font-bold bg-[#10B981]/15 hover:bg-[#10B981]/25 border border-[#10B981]/40 text-[#10B981] transition-all flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-[0.99]"
+                title="Khởi tạo đối soát 2 bên và mở phòng giao dịch ngay để kiểm thử nhanh mà không cần ví hay gas"
               >
-                <ArrowRight className="w-3.5 h-3.5 text-[#E84142]" />
-                <span>Thử Nghiệm Đối Soát &amp; Mở Phòng Giao Dịch Ngay</span>
+                <ArrowRight className="w-4 h-4" />
+                <span>Mở Phòng Giao Dịch Ngay (Thử Nghiệm Đối Soát 2 Bên)</span>
               </button>
+              <span className="text-[10px] text-center text-[#64748B] block font-sans">
+                (Khuyên dùng để kiểm tra ngay giao diện Biên Bản Xác Nhận &amp; Phòng Giao Dịch mà không cần nạp gas Fuji)
+              </span>
             </div>
           </div>
         </div>
