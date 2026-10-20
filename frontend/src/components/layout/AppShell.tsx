@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import { AuthModal } from "@/src/components/auth/AuthModal";
+import { CSKHLiveChat } from "@/src/components/chat/CSKHLiveChat";
 import {
   CONTRACT_ADDRESSES,
   ERC20_ABI,
@@ -96,17 +97,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navLinks = [
-    { href: "/", label: "Tra Cứu Scam", icon: Search, exact: true },
-    { href: "/pact/create", label: "Tạo Kèo", icon: PlusSquare },
-    { href: "/pact", label: "Sổ Kèo", icon: Lock, exact: true },
-    { href: "/broker/stake", label: "Cọc Aave", icon: Landmark },
-    {
-      href: "/admin/disputes",
-      label: "CSKH Khiếu Nại",
-      icon: Headphones,
-      isRestricted: true,
-      hasAccess: isAdminOrTreasury,
-    },
+    { href: "/", label: "Tra Cứu Scam & Tín Nhiệm", icon: Search, exact: true },
+    { href: "/pact/create", label: "Tạo Kèo Ký Quỹ", icon: PlusSquare },
+    { href: "/pact", label: "Sổ Kèo Của Tôi", icon: Lock, exact: true },
+    { href: "/broker/stake", label: "Cọc GDTG & Lãi Aave", icon: Landmark },
   ];
 
   return (
@@ -115,9 +109,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="h-14 border-b border-[#1E222D] bg-[#090A0D]/95 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-[1440px] mx-auto px-4 h-full flex items-center justify-between gap-4">
           {/* Left: Brand Emblem & Wordmark */}
-          <div className="flex items-center gap-6 shrink-0">
+          <div className="flex items-center shrink-0">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-7 h-7 rounded-md bg-[#161922] border border-[#1E222D] flex items-center justify-center text-[#E84142] group-hover:border-[#E84142]/40 transition-colors">
+              <div className="w-8 h-8 rounded-md bg-[#161922] border border-[#1E222D] flex items-center justify-center text-[#E84142] group-hover:border-[#E84142]/40 transition-colors">
                 <Shield className="w-4 h-4 fill-[#E84142]/20 text-[#E84142]" />
               </div>
               <div className="flex items-center gap-2">
@@ -127,34 +121,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
             </Link>
-
-            {/* Center Navigation: 5 Workspace Links */}
-            <nav className="hidden xl:flex items-center h-14">
-              {navLinks.map((link) => {
-                const isActive = link.exact
-                  ? pathname === link.href
-                  : pathname?.startsWith(link.href);
-                const Icon = link.icon;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`h-full flex items-center gap-2 px-3.5 text-xs font-medium transition-colors border-b-2 relative ${
-                      isActive
-                        ? "border-[#E84142] text-[#F1F5F9]"
-                        : "border-transparent text-[#94A3B8] hover:text-[#F1F5F9]"
-                    }`}
-                  >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
-                    <span>{link.label}</span>
-                    {link.isRestricted && !link.hasAccess && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#64748B]" title="Chế độ Giám sát Minh bạch (Yêu cầu chữ ký Admin)" />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
           </div>
+
+          {/* Center Navigation: Trải rộng tự nhiên và thoáng đãng */}
+          <nav className="hidden md:flex flex-1 items-center justify-center gap-1 sm:gap-2 lg:gap-4 h-14">
+            {navLinks.map((link) => {
+              const isActive = link.exact
+                ? pathname === link.href
+                : pathname?.startsWith(link.href);
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`h-full flex items-center gap-2 px-3 lg:px-4 text-xs font-semibold transition-colors border-b-2 relative ${
+                    isActive
+                      ? "border-[#E84142] text-[#F1F5F9]"
+                      : "border-transparent text-[#94A3B8] hover:text-[#F1F5F9] hover:border-[#1E222D]"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
 
           {/* Right: Live Telemetry & User Account Strip */}
           <div className="flex items-center gap-2.5 shrink-0">
@@ -345,6 +336,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
+
+      {/* Floating CSKH Live Support Chat Widget */}
+      <CSKHLiveChat />
 
       {/* Global Auth & Account Management Modal */}
       <AuthModal />
