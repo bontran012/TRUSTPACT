@@ -71,15 +71,12 @@ export default function EscrowPactRoomPage() {
   const pactId = BigInt(rawId.replace(/[^0-9]/g, "") || "101");
 
   const { address, isConnected } = useAccount();
-  const { currentUser, loginWithPreset } = useAuth();
+  const { currentUser } = useAuth();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
   const [currentTime, setCurrentTime] = useState<number>(Math.floor(Date.now() / 1000));
   const [txStatus, setTxStatus] = useState<TxStatus>({ step: "idle" });
-
-  // Perspective simulation state
-  const [viewingPerspective, setViewingPerspective] = useState<"auto" | "buyer" | "seller" | "broker" | "observer">("auto");
 
   // Handover Vault State
   const [showSecretCredentials, setShowSecretCredentials] = useState(false);
@@ -211,19 +208,14 @@ export default function EscrowPactRoomPage() {
   const secsLeft = remainingSeconds % 60;
   const timerDisplay = `${hoursLeft.toString().padStart(2, "0")}:${minsLeft.toString().padStart(2, "0")}:${secsLeft.toString().padStart(2, "0")}`;
 
-  // Connected Role Evaluation
+  // Connected Role Evaluation directly from active logged-in user profile & wallet
   const effectiveAddress = address || currentUser?.walletAddress;
   const connectedLower = effectiveAddress?.toLowerCase();
 
-  const isRealBuyer = connectedLower === escrowItem.buyer.toLowerCase();
-  const isRealSeller = connectedLower === escrowItem.seller.toLowerCase();
-  const isRealBroker = connectedLower === escrowItem.broker.toLowerCase();
-
-  // Perspective Switcher overrides
-  const isBuyer = viewingPerspective === "buyer" ? true : viewingPerspective === "auto" ? isRealBuyer : false;
-  const isSeller = viewingPerspective === "seller" ? true : viewingPerspective === "auto" ? isRealSeller : false;
-  const isBroker = viewingPerspective === "broker" ? true : viewingPerspective === "auto" ? isRealBroker : false;
-  const isObserver = viewingPerspective === "observer" ? true : (!isBuyer && !isSeller && !isBroker);
+  const userRole = currentUser?.role;
+  const isSeller = userRole === "SELLER" || connectedLower === escrowItem.seller.toLowerCase();
+  const isBroker = userRole === "BROKER" || connectedLower === escrowItem.broker.toLowerCase();
+  const isBuyer = userRole === "BUYER" || connectedLower === escrowItem.buyer.toLowerCase() || (!isSeller && !isBroker);
 
   // Exact Fees
   const dealAmountNum = Number(escrowItem.amount) / 1e6;
@@ -460,82 +452,6 @@ export default function EscrowPactRoomPage() {
           </div>
         </div>
 
-        {/* ── PERSPECTIVE & TESTING CONTROL BAR ──────────────────────────────── */}
-        <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-[#94A3B8]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#64748B]">
-              Góc nhìn kiểm thử &amp; thao tác:
-            </span>
-            <span className="hidden sm:inline text-[#64748B]">|</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Buyer Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setViewingPerspective("buyer");
-                loginWithPreset("buyer-tuan");
-              }}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
-                isBuyer
-                  ? "bg-[#E84142] text-white font-bold shadow-md shadow-[#E84142]/20"
-                  : "bg-[#161922] hover:bg-[#1E222D] text-[#94A3B8] border border-[#1E222D]"
-              }`}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Bên Mua (Lê Minh Tuấn)</span>
-            </button>
-
-            {/* Seller Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setViewingPerspective("seller");
-                loginWithPreset("seller-hoang");
-              }}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
-                isSeller
-                  ? "bg-[#10B981] text-white font-bold shadow-md shadow-[#10B981]/20"
-                  : "bg-[#161922] hover:bg-[#1E222D] text-[#94A3B8] border border-[#1E222D]"
-              }`}
-            >
-              <Store className="w-3.5 h-3.5" />
-              <span>Bên Bán (Hoàng Minh)</span>
-            </button>
-
-            {/* Broker Button */}
-            <button
-              type="button"
-              onClick={() => {
-                setViewingPerspective("broker");
-                loginWithPreset("broker-nam");
-              }}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
-                isBroker
-                  ? "bg-[#F59E0B] text-black font-bold shadow-md shadow-[#F59E0B]/20"
-                  : "bg-[#161922] hover:bg-[#1E222D] text-[#94A3B8] border border-[#1E222D]"
-              }`}
-            >
-              <Scale className="w-3.5 h-3.5" />
-              <span>Trọng Tài (Nguyễn Nam)</span>
-            </button>
-
-            {/* Observer Button */}
-            <button
-              type="button"
-              onClick={() => setViewingPerspective("observer")}
-              className={`px-2.5 py-1.5 rounded text-xs transition-all ${
-                isObserver
-                  ? "bg-[#1E222D] text-[#F1F5F9] font-bold border border-[#64748B]"
-                  : "bg-[#161922] text-[#64748B] hover:text-[#94A3B8]"
-              }`}
-            >
-              <span>Quan Sát</span>
-            </button>
-          </div>
-        </div>
-
         {/* ── 4-STAGE INTERACTIVE DEAL LIFECYCLE STEPPER ─────────────────────── */}
         <div className="pt-2">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 font-mono text-xs">
@@ -706,7 +622,7 @@ export default function EscrowPactRoomPage() {
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">BÊN MUA (BUYER)</span>
                 {isBuyer && (
-                  <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">BẠN ĐANG XEM</span>
+                  <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">VÍ CỦA BẠN</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
@@ -726,7 +642,7 @@ export default function EscrowPactRoomPage() {
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">TRỌNG TÀI (GDTG)</span>
                 {isBroker && (
-                  <span className="text-[9px] font-bold text-[#F59E0B] bg-[#F59E0B]/10 px-1 rounded">BẠN ĐANG XEM</span>
+                  <span className="text-[9px] font-bold text-[#F59E0B] bg-[#F59E0B]/10 px-1 rounded">VÍ CỦA BẠN</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
@@ -748,7 +664,7 @@ export default function EscrowPactRoomPage() {
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">BÊN BÁN (SELLER)</span>
                 {isSeller && (
-                  <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-1 rounded">BẠN ĐANG XEM</span>
+                  <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-1 rounded">VÍ CỦA BẠN</span>
                 )}
               </div>
               <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
@@ -1060,27 +976,23 @@ export default function EscrowPactRoomPage() {
               </div>
             </div>
 
-            {/* Active Perspective Badge */}
+            {/* Active Role Badge */}
             <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between font-sans">
-              <span className="text-[11px] text-[#64748B]">Bạn đang thao tác với tư cách:</span>
+              <span className="text-[11px] text-[#64748B]">Tài khoản đang đăng nhập:</span>
               <span
                 className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
                   isBuyer
                     ? "bg-[#E84142]/10 text-[#E84142]"
                     : isSeller
                     ? "bg-[#10B981]/10 text-[#10B981]"
-                    : isBroker
-                    ? "bg-[#F59E0B]/10 text-[#F59E0B]"
-                    : "bg-[#64748B]/10 text-[#64748B]"
+                    : "bg-[#F59E0B]/10 text-[#F59E0B]"
                 }`}
               >
                 {isBuyer
                   ? "Bên Mua (Buyer)"
                   : isSeller
                   ? "Bên Bán (Seller)"
-                  : isBroker
-                  ? "Trọng Tài (Broker)"
-                  : "Quan Sát Viên"}
+                  : "Trọng Tài (Broker)"}
               </span>
             </div>
 
@@ -1279,12 +1191,7 @@ export default function EscrowPactRoomPage() {
               </div>
             )}
 
-            {/* ── ACTIONS FOR OBSERVER / NON-PARTICIPANT ──────────────────── */}
-            {isObserver && statusNumber === 0 && (
-              <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] text-xs font-sans text-[#94A3B8] leading-relaxed">
-                Bạn đang ở chế độ Quan Sát Viên. Sử dụng thanh "Góc nhìn kiểm thử &amp; thao tác" ở trên cùng để đóng vai Bên Mua, Bên Bán hoặc Trọng Tài GDTG để kiểm thử các lệnh giải ngân, hoàn tiền.
-              </div>
-            )}
+
 
             {/* Completed Notice */}
             {statusNumber !== 0 && (
