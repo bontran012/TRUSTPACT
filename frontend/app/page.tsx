@@ -841,7 +841,7 @@ export default function ScamRadarAndReputationPage() {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Số lần bị phạt chém cọc:</span>
+                  <span className="text-[#64748B]">Số lần bị phạt vi phạm:</span>
                   <span className="text-[#EF4444] tabular-nums">
                     {sbtProfile ? Number((sbtProfile as any).slashedCount) : 0} Lần
                   </span>

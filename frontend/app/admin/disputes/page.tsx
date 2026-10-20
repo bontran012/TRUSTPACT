@@ -128,13 +128,13 @@ export default function AdminDisputesPage() {
   });
 
   const txStatus: TxStatus = isSlashPending
-    ? { step: "awaiting_signature", actionTitle: "Chém Cọc Broker & Đền Bù Nạn Nhân" }
+    ? { step: "awaiting_signature", actionTitle: "Tịch Thu Cọc Broker & Bồi Hoàn" }
     : isSlashConfirming
-    ? { step: "confirming", txHash: slashTxHash, actionTitle: "Đang Xác Nhận Lệnh Phân Xử" }
+    ? { step: "confirming", txHash: slashTxHash, actionTitle: "Đang Xác Nhận Lệnh Bồi Hoàn" }
     : isSlashSuccess
-    ? { step: "success", txHash: slashTxHash, actionTitle: "Đã Chém Cọc & Đền Bù Thành Công!" }
+    ? { step: "success", txHash: slashTxHash, actionTitle: "Đã Tịch Thu Cọc & Bồi Hoàn Thành Công!" }
     : slashError
-    ? { step: "error", errorMessage: slashError.message, actionTitle: "Lệnh Chém Cọc Thất Bại" }
+    ? { step: "error", errorMessage: slashError.message, actionTitle: "Lệnh Xử Lý Vi Phạm Thất Bại" }
     : { step: "idle" };
 
   const handleSlashSubmit = (e: React.FormEvent) => {
@@ -166,14 +166,14 @@ export default function AdminDisputesPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold tracking-tight text-[#F1F5F9]">
-                  Trung Tâm CSKH &amp; Xử Lý Khiếu Nại (Admin Sàn)
+                  Trung Tâm Xử Lý Khiếu Nại &amp; Bồi Hoàn (Admin)
                 </h1>
                 <span className="text-[10px] font-mono uppercase bg-[#161922] border border-[#1E222D] px-2 py-0.5 rounded text-[#94A3B8]">
-                  Cấp Quản Trị Cao Nhất
+                  Quản Trị Viên
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] mt-1">
-                Bộ phận CSKH trực thuộc Admin sàn. Tiếp nhận và xử lý các trường hợp trung gian vi phạm, câu kết gian lận hoặc quá hạn không chịu giải ngân để chém cọc đền bù 100% cho nạn nhân.
+                Bộ phận tiếp nhận và xử lý các trường hợp trung gian vi phạm thỏa thuận, gian lận hoặc chậm trễ giải ngân để tịch thu tiền cọc bảo chứng bồi hoàn 100% cho người dùng.
               </p>
             </div>
           </div>
@@ -183,12 +183,12 @@ export default function AdminDisputesPage() {
             {isAdminOrTreasury ? (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] text-xs font-mono font-medium">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Quyền CSKH Hợp Lệ (Admin Sàn)</span>
+                <span>Quyền Quản Trị Hợp Lệ (Admin / Treasury)</span>
               </div>
             ) : (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-mono">
                 <Lock className="w-4 h-4" />
-                <span>Chế Độ Xem Khiếu Nại (Chỉ Admin CSKH mới có quyền chém cọc)</span>
+                <span>Chế Độ Tra Cứu Minh Bạch (Yêu cầu tài khoản quản trị để xử lý vi phạm)</span>
               </div>
             )}
           </div>
@@ -199,7 +199,7 @@ export default function AdminDisputesPage() {
           <div className="mt-4 pt-3 border-t border-[#1E222D] flex items-center gap-2.5 text-xs text-[#94A3B8]">
             <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0" />
             <span>
-              <strong className="text-[#F1F5F9]">Chế độ Minh Bạch Công Khai:</strong> Bất kỳ ai cũng có thể tra cứu tiến độ xử lý khiếu nại. Chỉ tài khoản CSKH trực thuộc Admin sàn (<code className="text-[#F1F5F9] font-mono">{shortenAddress(adminAddress as string || "0x0")}</code>) mới có quyền ký lệnh Chém Cọc đền bù.
+              <strong className="text-[#F1F5F9]">Chế độ Minh Bạch Công Khai:</strong> Bất kỳ ai cũng có thể tra cứu tiến độ xử lý khiếu nại on-chain. Chỉ tài khoản quản trị viên (<code className="text-[#F1F5F9] font-mono">{shortenAddress(adminAddress as string || "0x0")}</code>) mới có quyền ký lệnh tịch thu cọc bồi hoàn.
             </span>
           </div>
         )}
@@ -398,7 +398,7 @@ export default function AdminDisputesPage() {
               </div>
               <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D]">
                 <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Số Lần Bị Phạt Chém Cọc
+                  Số Lần Bị Phạt Vi Phạm
                 </span>
                 <span
                   className={`text-sm font-bold font-mono tabular-nums mt-1 block ${
@@ -417,7 +417,7 @@ export default function AdminDisputesPage() {
                 <span>Cảnh Báo Dấu Hiệu Vi Phạm Nghiêm Trọng</span>
               </div>
               <p className="text-[#94A3B8] text-[11px] leading-relaxed">
-                Nếu Broker có dấu hiệu vi phạm thỏa thuận, gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng cam kết, CSKH Admin sẽ áp dụng lệnh Chém Cọc để bồi hoàn ngay 100% cho bên bị hại.
+                Nếu Broker có dấu hiệu vi phạm thỏa thuận, gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng cam kết, quản trị viên sẽ áp dụng lệnh tịch thu cọc bảo chứng để bồi hoàn ngay 100% cho bên bị hại.
               </p>
             </div>
           </div>
@@ -429,14 +429,14 @@ export default function AdminDisputesPage() {
             <div className="flex items-center gap-2 pb-3 border-b border-[#1E222D]">
               <Gavel className="w-4 h-4 text-[#EF4444]" />
               <h2 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
-                Bảng Điều Khiển Xử Phạt (Slashing Execution Console)
+                Bảng Điều Khiển Xử Phạt &amp; Bồi Hoàn (Restitution Console)
               </h2>
             </div>
 
             {/* Invariant Explanation Box */}
             <div className="mt-4 p-3.5 rounded-md bg-[#161922] border border-[#1E222D] space-y-2 text-xs">
               <span className="text-[11px] font-semibold text-[#F1F5F9] block uppercase tracking-wider">
-                Quy Trình Chém Cọc & Đền Bù On-Chain:
+                Quy Trình Tịch Thu Cọc Bảo Chứng &amp; Bồi Hoàn On-Chain:
               </span>
               <ul className="space-y-1.5 text-[#94A3B8] text-[11px]">
                 <li className="flex items-start gap-2">
@@ -536,7 +536,7 @@ export default function AdminDisputesPage() {
                   className="mt-0.5 rounded border-[#1E222D] bg-[#090A0D] text-[#EF4444] focus:ring-0 disabled:opacity-50"
                 />
                 <span className="text-[11px] text-[#94A3B8] leading-tight select-none">
-                  Tôi là CSKH Admin (cấp cao nhất), xác nhận đã kiểm toán toàn bộ bằng chứng vi phạm của Broker. Tôi thực thi lệnh chém cọc đền bù trực tiếp cho nạn nhân.
+                  Tôi xác nhận đã kiểm toán toàn bộ chứng từ và bằng chứng vi phạm của Broker trên hợp đồng thông minh. Tôi thực thi lệnh tịch thu cọc bảo chứng và bồi hoàn trực tiếp cho người dùng.
                 </span>
               </label>
 
@@ -563,7 +563,7 @@ export default function AdminDisputesPage() {
                     ? "Đang Chờ Ký Ví..."
                     : isSlashConfirming
                     ? "Đang Xác Nhận Giao Dịch..."
-                    : "CSKH BẤM CHÉM CỌC BROKER & ĐỀN BÙ NẠN NHÂN (SLASH & PENALIZE)"}
+                    : "KÍCH HOẠT TỊCH THU CỌC & BỒI HOÀN NẠN NHÂN (EXECUTE RESTITUTION)"}
                 </span>
               </button>
             </form>

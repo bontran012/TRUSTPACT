@@ -48,22 +48,22 @@ export function CSKHLiveChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Initial welcome message from CSKH Admin
+  // Initial welcome message from CSKH Support
   useEffect(() => {
-    const userName = currentUser?.name || "Bạn";
+    const userName = currentUser?.name || "Quý khách";
     setMessages([
       {
         id: "msg-init-1",
         sender: "cskh",
-        senderName: "CSKH Admin Sàn (Hỗ Trợ 24/7)",
-        text: `Chào ${userName}! Đây là kênh hỗ trợ khẩn cấp trực thuộc Admin sàn TrustPact.`,
+        senderName: "Bộ Phận Hỗ Trợ Khách Hàng (CSKH)",
+        text: `Kính chào ${userName}! Đây là kênh tiếp nhận khiếu nại và hỗ trợ trực tuyến của TrustPact.`,
         timestamp: "Vừa xong",
       },
       {
         id: "msg-init-2",
         sender: "cskh",
-        senderName: "CSKH Admin Sàn (Hỗ Trợ 24/7)",
-        text: `Nếu bạn gặp sự cố trong quá trình giao dịch, trung gian quá hạn không giải ngân hoặc có dấu hiệu vi phạm thỏa thuận, vui lòng gửi Mã Kèo và tài liệu bằng chứng tại đây. Đội ngũ CSKH Admin sẽ đối soát on-chain và kích hoạt cơ chế bồi hoàn bảo vệ quyền lợi của bạn ngay lập tức!`,
+        senderName: "Bộ Phận Hỗ Trợ Khách Hàng (CSKH)",
+        text: `Nếu bạn gặp sự cố trong quá trình giao dịch, trung gian quá hạn không giải ngân hoặc có dấu hiệu vi phạm thỏa thuận, vui lòng gửi Mã Kèo và tài liệu bằng chứng tại đây. Đội ngũ CSKH sẽ đối soát on-chain và kích hoạt cơ chế bồi hoàn bảo vệ quyền lợi của bạn ngay lập tức!`,
         timestamp: "Vừa xong",
         isProofAlert: true,
       },
@@ -91,8 +91,8 @@ export function CSKHLiveChat() {
       const cskhReply: ChatMessage = {
         id: `cskh-${Date.now()}`,
         sender: "cskh",
-        senderName: "CSKH Admin Sàn",
-        text: `Admin đã nhận được thông tin khiếu nại của bạn về kèo #${dealIdInput}. Hồ sơ đang được kiểm tra trên smart contract. Nếu GDTG vi phạm, toàn bộ tiền cọc sẽ bị chém để đền bù trực tiếp về ví của bạn!`,
+        senderName: "Bộ Phận Hỗ Trợ Khách Hàng (CSKH)",
+        text: `Bộ phận CSKH đã ghi nhận thông tin khiếu nại của bạn về kèo #${dealIdInput}. Hồ sơ đang được đối soát trên hợp đồng thông minh. Nếu trung gian vi phạm cam kết, hệ thống sẽ tự động kích hoạt bồi hoàn bảo vệ tài sản của bạn!`,
         timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, cskhReply]);
@@ -133,13 +133,13 @@ export function CSKHLiveChat() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-xs font-bold text-[#F1F5F9]">CSKH Admin Sàn TrustPact</h3>
+                  <h3 className="text-xs font-bold text-[#F1F5F9]">Trung Tâm Hỗ Trợ Khách Hàng</h3>
                   <span className="px-1.5 py-0.2 rounded bg-[#10B981]/15 border border-[#10B981]/30 text-[9px] font-mono text-[#10B981] font-bold">
-                    HỖ TRỢ 24/7
+                    TRỰC TUYẾN 24/7
                   </span>
                 </div>
                 <p className="text-[10px] text-[#94A3B8]">
-                  Bộ phận hỗ trợ trực thuộc Admin sàn · Giải quyết tranh chấp &amp; Bảo vệ giao dịch
+                  Giải quyết khiếu nại &amp; Bảo vệ quyền lợi người dùng
                 </p>
               </div>
             </div>
@@ -248,11 +248,11 @@ export function CSKHLiveChat() {
             </button>
             <button
               onClick={() => {
-                setInputText(`Kiểm tra tiến độ đền bù chém cọc cho kèo #${dealIdInput} giúp tôi với.`);
+                setInputText(`Kiểm tra tiến độ xử lý bồi hoàn cho kèo #${dealIdInput} giúp tôi với.`);
               }}
               className="px-2 py-1 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] whitespace-nowrap text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
             >
-              📋 Tiến độ đền bù
+              📋 Tiến độ xử lý
             </button>
           </div>
 
@@ -265,7 +265,7 @@ export function CSKHLiveChat() {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Nhập nội dung khiếu nại gửi CSKH Admin..."
+              placeholder="Nhập nội dung khiếu nại gửi bộ phận CSKH..."
               className="flex-1 bg-[#090A0D] border border-[#1E222D] rounded-md px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
             />
             <button
@@ -279,13 +279,13 @@ export function CSKHLiveChat() {
 
           {/* Footer Admin Link */}
           <div className="px-3.5 py-2 bg-[#090A0D] border-t border-[#1E222D] flex items-center justify-between text-[10px] text-[#64748B]">
-            <span>Admin trực tiếp thụ lý &amp; xử phạt</span>
+            <span>Hệ thống giám sát bảo mật on-chain</span>
             <Link
               href={`/admin/disputes?id=${dealIdInput}`}
               onClick={() => setIsOpen(false)}
               className="text-[#E84142] hover:underline flex items-center gap-1"
             >
-              <span>Xem Bảng Xử Phạt Admin</span>
+              <span>Xem Bảng Xử Lý Vi Phạm</span>
               <ExternalLink className="w-2.5 h-2.5" />
             </Link>
           </div>

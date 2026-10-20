@@ -52,7 +52,7 @@ export function EscrowSimulationHero() {
             <p className="text-sm sm:text-base text-slate-300/90 leading-relaxed font-normal">
               Chấm dứt triệt để nạn lừa đảo P2P, Fake Bill ngân hàng và trung gian mạo danh. Nguồn vốn ký quỹ và tiền cọc bảo chứng của GDTG tự động sinh lãi thực trong{" "}
               <strong className="text-white font-semibold">Aave V3 Lending Pool</strong>, kèm cơ chế{" "}
-              <strong className="text-emerald-400 font-semibold">Chém Cọc Đền Bù 100% (Slashing)</strong>.
+              <strong className="text-emerald-400 font-semibold">Tịch Thu Cọc Đền Bù 100% (Slashing)</strong>.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 pt-1">

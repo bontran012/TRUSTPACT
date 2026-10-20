@@ -64,7 +64,7 @@ export function StepProgress({ currentStep, status, className = "" }: StepProgre
 
       tag: "STEP 04",
 
-      title: status === "SLASHED" ? "Chém Cọc Broker" : status === "CANCELLED" ? "Hoàn Quỹ Bảo Toàn" : "Quyết Toán (0.8s)",
+      title: status === "SLASHED" ? "Tịch Thu Cọc Vi Phạm" : status === "CANCELLED" ? "Hoàn Quỹ Bảo Toàn" : "Quyết Toán (0.8s)",
       desc: status === "SLASHED" ? "Bồi thường 100% cho Buyer" : status === "CANCELLED" ? "Đã bồi hoàn 100% về ví" : "Giải ngân tức thì qua Snowman",
       icon: (status === "CANCELLED" || status === "SLASHED") ? RotateCcw : Check,
 

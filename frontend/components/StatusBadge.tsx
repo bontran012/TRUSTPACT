@@ -53,7 +53,7 @@ export function StatusBadge({ status, label, className = "", size = "md" }: Stat
       return (
         <span className={`inline-flex items-center space-x-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-400 font-medium ${sizeClasses} ${className}`}>
           <AlertTriangle className="w-3 h-3 text-rose-400" />
-          <span>{label || "Đã Chém Cọc"}</span>
+          <span>{label || "Đã Tịch Thu Cọc"}</span>
         </span>
       );
 
