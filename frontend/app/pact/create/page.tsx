@@ -28,6 +28,8 @@ import {
   parseContractError,
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
+import { PactConfirmationModal } from "@/src/components/pact/PactConfirmationModal";
+import { useAuth } from "@/src/context/AuthContext";
 
 interface BrokerItem {
   id: string;
@@ -81,8 +83,14 @@ export default function CreateEscrowPactPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
+  const { currentUser } = useAuth();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
+
+  // Modal State for 2-Party Confirmation Transition
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [createdPactId, setCreatedPactId] = useState("101");
+  const [createdTxHash, setCreatedTxHash] = useState<string | undefined>(undefined);
 
   // Form State
   const initialSeller = searchParams.get("seller") || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002";
@@ -258,17 +266,43 @@ export default function CreateEscrowPactPage() {
           } catch {}
         }
 
+        // Save pact locally for instant seamless room view
+        const newPactData = {
+          id: createdId,
+          buyer: address || currentUser?.walletAddress || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+          buyerName: currentUser?.name || "Lê Minh Tuấn",
+          seller: sellerInput,
+          broker: activeBrokerAddress,
+          brokerName: selectedBroker.name,
+          amount: dealAmountInput,
+          brokerFeeBps: brokerFeeBps,
+          duration: selectedDurationSeconds,
+          terms: handoverTerms,
+          startTime: Math.floor(Date.now() / 1000),
+          status: 0,
+        };
+        try {
+          const existing = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
+          existing[createdId] = newPactData;
+          localStorage.setItem("trustpact_custom_pacts", JSON.stringify(existing));
+        } catch {}
+
+        setCreatedPactId(createdId);
+        setCreatedTxHash(hash);
         setTxStatus({
           step: "success",
           txHash: hash,
           actionTitle: "Khởi Tạo Két Sắt & Khóa Quỹ UniversalEscrow",
         });
 
+        // Trigger 2-Party Confirmation Modal
         setTimeout(() => {
-          router.push(`/pact/${createdId}`);
-        }, 1500);
+          setTxStatus({ step: "idle" });
+          setIsConfirmationModalOpen(true);
+        }, 1200);
       } else {
-        router.push(`/pact/101`);
+        setCreatedPactId("101");
+        setIsConfirmationModalOpen(true);
       }
     } catch (err: any) {
       setTxStatus({
@@ -277,6 +311,34 @@ export default function CreateEscrowPactPage() {
         actionTitle: "Khởi Tạo Két Sắt & Khóa Quỹ UniversalEscrow",
       });
     }
+  };
+
+  // Simulated Test Create for judges / testers without Fuji testnet tokens
+  const handleSimulatedCreate = () => {
+    const testId = String(Math.floor(100 + Math.random() * 900));
+    const newPactData = {
+      id: testId,
+      buyer: address || currentUser?.walletAddress || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+      buyerName: currentUser?.name || "Lê Minh Tuấn",
+      seller: sellerInput,
+      broker: activeBrokerAddress,
+      brokerName: selectedBroker.name,
+      amount: dealAmountInput,
+      brokerFeeBps: brokerFeeBps,
+      duration: selectedDurationSeconds,
+      terms: handoverTerms,
+      startTime: Math.floor(Date.now() / 1000),
+      status: 0,
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
+      existing[testId] = newPactData;
+      localStorage.setItem("trustpact_custom_pacts", JSON.stringify(existing));
+    } catch {}
+
+    setCreatedPactId(testId);
+    setCreatedTxHash("0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""));
+    setIsConfirmationModalOpen(true);
   };
 
   const sellerReportCount = sellerScamData ? Number(sellerScamData[0]) : 0;
@@ -637,10 +699,40 @@ export default function CreateEscrowPactPage() {
                 <Lock className="w-3.5 h-3.5" />
                 <span>2. Ký Giao Dịch &amp; Khóa Tiền Vào Két Sắt</span>
               </button>
+
+              {/* Fast Sandbox / Demo Mode for quick review */}
+              <button
+                type="button"
+                onClick={handleSimulatedCreate}
+                className="w-full py-2 px-3 rounded-md text-[11px] font-sans font-medium bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors flex items-center justify-center gap-1.5"
+                title="Khởi tạo đối soát 2 bên và mở phòng giao dịch ngay để kiểm thử nhanh"
+              >
+                <ArrowRight className="w-3.5 h-3.5 text-[#E84142]" />
+                <span>Thử Nghiệm Đối Soát &amp; Mở Phòng Giao Dịch Ngay</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* 2-Party Confirmation & Trading Room Transition Modal */}
+      <PactConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        pactId={createdPactId}
+        buyerAddress={address || currentUser?.walletAddress || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001"}
+        buyerName={currentUser?.name || "Lê Minh Tuấn"}
+        sellerAddress={sellerInput}
+        brokerAddress={activeBrokerAddress}
+        brokerName={selectedBroker.name}
+        amount={dealAmountInput}
+        netSellerAmount={netSellerReceives}
+        durationHours={Math.round(selectedDurationSeconds / 3600)}
+        txHash={createdTxHash}
+        onEnterRoom={() => {
+          setIsConfirmationModalOpen(false);
+          router.push(`/pact/${createdPactId}`);
+        }}
+      />
 
       <TransactionFeedback
         status={txStatus}

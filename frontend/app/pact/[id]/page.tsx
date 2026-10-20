@@ -20,6 +20,16 @@ import {
   AlertOctagon,
   Award,
   Headphones,
+  Eye,
+  EyeOff,
+  Copy,
+  FileText,
+  Key,
+  ShieldAlert,
+  Sparkles,
+  User,
+  Store,
+  ChevronRight,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -30,6 +40,7 @@ import {
   parseContractError,
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
+import { useAuth } from "@/src/context/AuthContext";
 
 interface EscrowStruct {
   id: bigint;
@@ -46,7 +57,8 @@ interface EscrowStruct {
 interface ChatMessage {
   id: string;
   sender: `0x${string}`;
-  role: "buyer" | "seller" | "broker";
+  role: "buyer" | "seller" | "broker" | "system";
+  senderName: string;
   text: string;
   timestamp: string;
   isProof?: boolean;
@@ -59,11 +71,50 @@ export default function EscrowPactRoomPage() {
   const pactId = BigInt(rawId.replace(/[^0-9]/g, "") || "101");
 
   const { address, isConnected } = useAccount();
+  const { currentUser, loginWithPreset } = useAuth();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
   const [currentTime, setCurrentTime] = useState<number>(Math.floor(Date.now() / 1000));
   const [txStatus, setTxStatus] = useState<TxStatus>({ step: "idle" });
+
+  // Perspective simulation state
+  const [viewingPerspective, setViewingPerspective] = useState<"auto" | "buyer" | "seller" | "broker" | "observer">("auto");
+
+  // Handover Vault State
+  const [showSecretCredentials, setShowSecretCredentials] = useState(false);
+  const [copiedSecret, setCopiedSecret] = useState(false);
+  const [handoverData, setHandoverData] = useState<{
+    assetTitle: string;
+    secretPayload: string;
+    ipfsProofUrl: string;
+    notes: string;
+    isHandedOver: boolean;
+    handedOverAt?: string;
+  }>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`trustpact_handover_${pactId}`);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return {
+      assetTitle: "Tài Khoản Quản Trị Hệ Thống Cloud AWS & GitHub Repo",
+      secretPayload: "AWS_IAM_ROOT: tp_admin_master_fuji | PASS: TrUstPact#2026_SecUre! | REPO_DEPLOY_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOr89a...",
+      ipfsProofUrl: "ipfs://bafybeicb3nql655q3d4g889ac220199/bien_ban_ban_giao_so.pdf",
+      notes: "Đã bàn giao toàn quyền quản trị và chuyển quyền sở hữu tên miền sang địa chỉ bên mua.",
+      isHandedOver: true,
+      handedOverAt: "10:22",
+    };
+  });
+
+  // Seller Form for Handover submission
+  const [sellerAssetTitleInput, setSellerAssetTitleInput] = useState("Tài Khoản Quản Trị Cloud & Source Code");
+  const [sellerSecretPayloadInput, setSellerSecretPayloadInput] = useState("ADMIN_USER: root_access | SECRET_KEY: tp_sec_live_9941a8e02d | 2FA: 884 192");
+  const [sellerIpfsProofInput, setSellerIpfsProofInput] = useState("ipfs://bafybeicb3nql655q3d4g889ac220199/chung_tu_ban_giao.pdf");
+  const [sellerNotesInput, setSellerNotesInput] = useState("Đã kích hoạt quyền quản trị và bàn giao mã xác thực.");
 
   // Update current time every second for countdown timer
   useEffect(() => {
@@ -105,9 +156,34 @@ export default function EscrowPactRoomPage() {
     args: [pactId],
   });
 
+  // Check localStorage for custom pacts created locally
+  const [localPactData, setLocalPactData] = useState<any>(null);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
+        if (stored[String(pactId)]) {
+          setLocalPactData(stored[String(pactId)]);
+        }
+      } catch {}
+    }
+  }, [pactId]);
+
   // Default fallback item if on-chain returns uninitialized struct
   const escrowItem: EscrowStruct = (escrowData && (escrowData as any).amount > 0n)
     ? (escrowData as unknown as EscrowStruct)
+    : localPactData
+    ? {
+        id: pactId,
+        buyer: (localPactData.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+        seller: (localPactData.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+        broker: (localPactData.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+        amount: parseUsdc(String(localPactData.amount || "1000")),
+        brokerFeeBps: BigInt(localPactData.brokerFeeBps || 150),
+        duration: BigInt(localPactData.duration || 86400),
+        startTime: BigInt(localPactData.startTime || Math.floor(Date.now() / 1000) - 1800),
+        status: localPactData.status !== undefined ? Number(localPactData.status) : 0,
+      }
     : {
         id: pactId,
         buyer: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
@@ -123,7 +199,7 @@ export default function EscrowPactRoomPage() {
   // Status computation
   const statusNumber = Number(escrowItem.status);
   const statusLabel =
-    statusNumber === 0 ? "ACTIVE — ĐANG KHÓA TIỀN" : statusNumber === 1 ? "COMPLETED — ĐÃ TẤT TOÁN" : "CANCELLED — ĐÃ HỦY / HOÀN TIỀN";
+    statusNumber === 0 ? "HOẠT ĐỘNG — ĐANG KHÓA TIỀN KÝ QUỸ" : statusNumber === 1 ? "HOÀN TẤT — ĐÃ GIẢI NGÂN & TẤT TOÁN" : "ĐÃ HỦY — TIỀN ĐÃ HOÀN VỀ VÍ BUYER";
 
   const deadline = Number(escrowItem.startTime + escrowItem.duration);
   const remainingSeconds = Math.max(0, deadline - currentTime);
@@ -135,18 +211,35 @@ export default function EscrowPactRoomPage() {
   const secsLeft = remainingSeconds % 60;
   const timerDisplay = `${hoursLeft.toString().padStart(2, "0")}:${minsLeft.toString().padStart(2, "0")}:${secsLeft.toString().padStart(2, "0")}`;
 
-  // Connected Role
-  const connectedLower = address?.toLowerCase();
-  const isBuyer = connectedLower === escrowItem.buyer.toLowerCase();
-  const isSeller = connectedLower === escrowItem.seller.toLowerCase();
-  const isBroker = connectedLower === escrowItem.broker.toLowerCase();
-  const isObserver = !isBuyer && !isSeller && !isBroker;
+  // Connected Role Evaluation
+  const effectiveAddress = address || currentUser?.walletAddress;
+  const connectedLower = effectiveAddress?.toLowerCase();
+
+  const isRealBuyer = connectedLower === escrowItem.buyer.toLowerCase();
+  const isRealSeller = connectedLower === escrowItem.seller.toLowerCase();
+  const isRealBroker = connectedLower === escrowItem.broker.toLowerCase();
+
+  // Perspective Switcher overrides
+  const isBuyer = viewingPerspective === "buyer" ? true : viewingPerspective === "auto" ? isRealBuyer : false;
+  const isSeller = viewingPerspective === "seller" ? true : viewingPerspective === "auto" ? isRealSeller : false;
+  const isBroker = viewingPerspective === "broker" ? true : viewingPerspective === "auto" ? isRealBroker : false;
+  const isObserver = viewingPerspective === "observer" ? true : (!isBuyer && !isSeller && !isBroker);
 
   // Exact Fees
   const dealAmountNum = Number(escrowItem.amount) / 1e6;
   const brokerFeeNum = +((dealAmountNum * Number(escrowItem.brokerFeeBps)) / 10000).toFixed(2);
   const protocolFeeNum = +((dealAmountNum * 30) / 10000).toFixed(2);
   const netSellerReceives = +(dealAmountNum - brokerFeeNum - protocolFeeNum).toFixed(2);
+
+  // Deal Lifecycle Stage (1 to 4)
+  const currentDealStage =
+    statusNumber === 1
+      ? 4
+      : statusNumber === 2
+      ? 4
+      : handoverData.isHandedOver
+      ? 3
+      : 2;
 
   // Settlement Inputs (Broker Settle)
   const [refundToBuyerInput, setRefundToBuyerInput] = useState<string>("500");
@@ -155,17 +248,27 @@ export default function EscrowPactRoomPage() {
   // Communication & Evidence Stream
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
+      id: "msg-0",
+      sender: CONTRACT_ADDRESSES.universalEscrow,
+      role: "system",
+      senderName: "Hệ Thống UniversalEscrow",
+      text: `Hợp đồng ký quỹ #${pactId.toString()} đã được khởi tạo và khóa 1,000.00 USDC vào két sắt. Trọng tài Nguyễn Nam đã phong tỏa hạn mức bảo lãnh cọc Aave V3.`,
+      timestamp: "10:14",
+    },
+    {
       id: "msg-1",
       sender: escrowItem.buyer,
       role: "buyer",
-      text: "Đã nạp 1,000 USDC vào Smart Contract UniversalEscrow thành công. Nhờ bên bán bàn giao quyền quản trị tài khoản.",
+      senderName: "Lê Minh Tuấn (Bên Mua)",
+      text: "Đã nạp 1,000 USDC vào Két Sắt UniversalEscrow thành công. Yêu cầu Bên Bán bàn giao tài khoản và mã xác thực bảo mật.",
       timestamp: "10:15",
     },
     {
       id: "msg-2",
       sender: escrowItem.seller,
       role: "seller",
-      text: "Đã gửi thông tin đăng nhập và mã 2FA backup qua kênh bảo mật cho trọng tài GDTG đối soát.",
+      senderName: "Hoàng Minh (Bên Bán)",
+      text: "Đã cập nhật thông tin đăng nhập, mã xác thực và biên bản bàn giao vào Két Sắt để Bên Mua và Trọng Tài đối soát.",
       timestamp: "10:22",
       isProof: true,
     },
@@ -173,7 +276,8 @@ export default function EscrowPactRoomPage() {
       id: "msg-3",
       sender: escrowItem.broker,
       role: "broker",
-      text: "Trọng tài Nguyễn Nam đã tiếp nhận đối soát. Đang kiểm tra tính chính xác của email gốc và bảo mật tài sản.",
+      senderName: "Nguyễn Nam (Trọng Tài GDTG)",
+      text: "Trọng tài Nguyễn Nam đã tiếp nhận đối soát. Đang kiểm tra tính bảo mật của tài sản và quyền truy cập trước khi ra lệnh giải ngân.",
       timestamp: "10:25",
     },
   ]);
@@ -181,17 +285,70 @@ export default function EscrowPactRoomPage() {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessageText.trim() || !address) return;
+    if (!newMessageText.trim()) return;
     const role: "buyer" | "seller" | "broker" = isBuyer ? "buyer" : isSeller ? "seller" : "broker";
+    const senderName = isBuyer ? "Lê Minh Tuấn (Bên Mua)" : isSeller ? "Hoàng Minh (Bên Bán)" : "Nguyễn Nam (Trọng Tài)";
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
-      sender: address as `0x${string}`,
+      sender: (effectiveAddress || escrowItem.buyer) as `0x${string}`,
       role,
+      senderName,
       text: newMessageText.trim(),
       timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
     };
     setMessages((prev) => [...prev, newMsg]);
     setNewMessageText("");
+  };
+
+  const handleQuickReply = (text: string) => {
+    const role: "buyer" | "seller" | "broker" = isBuyer ? "buyer" : isSeller ? "seller" : "broker";
+    const senderName = isBuyer ? "Lê Minh Tuấn (Bên Mua)" : isSeller ? "Hoàng Minh (Bên Bán)" : "Nguyễn Nam (Trọng Tài)";
+    const newMsg: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      sender: (effectiveAddress || escrowItem.buyer) as `0x${string}`,
+      role,
+      senderName,
+      text,
+      timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+    };
+    setMessages((prev) => [...prev, newMsg]);
+  };
+
+  // Submit Handover from Seller
+  const handleSellerSubmitHandover = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = {
+      assetTitle: sellerAssetTitleInput,
+      secretPayload: sellerSecretPayloadInput,
+      ipfsProofUrl: sellerIpfsProofInput,
+      notes: sellerNotesInput,
+      isHandedOver: true,
+      handedOverAt: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+    };
+    setHandoverData(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`trustpact_handover_${pactId}`, JSON.stringify(updated));
+    }
+    // Add chat message
+    const handoverMsg: ChatMessage = {
+      id: `msg-handover-${Date.now()}`,
+      sender: escrowItem.seller,
+      role: "seller",
+      senderName: "Hoàng Minh (Bên Bán)",
+      text: `Đã nộp gói bàn giao tài sản: "${sellerAssetTitleInput}" cùng mã bảo mật vào Két Sắt. Mời Bên Mua tiến hành kiểm thử và nghiệm thu!`,
+      timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+      isProof: true,
+    };
+    setMessages((prev) => [...prev, handoverMsg]);
+  };
+
+  // Trigger CSKH Live Support
+  const handleOpenCSKH = () => {
+    window.dispatchEvent(
+      new CustomEvent("open-cskh-chat", {
+        detail: { dealId: pactId.toString() },
+      })
+    );
   };
 
   // Helper for contract calls
@@ -225,51 +382,289 @@ export default function EscrowPactRoomPage() {
     }
   };
 
+  // Copy secret credentials
+  const handleCopySecret = () => {
+    if (typeof navigator !== "undefined") {
+      navigator.clipboard.writeText(handoverData.secretPayload);
+      setCopiedSecret(true);
+      setTimeout(() => setCopiedSecret(false), 2000);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* ── ZONE A: TOP ESCROW STATE HEADER ───────────────────────────────────── */}
+      {/* ── ZONE A: TOP TRADING ROOM HEADER & TELEMETRY ───────────────────────── */}
       <section className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm font-bold text-[#F1F5F9] bg-[#161922] px-3 py-1 rounded border border-[#1E222D]">
-              KÈO KÝ QUỸ #{escrowItem.id.toString()}
-            </span>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="font-mono text-xs font-bold text-[#F1F5F9] bg-[#161922] px-3 py-1 rounded border border-[#1E222D]">
+                PHÒNG GIAO DỊCH KÝ QUỸ #{escrowItem.id.toString()}
+              </span>
 
-            {/* Status Badge */}
-            <span
-              className={`px-2.5 py-1 rounded text-xs font-mono font-bold border ${
-                statusNumber === 0
-                  ? "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
-                  : statusNumber === 1
-                  ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
-                  : "bg-[#64748B]/10 border-[#64748B]/30 text-[#64748B]"
-              }`}
-            >
-              {statusLabel}
-            </span>
+              {/* Status Badge */}
+              <span
+                className={`px-2.5 py-1 rounded text-xs font-mono font-bold border flex items-center gap-1.5 ${
+                  statusNumber === 0
+                    ? "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
+                    : statusNumber === 1
+                    ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
+                    : "bg-[#64748B]/10 border-[#64748B]/30 text-[#64748B]"
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    statusNumber === 0
+                      ? "bg-[#F59E0B] animate-pulse"
+                      : statusNumber === 1
+                      ? "bg-[#10B981]"
+                      : "bg-[#64748B]"
+                  }`}
+                />
+                <span>{statusLabel}</span>
+              </span>
+
+              <span className="text-[11px] font-mono text-[#64748B] bg-[#090A0D] px-2 py-0.5 rounded border border-[#1E222D]">
+                Avalanche Fuji C-Chain (ChainID: 43113)
+              </span>
+            </div>
+
+            <p className="text-xs text-[#94A3B8]">
+              Không gian đối soát 3 bên bảo mật • Quỹ ký quỹ được bảo vệ trong Smart Contract Két Sắt UniversalEscrow
+            </p>
           </div>
 
-          <div className="flex items-center gap-3 text-xs font-mono">
+          <div className="flex items-center gap-3 text-xs font-mono shrink-0">
             <a
               href={`https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.universalEscrow}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1"
+              className="text-[#94A3B8] hover:text-[#F1F5F9] px-2.5 py-1.5 rounded bg-[#161922] border border-[#1E222D] inline-flex items-center gap-1.5 transition-colors"
             >
               <span>Snowtrace Vault</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
 
             <button
               onClick={() => {
                 refetchEscrow();
                 refetchExpired();
+                refetchBuyerCancel();
+                refetchSellerCancel();
               }}
-              className="p-1 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9]"
+              className="p-1.5 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
               title="Làm mới trạng thái Smart Contract"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+
+        {/* ── PERSPECTIVE & TESTING CONTROL BAR ──────────────────────────────── */}
+        <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-[#94A3B8]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#64748B]">
+              Góc nhìn kiểm thử &amp; thao tác:
+            </span>
+            <span className="hidden sm:inline text-[#64748B]">|</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Buyer Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setViewingPerspective("buyer");
+                loginWithPreset("buyer-tuan");
+              }}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
+                isBuyer
+                  ? "bg-[#E84142] text-white font-bold shadow-md shadow-[#E84142]/20"
+                  : "bg-[#161922] hover:bg-[#1E222D] text-[#94A3B8] border border-[#1E222D]"
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Bên Mua (Lê Minh Tuấn)</span>
+            </button>
+
+            {/* Seller Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setViewingPerspective("seller");
+                loginWithPreset("seller-hoang");
+              }}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
+                isSeller
+                  ? "bg-[#10B981] text-white font-bold shadow-md shadow-[#10B981]/20"
+                  : "bg-[#161922] hover:bg-[#1E222D] text-[#94A3B8] border border-[#1E222D]"
+              }`}
+            >
+              <Store className="w-3.5 h-3.5" />
+              <span>Bên Bán (Hoàng Minh)</span>
+            </button>
+
+            {/* Broker Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setViewingPerspective("broker");
+                loginWithPreset("broker-nam");
+              }}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
+                isBroker
+                  ? "bg-[#F59E0B] text-black font-bold shadow-md shadow-[#F59E0B]/20"
+                  : "bg-[#161922] hover:bg-[#1E222D] text-[#94A3B8] border border-[#1E222D]"
+              }`}
+            >
+              <Scale className="w-3.5 h-3.5" />
+              <span>Trọng Tài (Nguyễn Nam)</span>
+            </button>
+
+            {/* Observer Button */}
+            <button
+              type="button"
+              onClick={() => setViewingPerspective("observer")}
+              className={`px-2.5 py-1.5 rounded text-xs transition-all ${
+                isObserver
+                  ? "bg-[#1E222D] text-[#F1F5F9] font-bold border border-[#64748B]"
+                  : "bg-[#161922] text-[#64748B] hover:text-[#94A3B8]"
+              }`}
+            >
+              <span>Quan Sát</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── 4-STAGE INTERACTIVE DEAL LIFECYCLE STEPPER ─────────────────────── */}
+        <div className="pt-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 font-mono text-xs">
+            {/* Step 1: Ký Quỹ */}
+            <div className="p-3 rounded-md bg-[#161922] border border-[#10B981]/30 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#64748B] font-bold font-sans uppercase">GIAI ĐOẠN 1</span>
+                <span className="text-[10px] text-[#10B981] font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Hoàn Tất</span>
+                </span>
+              </div>
+              <span className="font-bold text-[#F1F5F9] block font-sans">Ký Quỹ Khóa Tiền</span>
+              <span className="text-[11px] text-[#94A3B8] block">Đã khóa {formatUsdc(escrowItem.amount)} USDC</span>
+            </div>
+
+            {/* Step 2: Bàn Giao Tài Sản */}
+            <div
+              className={`p-3 rounded-md border space-y-1 ${
+                currentDealStage >= 2
+                  ? handoverData.isHandedOver
+                    ? "bg-[#161922] border-[#10B981]/30"
+                    : "bg-[#F59E0B]/10 border-[#F59E0B]/40 ring-1 ring-[#F59E0B]/30"
+                  : "bg-[#090A0D] border-[#1E222D] opacity-60"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#64748B] font-bold font-sans uppercase">GIAI ĐOẠN 2</span>
+                <span
+                  className={`text-[10px] font-bold flex items-center gap-1 ${
+                    handoverData.isHandedOver ? "text-[#10B981]" : "text-[#F59E0B]"
+                  }`}
+                >
+                  {handoverData.isHandedOver ? (
+                    <>
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Đã Bàn Giao</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-3 h-3 animate-spin" />
+                      <span>Đang Giao</span>
+                    </>
+                  )}
+                </span>
+              </div>
+              <span className="font-bold text-[#F1F5F9] block font-sans">Bàn Giao Tài Sản Số</span>
+              <span className="text-[11px] text-[#94A3B8] block">Mã khóa &amp; Chứng từ IPFS</span>
+            </div>
+
+            {/* Step 3: Kiểm Thử & Nghiệm Thu */}
+            <div
+              className={`p-3 rounded-md border space-y-1 ${
+                currentDealStage >= 3
+                  ? statusNumber === 1
+                    ? "bg-[#161922] border-[#10B981]/30"
+                    : "bg-[#F59E0B]/10 border-[#F59E0B]/40 ring-1 ring-[#F59E0B]/30"
+                  : "bg-[#090A0D] border-[#1E222D] opacity-60"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#64748B] font-bold font-sans uppercase">GIAI ĐOẠN 3</span>
+                <span
+                  className={`text-[10px] font-bold flex items-center gap-1 ${
+                    statusNumber === 1
+                      ? "text-[#10B981]"
+                      : currentDealStage === 3
+                      ? "text-[#F59E0B]"
+                      : "text-[#64748B]"
+                  }`}
+                >
+                  {statusNumber === 1 ? (
+                    <>
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Đã Nghiệm Thu</span>
+                    </>
+                  ) : currentDealStage === 3 ? (
+                    <>
+                      <Clock className="w-3 h-3" />
+                      <span>Đang Đối Soát</span>
+                    </>
+                  ) : (
+                    <span>Chờ Giao Hàng</span>
+                  )}
+                </span>
+              </div>
+              <span className="font-bold text-[#F1F5F9] block font-sans">Kiểm Thử &amp; Nghiệm Thu</span>
+              <span className="text-[11px] text-[#94A3B8] block">Bên Mua &amp; Trọng Tài</span>
+            </div>
+
+            {/* Step 4: Quyết Toán & Giải Ngân */}
+            <div
+              className={`p-3 rounded-md border space-y-1 ${
+                statusNumber === 1
+                  ? "bg-[#161922] border-[#10B981]/40"
+                  : statusNumber === 2
+                  ? "bg-[#161922] border-[#EF4444]/40"
+                  : "bg-[#090A0D] border-[#1E222D] opacity-60"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#64748B] font-bold font-sans uppercase">GIAI ĐOẠN 4</span>
+                <span
+                  className={`text-[10px] font-bold flex items-center gap-1 ${
+                    statusNumber === 1
+                      ? "text-[#10B981]"
+                      : statusNumber === 2
+                      ? "text-[#EF4444]"
+                      : "text-[#64748B]"
+                  }`}
+                >
+                  {statusNumber === 1 ? (
+                    <>
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Đã Giải Ngân</span>
+                    </>
+                  ) : statusNumber === 2 ? (
+                    <>
+                      <AlertOctagon className="w-3 h-3" />
+                      <span>Đã Hoàn Tiền</span>
+                    </>
+                  ) : (
+                    <span>Chờ Lệnh Ký</span>
+                  )}
+                </span>
+              </div>
+              <span className="font-bold text-[#F1F5F9] block font-sans">Quyết Toán Sổ Cái</span>
+              <span className="text-[11px] text-[#94A3B8] block">Chuyển tiền về ví</span>
+            </div>
           </div>
         </div>
 
@@ -277,20 +672,20 @@ export default function EscrowPactRoomPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-md bg-[#090A0D] border border-[#1E222D] text-xs font-mono">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[#F59E0B]" />
-            <span className="text-[#94A3B8]">Thời gian bàn giao còn lại:</span>
+            <span className="text-[#94A3B8]">Thời hạn cam kết bàn giao còn lại:</span>
             <span
               className={`font-bold tabular-nums text-sm ${
                 isTimeExpired ? "text-[#EF4444]" : "text-[#F1F5F9]"
               }`}
             >
-              {isTimeExpired ? "00:00:00 (Hết hạn)" : timerDisplay}
+              {isTimeExpired ? "00:00:00 (Đã quá hạn)" : timerDisplay}
             </span>
           </div>
 
           {statusNumber === 0 && isTimeExpired && (
             <div className="text-[#EF4444] font-semibold text-[11px] flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              <span>ĐÃ QUÁ HẠN BÀN GIAO — MỞ KHÓA AUTO-REFUND CHO BÊN MUA</span>
+              <span>ĐÃ QUÁ HẠN BÀN GIAO — MỞ KHÓA TÍNH NĂNG RÚT TIỀN CHO BÊN MUA</span>
             </div>
           )}
         </div>
@@ -305,32 +700,40 @@ export default function EscrowPactRoomPage() {
             {/* Buyer Card */}
             <div
               className={`p-3.5 rounded-lg border bg-[#101217] space-y-1.5 font-mono text-xs ${
-                isBuyer ? "border-[#E84142] ring-1 ring-[#E84142]/30" : "border-[#1E222D]"
+                isBuyer ? "border-[#E84142] ring-1 ring-[#E84142]/40 bg-[#E84142]/5" : "border-[#1E222D]"
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">BÊN MUA (BUYER)</span>
                 {isBuyer && (
-                  <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">BẠN ĐANG KẾT NỐI</span>
+                  <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">BẠN ĐANG XEM</span>
                 )}
               </div>
-              <span className="font-bold text-[#F1F5F9] block">{shortenAddress(escrowItem.buyer)}</span>
-              <span className="text-[11px] text-[#94A3B8] block">Nạp: {formatUsdc(escrowItem.amount)} USDC</span>
+              <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
+                <User className="w-3.5 h-3.5 text-[#E84142]" />
+                <span>Lê Minh Tuấn</span>
+              </div>
+              <span className="font-bold text-[#94A3B8] block text-[11px]">{shortenAddress(escrowItem.buyer)}</span>
+              <span className="text-[11px] text-[#10B981] font-bold block">Đã khóa: {formatUsdc(escrowItem.amount)} USDC</span>
             </div>
 
             {/* Broker Card */}
             <div
               className={`p-3.5 rounded-lg border bg-[#101217] space-y-1.5 font-mono text-xs ${
-                isBroker ? "border-[#E84142] ring-1 ring-[#E84142]/30" : "border-[#1E222D]"
+                isBroker ? "border-[#F59E0B] ring-1 ring-[#F59E0B]/40 bg-[#F59E0B]/5" : "border-[#1E222D]"
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">TRỌNG TÀI (GDTG)</span>
                 {isBroker && (
-                  <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">BẠN ĐANG KẾT NỐI</span>
+                  <span className="text-[9px] font-bold text-[#F59E0B] bg-[#F59E0B]/10 px-1 rounded">BẠN ĐANG XEM</span>
                 )}
               </div>
-              <span className="font-bold text-[#F1F5F9] block">{shortenAddress(escrowItem.broker)}</span>
+              <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
+                <Scale className="w-3.5 h-3.5 text-[#F59E0B]" />
+                <span>Nguyễn Nam</span>
+              </div>
+              <span className="font-bold text-[#94A3B8] block text-[11px]">{shortenAddress(escrowItem.broker)}</span>
               <span className="text-[11px] text-[#10B981] block">
                 Phí: {(Number(escrowItem.brokerFeeBps) / 100).toFixed(2)}% (+{brokerFeeNum} USDC)
               </span>
@@ -339,39 +742,219 @@ export default function EscrowPactRoomPage() {
             {/* Seller Card */}
             <div
               className={`p-3.5 rounded-lg border bg-[#101217] space-y-1.5 font-mono text-xs ${
-                isSeller ? "border-[#E84142] ring-1 ring-[#E84142]/30" : "border-[#1E222D]"
+                isSeller ? "border-[#10B981] ring-1 ring-[#10B981]/40 bg-[#10B981]/5" : "border-[#1E222D]"
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">BÊN BÁN (SELLER)</span>
                 {isSeller && (
-                  <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">BẠN ĐANG KẾT NỐI</span>
+                  <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-1 rounded">BẠN ĐANG XEM</span>
                 )}
               </div>
-              <span className="font-bold text-[#F1F5F9] block">{shortenAddress(escrowItem.seller)}</span>
+              <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
+                <Store className="w-3.5 h-3.5 text-[#10B981]" />
+                <span>Hoàng Minh</span>
+              </div>
+              <span className="font-bold text-[#94A3B8] block text-[11px]">{shortenAddress(escrowItem.seller)}</span>
               <span className="text-[11px] text-[#F1F5F9] font-bold block">Nhận Net: {netSellerReceives} USDC</span>
             </div>
           </div>
 
-          {/* Verifiable Handover & Communication Log */}
+          {/* ── VERIFIABLE ASSET HANDOVER & SECRET CREDENTIALS VAULT ─────────── */}
           <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                Nhật Ký Bàn Giao &amp; Trao Đổi Bằng Chứng 3 Bên
+              <div className="flex items-center gap-2">
+                <Key className="w-4 h-4 text-[#F59E0B]" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
+                  Kho Bàn Giao Tài Sản Số &amp; Mã Bảo Mật
+                </span>
+              </div>
+
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  handoverData.isHandedOver
+                    ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
+                    : "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
+                }`}
+              >
+                {handoverData.isHandedOver ? "ĐÃ BÀN GIAO CHO BÊN MUA ✓" : "CHỜ BÊN BÁN GỬI THÔNG TIN ⏳"}
               </span>
-              <span className="text-[10px] font-mono text-[#64748B]">Bảo mật theo Pact #{escrowItem.id.toString()}</span>
+            </div>
+
+            {/* Display Credentials if Handed Over */}
+            {handoverData.isHandedOver ? (
+              <div className="space-y-3 font-mono text-xs">
+                {/* Asset Title */}
+                <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-1">
+                  <span className="text-[10px] text-[#64748B] block font-sans">TÀI SẢN BÀN GIAO:</span>
+                  <span className="font-bold text-[#F1F5F9] text-sm font-sans block">{handoverData.assetTitle}</span>
+                  <span className="text-[11px] text-[#94A3B8] block font-sans">{handoverData.notes}</span>
+                </div>
+
+                {/* Secret Credentials with Mask / Unmask & Copy */}
+                <div className="p-3.5 rounded-md bg-[#161922] border border-[#1E222D] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-[#F59E0B] font-sans flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Thông Tin Quản Trị &amp; Khóa Bảo Mật:</span>
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowSecretCredentials((prev) => !prev)}
+                        className="px-2 py-1 rounded bg-[#090A0D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] text-[11px] flex items-center gap-1 transition-colors"
+                      >
+                        {showSecretCredentials ? (
+                          <>
+                            <EyeOff className="w-3 h-3" />
+                            <span>Ẩn</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3" />
+                            <span>Hiện Mã</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopySecret}
+                        className="px-2 py-1 rounded bg-[#090A0D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] text-[11px] flex items-center gap-1 transition-colors"
+                      >
+                        <Copy className="w-3 h-3" />
+                        <span>{copiedSecret ? "Đã chép ✓" : "Sao chép"}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] font-mono text-xs break-all text-[#10B981]">
+                    {showSecretCredentials
+                      ? handoverData.secretPayload
+                      : "••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••"}
+                  </div>
+                </div>
+
+                {/* Verifiable IPFS Proof & Timestamp */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5 text-[#94A3B8]" />
+                    <span className="text-[#64748B]">Chứng nhận IPFS:</span>
+                    <a
+                      href={`https://ipfs.io/ipfs/${handoverData.ipfsProofUrl.replace("ipfs://", "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#E84142] hover:underline inline-flex items-center gap-1 font-mono"
+                    >
+                      <span>{handoverData.ipfsProofUrl.slice(0, 28)}...</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  <span className="text-[#64748B]">Bàn giao lúc: {handoverData.handedOverAt || "10:22"}</span>
+                </div>
+              </div>
+            ) : isSeller ? (
+              /* Seller Submission Form */
+              <form onSubmit={handleSellerSubmitHandover} className="space-y-3 font-mono text-xs">
+                <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2">
+                  <span className="text-[11px] font-sans font-bold text-[#F1F5F9] block">
+                    Bên Bán (Hoàng Minh): Vui lòng nhập dữ liệu bàn giao cho Bên Mua
+                  </span>
+
+                  <div>
+                    <label className="text-[10px] text-[#64748B] block mb-1 font-sans">Tên tài sản bàn giao:</label>
+                    <input
+                      type="text"
+                      value={sellerAssetTitleInput}
+                      onChange={(e) => setSellerAssetTitleInput(e.target.value)}
+                      className="w-full bg-[#161922] border border-[#1E222D] rounded px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#10B981]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-[#64748B] block mb-1 font-sans">
+                      Mã bí mật / Thông tin đăng nhập / API Key:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={sellerSecretPayloadInput}
+                      onChange={(e) => setSellerSecretPayloadInput(e.target.value)}
+                      className="w-full bg-[#161922] border border-[#1E222D] rounded px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#10B981]"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-[#64748B] block mb-1 font-sans">Link bằng chứng IPFS / Drive:</label>
+                      <input
+                        type="text"
+                        value={sellerIpfsProofInput}
+                        onChange={(e) => setSellerIpfsProofInput(e.target.value)}
+                        className="w-full bg-[#161922] border border-[#1E222D] rounded px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#10B981]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-[#64748B] block mb-1 font-sans">Ghi chú đối soát:</label>
+                      <input
+                        type="text"
+                        value={sellerNotesInput}
+                        onChange={(e) => setSellerNotesInput(e.target.value)}
+                        className="w-full bg-[#161922] border border-[#1E222D] rounded px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none focus:border-[#10B981]"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full mt-2 py-2.5 rounded-md bg-[#10B981] hover:bg-[#059669] text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Xác Nhận Bàn Giao Tài Sản Vào Két Sắt</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Waiting for Seller notice */
+              <div className="p-4 rounded-md bg-[#090A0D] border border-[#1E222D] text-center space-y-2">
+                <Clock className="w-6 h-6 text-[#F59E0B] mx-auto animate-pulse" />
+                <span className="text-xs font-sans text-[#F1F5F9] font-medium block">
+                  Đang chờ Bên Bán nộp thông tin bàn giao tài sản vào Két Sắt...
+                </span>
+                <span className="text-[11px] text-[#64748B] block">
+                  Bên Mua và Trọng Tài GDTG sẽ nhận được thông báo ngay khi dữ liệu được mã hóa lưu trữ.
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* ── 3-PARTY CHRONOLOGICAL AUDIT & COMMUNICATION STREAM ───────────── */}
+          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#E84142]" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                  Nhật Ký Đối Soát &amp; Trao Đổi 3 Bên Trực Tuyến
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-[#64748B]">Pact Room #{escrowItem.id.toString()}</span>
             </div>
 
             {/* Chat message stream */}
-            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
               {messages.map((m) => (
                 <div
                   key={m.id}
                   className={`p-3 rounded-md border text-xs space-y-1 ${
-                    m.role === "broker"
+                    m.role === "system"
+                      ? "bg-[#090A0D] border-[#1E222D]"
+                      : m.role === "broker"
                       ? "bg-[#F59E0B]/5 border-[#F59E0B]/30"
                       : m.role === "buyer"
-                      ? "bg-[#161922] border-[#1E222D]"
+                      ? "bg-[#E84142]/5 border-[#E84142]/20"
                       : "bg-[#10B981]/5 border-[#10B981]/20"
                   }`}
                 >
@@ -379,15 +962,18 @@ export default function EscrowPactRoomPage() {
                     <div className="flex items-center gap-1.5">
                       <span
                         className={`font-bold uppercase ${
-                          m.role === "broker"
+                          m.role === "system"
+                            ? "text-[#64748B]"
+                            : m.role === "broker"
                             ? "text-[#F59E0B]"
                             : m.role === "buyer"
                             ? "text-[#E84142]"
                             : "text-[#10B981]"
                         }`}
                       >
-                        {m.role === "broker" ? "TRỌNG TÀI" : m.role === "buyer" ? "BÊN MUA" : "BÊN BÁN"}
+                        {m.role === "system" ? "HỆ THỐNG" : m.role === "broker" ? "TRỌNG TÀI" : m.role === "buyer" ? "BÊN MUA" : "BÊN BÁN"}
                       </span>
+                      <span className="text-[#F1F5F9] font-sans font-medium">{m.senderName}</span>
                       <span className="text-[#64748B]">({shortenAddress(m.sender)})</span>
                     </div>
                     <span className="text-[#64748B]">{m.timestamp}</span>
@@ -397,26 +983,45 @@ export default function EscrowPactRoomPage() {
               ))}
             </div>
 
+            {/* Quick action chips */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-[#1E222D]">
+              <span className="text-[10px] text-[#64748B] font-mono mr-1">Phản hồi nhanh:</span>
+              <button
+                type="button"
+                onClick={() => handleQuickReply("Đã kiểm tra tài khoản và xác thực quyền quản trị hợp lệ.")}
+                className="px-2 py-1 rounded bg-[#161922] hover:bg-[#1E222D] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] transition-colors"
+              >
+                Tài khoản hợp lệ ✓
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickReply("Mã 2FA đã chuyển giao thành công, đang đổi mật khẩu chính.")}
+                className="px-2 py-1 rounded bg-[#161922] hover:bg-[#1E222D] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] transition-colors"
+              >
+                Đã nhận mã 2FA
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickReply("Đang tiến hành đối soát chứng từ trên IPFS.")}
+                className="px-2 py-1 rounded bg-[#161922] hover:bg-[#1E222D] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] transition-colors"
+              >
+                Đang đối soát chứng từ
+              </button>
+            </div>
+
             {/* Send message form */}
-            <form onSubmit={handleSendMessage} className="flex gap-2 pt-2 border-t border-[#1E222D]">
+            <form onSubmit={handleSendMessage} className="flex gap-2">
               <input
                 type="text"
                 value={newMessageText}
                 onChange={(e) => setNewMessageText(e.target.value)}
-                placeholder={
-                  !isConnected
-                    ? "Vui lòng kết nối ví để gửi tin nhắn & bằng chứng..."
-                    : isObserver
-                    ? "Bạn đang ở chế độ xem audit (không có quyền gửi tin)..."
-                    : "Gửi biên bản bàn giao, mã tài sản hoặc link bằng chứng IPFS..."
-                }
-                disabled={!isConnected || isObserver}
-                className="flex-1 bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2 text-xs text-[#F1F5F9] focus:outline-none disabled:opacity-50"
+                placeholder="Gửi tin nhắn đối soát, thông tin bổ sung hoặc phản hồi..."
+                className="flex-1 bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2 text-xs text-[#F1F5F9] focus:outline-none"
               />
               <button
                 type="submit"
-                disabled={!isConnected || isObserver || !newMessageText.trim()}
-                className="px-4 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9] inline-flex items-center gap-1.5 disabled:opacity-40"
+                disabled={!newMessageText.trim()}
+                className="px-4 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9] inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Gửi</span>
@@ -425,7 +1030,7 @@ export default function EscrowPactRoomPage() {
           </div>
         </div>
 
-        {/* ── ZONE C: RIGHT (4 COLS) EXECUTION PANEL DYNAMIC BY ROLE ──────────── */}
+        {/* ── ZONE C: RIGHT (4 COLS) EXECUTION TERMINAL ───────────────────────── */}
         <div className="lg:col-span-4 space-y-5">
           <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4 font-mono text-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
@@ -435,17 +1040,47 @@ export default function EscrowPactRoomPage() {
               <span className="text-[10px] text-[#64748B]">UniversalEscrow</span>
             </div>
 
-            {/* Role Header Badge */}
+            {/* Financial Summary */}
+            <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2 text-xs">
+              <div className="flex justify-between items-center text-[#94A3B8]">
+                <span>Giá trị ký quỹ:</span>
+                <span className="text-[#F1F5F9] font-bold tabular-nums">{dealAmountNum.toFixed(2)} USDC</span>
+              </div>
+              <div className="flex justify-between items-center text-[#94A3B8]">
+                <span>Phí GDTG bảo lãnh (1.5%):</span>
+                <span className="text-[#F59E0B] tabular-nums">+{brokerFeeNum.toFixed(2)} USDC</span>
+              </div>
+              <div className="flex justify-between items-center text-[#94A3B8]">
+                <span>Phí giao thức TrustPact (0.3%):</span>
+                <span className="text-[#64748B] tabular-nums">+{protocolFeeNum.toFixed(2)} USDC</span>
+              </div>
+              <div className="pt-2 border-t border-[#1E222D] flex justify-between items-center text-sm">
+                <span className="font-sans font-bold text-[#F1F5F9]">Bên Bán nhận thực tế:</span>
+                <span className="font-bold text-[#10B981] tabular-nums">{netSellerReceives.toFixed(2)} USDC</span>
+              </div>
+            </div>
+
+            {/* Active Perspective Badge */}
             <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between font-sans">
-              <span className="text-[11px] text-[#64748B]">Vai trò ví của bạn:</span>
-              <span className="font-bold text-xs uppercase text-[#F1F5F9]">
+              <span className="text-[11px] text-[#64748B]">Bạn đang thao tác với tư cách:</span>
+              <span
+                className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
+                  isBuyer
+                    ? "bg-[#E84142]/10 text-[#E84142]"
+                    : isSeller
+                    ? "bg-[#10B981]/10 text-[#10B981]"
+                    : isBroker
+                    ? "bg-[#F59E0B]/10 text-[#F59E0B]"
+                    : "bg-[#64748B]/10 text-[#64748B]"
+                }`}
+              >
                 {isBuyer
                   ? "Bên Mua (Buyer)"
                   : isSeller
                   ? "Bên Bán (Seller)"
                   : isBroker
                   ? "Trọng Tài (Broker)"
-                  : "Quan Sát Viên (Observer)"}
+                  : "Quan Sát Viên"}
               </span>
             </div>
 
@@ -465,10 +1100,10 @@ export default function EscrowPactRoomPage() {
                   className="w-full py-2.5 px-3 rounded-md bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Xác Nhận Đã Nhận Đủ Hàng (Giải Ngân)</span>
+                  <span>Nghiệm Thu Hài Lòng &amp; Giải Ngân Ngay</span>
                 </button>
                 <span className="text-[10px] text-[#64748B] block font-mono">
-                  Giải ngân ngay {netSellerReceives} USDC cho Seller và {brokerFeeNum} USDC phí cho GDTG.
+                  Giải ngân ngay {netSellerReceives} USDC cho Bên Bán và {brokerFeeNum} USDC phí cho GDTG.
                 </span>
 
                 {/* 2. Auto-refund on Expired */}
@@ -509,7 +1144,7 @@ export default function EscrowPactRoomPage() {
                     }
                     className="w-full py-2 px-3 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
                   >
-                    Yêu Cầu Hủy Kèo &amp; Hoàn Tiền (Cần Seller Ký)
+                    Yêu Cầu Hủy Kèo &amp; Hoàn Tiền (Cần Bên Bán Ký)
                   </button>
                   <div className="flex justify-between text-[11px] font-mono text-[#64748B]">
                     <span>Buyer ký: {buyerCancelApproved ? "Đã ký ✓" : "Chưa ký"}</span>
@@ -517,15 +1152,16 @@ export default function EscrowPactRoomPage() {
                   </div>
                 </div>
 
-                {/* 4. Escalation to CSKH */}
+                {/* 4. Escalation to CSKH 24/7 */}
                 <div className="pt-2 border-t border-[#1E222D]">
-                  <Link
-                    href={`/admin/disputes?id=${escrowItem.id.toString()}`}
+                  <button
+                    type="button"
+                    onClick={handleOpenCSKH}
                     className="w-full py-2 px-3 rounded-md bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 text-xs font-bold text-[#EF4444] flex items-center justify-center gap-1.5 transition-colors"
                   >
                     <Headphones className="w-3.5 h-3.5" />
-                    <span>Khiếu Nại Lên CSKH (Quá Hạn / Gian Lận)</span>
-                  </Link>
+                    <span>Khiếu Nại Lên CSKH 24/7 (Sự Cố / Trọng Tài Quá Hạn)</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -610,7 +1246,7 @@ export default function EscrowPactRoomPage() {
                     }}
                     className="w-full py-2 rounded-md bg-[#F59E0B] hover:bg-[#D97706] text-black font-bold text-xs transition-colors"
                   >
-                    Ký Lệnh Hòa Giải Chia Tiền
+                    Ký Lệnh Hòa Giải Phân Chia
                   </button>
                 </div>
               </div>
@@ -623,7 +1259,7 @@ export default function EscrowPactRoomPage() {
                   <span className="text-[#64748B] block">Số tiền thực nhận khi giải ngân:</span>
                   <span className="text-base font-bold text-[#10B981] block">{netSellerReceives} USDC</span>
                   <span className="text-[10px] text-[#64748B] block">
-                    Đã trừ phí GDTG ({brokerFeeNum} USDC) và phí protocol ({protocolFeeNum} USDC).
+                    Đã trừ phí GDTG ({brokerFeeNum} USDC) và phí giao thức ({protocolFeeNum} USDC).
                   </span>
                 </div>
 
@@ -646,7 +1282,7 @@ export default function EscrowPactRoomPage() {
             {/* ── ACTIONS FOR OBSERVER / NON-PARTICIPANT ──────────────────── */}
             {isObserver && statusNumber === 0 && (
               <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] text-xs font-sans text-[#94A3B8] leading-relaxed">
-                Ví đang kết nối không phải là chủ thể trong giao dịch này. Chỉ Buyer, Seller hoặc GDTG được chỉ định mới có quyền ký lệnh.
+                Bạn đang ở chế độ Quan Sát Viên. Sử dụng thanh "Góc nhìn kiểm thử &amp; thao tác" ở trên cùng để đóng vai Bên Mua, Bên Bán hoặc Trọng Tài GDTG để kiểm thử các lệnh giải ngân, hoàn tiền.
               </div>
             )}
 
@@ -658,7 +1294,7 @@ export default function EscrowPactRoomPage() {
                   <span>Kèo đã được quyết toán và đóng sổ cái on-chain.</span>
                 </div>
                 <span className="text-[11px] text-[#64748B] font-mono block">
-                  Toàn bộ tiền trong két sắt đã được chuyển giao an toàn.
+                  Toàn bộ tiền trong két sắt đã được chuyển giao an toàn về ví người thụ hưởng.
                 </span>
               </div>
             )}

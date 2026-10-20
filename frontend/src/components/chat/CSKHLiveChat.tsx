@@ -48,6 +48,19 @@ export function CSKHLiveChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Listen for global open-cskh-chat events
+  useEffect(() => {
+    const handleOpenCSKH = (e: any) => {
+      setIsOpen(true);
+      setIsMinimized(false);
+      if (e.detail?.dealId) {
+        setDealIdInput(String(e.detail.dealId));
+      }
+    };
+    window.addEventListener("open-cskh-chat", handleOpenCSKH);
+    return () => window.removeEventListener("open-cskh-chat", handleOpenCSKH);
+  }, []);
+
   // Initial welcome message from CSKH Support
   useEffect(() => {
     const userName = currentUser?.name || "Quý khách";
