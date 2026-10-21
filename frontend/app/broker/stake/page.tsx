@@ -319,7 +319,7 @@ export default function BrokerStakingAndYieldPage() {
         {/* 4. Arbitrator Performance */}
         <div className="p-4 rounded-lg panel-border bg-[#101217] space-y-1.5 flex flex-col justify-between">
           <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
-            4. Hiệu Suất Trọng Tài
+            4. Hiệu Suất GDTG (Broker)
           </span>
           <div className="text-xl font-bold text-[#F1F5F9] tabular-nums">
             {successfulDeals} / {totalDeals} Kèo

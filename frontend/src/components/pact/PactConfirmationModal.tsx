@@ -160,7 +160,7 @@ export function PactConfirmationModal({
                   <span className="font-sans font-bold text-[#F1F5F9]">{brokerName}</span>
                   <span className="text-[10px] text-[#64748B]">({shortenAddress(brokerAddress)})</span>
                 </div>
-                <span className="text-[11px] text-[#94A3B8]">Trọng Tài GDTG • Đã khóa hạn mức bảo lãnh Aave V3</span>
+                <span className="text-[11px] text-[#94A3B8]">GDTG (Broker) • Đã phong tỏa hạn mức bảo lãnh Aave V3</span>
               </div>
             </div>
             <div className="flex items-center gap-1 text-[11px] font-mono text-[#10B981] bg-[#10B981]/10 px-2 py-1 rounded border border-[#10B981]/20 shrink-0">

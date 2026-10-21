@@ -24,6 +24,7 @@ import {
   Headphones,
 } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 import { AuthModal } from "@/src/components/auth/AuthModal";
 import { CSKHLiveChat } from "@/src/components/chat/CSKHLiveChat";
 import {
@@ -43,6 +44,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const { currentUser, setIsAuthModalOpen, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const [gasPriceGwei, setGasPriceGwei] = useState("25.4");
 
@@ -97,10 +99,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navLinks = [
-    { href: "/", label: "Tra Cứu Scam & Tín Nhiệm", icon: Search, exact: true },
-    { href: "/pact/create", label: "Tạo Kèo Ký Quỹ", icon: PlusSquare },
-    { href: "/pact", label: "Sổ Kèo Của Tôi", icon: Lock, exact: true },
-    { href: "/broker/stake", label: "Cọc GDTG & Lãi Aave", icon: Landmark },
+    { href: "/", label: t("Tra Cứu Scam & Tín Nhiệm", "Scam Radar & SBT"), icon: Search, exact: true },
+    { href: "/pact/create", label: t("Tạo Kèo Ký Quỹ", "Create Escrow"), icon: PlusSquare },
+    { href: "/pact", label: t("Sổ Kèo Của Tôi", "My Deals"), icon: Lock, exact: true },
+    { href: "/broker/stake", label: t("Cọc GDTG & Lãi Aave", "Stake & Aave Yield"), icon: Landmark },
   ];
 
   return (
@@ -187,6 +189,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span>Đổi Mạng Fuji</span>
               </button>
             )}
+
+            {/* Language Switcher (VI / EN) */}
+            <div className="flex items-center rounded-md bg-[#161922] border border-[#1E222D] p-0.5 text-[11px] font-mono">
+              <button
+                type="button"
+                onClick={() => setLanguage("vi")}
+                className={`px-2 py-0.5 rounded transition-all ${
+                  language === "vi"
+                    ? "bg-[#E84142] text-white font-bold shadow-sm"
+                    : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                }`}
+                title="Tiếng Việt"
+              >
+                VI
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`px-2 py-0.5 rounded transition-all ${
+                  language === "en"
+                    ? "bg-[#E84142] text-white font-bold shadow-sm"
+                    : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                }`}
+                title="English"
+              >
+                EN
+              </button>
+            </div>
 
             {/* USER ACCOUNT & PROFILE PILL */}
             {currentUser ? (

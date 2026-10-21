@@ -135,7 +135,7 @@ export default function MyEscrowPactsPage() {
               <th className="py-3 px-4 font-sans">Nội Dung Giao Dịch</th>
               <th className="py-3 px-4 text-right">Giá Trị Ký Quỹ</th>
               <th className="py-3 px-4">Bên Bán</th>
-              <th className="py-3 px-4">Trọng Tài GDTG</th>
+              <th className="py-3 px-4">GDTG (Broker)</th>
               <th className="py-3 px-4 text-center">Trạng Thái</th>
               <th className="py-3 px-4 text-right">Chi Tiết</th>
             </tr>

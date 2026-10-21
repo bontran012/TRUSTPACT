@@ -453,13 +453,13 @@ export function parseContractError(err: any): string {
     return "Tiền cọc đang bảo chứng cho các kèo mở, không thể rút vượt quá hạn mức rảnh.";
   }
   if (msg.includes("Roles must differ")) {
-    return "Bên Mua, Bên Bán và Trọng Tài GDTG phải là 3 địa chỉ ví khác nhau.";
+    return "Bên Mua, Bên Bán và GDTG (Broker) phải là 3 địa chỉ ví khác nhau.";
   }
   if (msg.includes("Not expired")) {
     return "Hợp đồng chưa hết hạn bàn giao, tính năng tự động rút tiền chưa được mở khóa.";
   }
   if (msg.includes("Only broker")) {
-    return "Chỉ có Trọng Tài GDTG được chỉ định mới có quyền thực hiện thao tác này.";
+    return "Chỉ có GDTG (Broker) được chỉ định mới có quyền thực hiện thao tác này.";
   }
   if (msg.includes("Only buyer")) {
     return "Chỉ có Bên Mua (người nạp tiền) mới có quyền thực hiện lệnh này.";
