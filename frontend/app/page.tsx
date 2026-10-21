@@ -31,6 +31,7 @@ import {
   parseContractError,
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
+import { useAuth } from "@/src/context/AuthContext";
 
 type CategoryKey = "phone" | "bank" | "telegram" | "wallet";
 
@@ -97,6 +98,7 @@ const RECENT_L1_REPORTS = [
 
 export default function ScamRadarAndReputationPage() {
   const { address } = useAccount();
+  const { findUserByQuery } = useAuth();
 
   // ── Protocol Telemetry ───────────────────────────────────────────────
   const { data: totalPrincipal } = useReadContract({
@@ -255,8 +257,15 @@ export default function ScamRadarAndReputationPage() {
 
   const handleSbtLookupSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (sbtTargetAddress.startsWith("0x") && sbtTargetAddress.length === 42) {
-      setResolvedSbtAddress(sbtTargetAddress as `0x${string}`);
+    const clean = sbtTargetAddress.trim();
+    if (!clean) return;
+    const matched = findUserByQuery(clean);
+    if (matched) {
+      setResolvedSbtAddress(matched.walletAddress);
+      return;
+    }
+    if (clean.startsWith("0x") && clean.length === 42) {
+      setResolvedSbtAddress(clean as `0x${string}`);
     }
   };
 
@@ -762,7 +771,7 @@ export default function ScamRadarAndReputationPage() {
                 type="text"
                 value={sbtTargetAddress}
                 onChange={(e) => setSbtTargetAddress(e.target.value)}
-                placeholder="Nhập địa chỉ ví 0x... (hoặc bỏ trống để xem ví bạn)"
+                placeholder="Nhập 0x..., @username, hoặc Mã ID (vd: TP-1001)..."
                 className="flex-1 bg-[#090A0D] border border-[#1E222D] focus:border-[#F59E0B] rounded-md px-3 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none"
               />
               <button

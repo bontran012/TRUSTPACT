@@ -14,6 +14,9 @@ import {
   Check,
   Coins,
   ChevronDown,
+  Search,
+  AtSign,
+  User,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -84,7 +87,7 @@ export default function CreateEscrowPactPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
-  const { currentUser } = useAuth();
+  const { currentUser, registeredUsers, searchUsers, findUserByQuery } = useAuth();
   const { language, t } = useLanguage();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
@@ -98,6 +101,7 @@ export default function CreateEscrowPactPage() {
   // Form State
   const initialSeller = searchParams.get("seller") || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002";
   const [sellerInput, setSellerInput] = useState(initialSeller);
+  const [showSellerSuggestions, setShowSellerSuggestions] = useState(false);
   const [selectedBroker, setSelectedBroker] = useState<BrokerItem>(REGISTERED_BROKERS[0]);
   const [customBrokerAddress, setCustomBrokerAddress] = useState("");
   const [isCustomBroker, setIsCustomBroker] = useState(false);
@@ -131,6 +135,12 @@ export default function CreateEscrowPactPage() {
   const activeBrokerAddress: `0x${string}` = isCustomBroker && customBrokerAddress.startsWith("0x")
     ? (customBrokerAddress as `0x${string}`)
     : selectedBroker.address;
+
+  // Smart User Lookup for Seller
+  const matchedSellerUser = findUserByQuery(sellerInput);
+  const sellerSuggestions = searchUsers(sellerInput).filter(
+    (u) => !address || u.walletAddress.toLowerCase() !== address.toLowerCase()
+  );
 
   // Background Check on Seller: ScamRegistryL1
   const { data: sellerScamData } = useReadContract({
@@ -413,18 +423,135 @@ export default function CreateEscrowPactPage() {
                 <span className="text-[10px] text-[#64748B]">{t("Người nhận thanh toán", "Payment Recipient")}</span>
               </div>
 
-              <div>
-                <input
-                  type="text"
-                  value={sellerInput}
-                  onChange={(e) => setSellerInput(e.target.value.trim())}
-                  placeholder="0x..."
-                  className="w-full bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2.5 text-xs font-mono text-[#F1F5F9] focus:outline-none"
-                  required
-                />
+              <div className="space-y-2.5">
+                {/* Search / Input with Auto-complete Dropdown */}
+                <div className="relative font-sans">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
+                      <Search className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type="text"
+                      value={sellerInput}
+                      onChange={(e) => {
+                        setSellerInput(e.target.value.trim());
+                        setShowSellerSuggestions(true);
+                      }}
+                      onFocus={() => setShowSellerSuggestions(true)}
+                      placeholder={t("Tìm theo @username, ID (TP-...) hoặc địa chỉ ví 0x...", "Search by @username, ID (TP-...) or 0x address...")}
+                      className="w-full pl-9 pr-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs font-mono text-[#F1F5F9] focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Suggestions Dropdown */}
+                  {showSellerSuggestions && sellerSuggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 mt-1 bg-[#101217] border border-[#1E222D] rounded-lg shadow-2xl p-1.5 z-30 max-h-56 overflow-y-auto">
+                      <div className="px-2 py-1 text-[10px] text-[#64748B] uppercase font-mono">
+                        {t("Gợi ý thành viên đã đăng ký:", "Registered members:")}
+                      </div>
+                      {sellerSuggestions.map((u) => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => {
+                            setSellerInput(u.walletAddress);
+                            setShowSellerSuggestions(false);
+                          }}
+                          className="w-full p-2 rounded text-left hover:bg-[#161922] flex items-center justify-between transition-colors font-sans text-xs"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={u.avatarUrl}
+                              alt={u.name}
+                              className="w-7 h-7 rounded-full object-cover border border-[#1E222D]"
+                              onError={(e) => {
+                                (e.target as any).src =
+                                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                              }}
+                            />
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-[#F1F5F9]">{u.name}</span>
+                                <span className="text-[10px] text-[#10B981] font-mono font-bold">@{u.username}</span>
+                              </div>
+                              <span className="text-[10px] text-[#64748B] font-mono block">
+                                ID: {u.id} · {shortenAddress(u.walletAddress)}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-mono text-[#E84142] font-semibold">
+                            {t("Chọn", "Select")}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Presets for Demo */}
+                <div className="flex items-center gap-1.5 flex-wrap font-sans text-[11px]">
+                  <span className="text-[10px] text-[#64748B] font-mono">{t("Chọn nhanh:", "Quick pick:")}</span>
+                  {registeredUsers
+                    .filter((u) => u.role === "SELLER")
+                    .map((seller) => (
+                      <button
+                        key={seller.id}
+                        type="button"
+                        onClick={() => {
+                          setSellerInput(seller.walletAddress);
+                          setShowSellerSuggestions(false);
+                        }}
+                        className={`px-2 py-0.5 rounded border transition-colors ${
+                          sellerInput.toLowerCase() === seller.walletAddress.toLowerCase()
+                            ? "bg-[#10B981]/15 border-[#10B981]/40 text-[#10B981] font-bold"
+                            : "bg-[#161922] border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9]"
+                        }`}
+                      >
+                        {seller.name} (@{seller.username} - {seller.id})
+                      </button>
+                    ))}
+                </div>
+
+                {/* Verified Partner Card */}
+                {matchedSellerUser && (
+                  <div className="p-3 rounded-lg bg-[#090A0D] border border-[#10B981]/30 flex items-center justify-between gap-3 font-sans">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={matchedSellerUser.avatarUrl}
+                        alt={matchedSellerUser.name}
+                        className="w-9 h-9 rounded-full object-cover border border-[#1E222D]"
+                        onError={(e) => {
+                          (e.target as any).src =
+                            "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                        }}
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-[#F1F5F9]">{matchedSellerUser.name}</span>
+                          <span className="text-[10px] text-[#10B981] font-mono font-bold">@{matchedSellerUser.username}</span>
+                          <span className="text-[9px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 px-1 rounded">
+                            {matchedSellerUser.id}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-[#64748B] font-mono block">
+                          Ví: {matchedSellerUser.walletAddress}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] text-[#10B981] font-bold block flex items-center gap-1 justify-end">
+                        <ShieldCheck className="w-3.5 h-3.5" /> {t("SBT Hợp Lệ", "SBT Verified")}
+                      </span>
+                      <span className="text-[10px] text-[#64748B] font-mono">
+                        {matchedSellerUser.successRate}% {t("Uy tín", "Trust")}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Inline Background Check Badge */}
-                <div className="pt-2 flex flex-wrap items-center gap-2 font-sans text-xs">
+                <div className="pt-1 flex flex-wrap items-center gap-2 font-sans text-xs">
                   {sellerReportCount > 0 ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] text-[11px] font-bold">
                       <ShieldAlert className="w-3.5 h-3.5" />

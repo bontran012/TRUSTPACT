@@ -26,6 +26,7 @@ import {
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { AuthModal } from "@/src/components/auth/AuthModal";
+import { OnboardingModal } from "@/src/components/auth/OnboardingModal";
 import { CSKHLiveChat } from "@/src/components/chat/CSKHLiveChat";
 import {
   CONTRACT_ADDRESSES,
@@ -103,6 +104,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/pact/create", label: t("Tạo Kèo Ký Quỹ", "Create Escrow"), icon: PlusSquare },
     { href: "/pact", label: t("Sổ Kèo Của Tôi", "My Deals"), icon: Lock, exact: true },
     { href: "/broker/stake", label: t("Cọc GDTG & Lãi Aave", "Stake & Aave Yield"), icon: Landmark },
+    { href: "/profile", label: t("Mục Tôi", "My Profile"), icon: User, exact: true },
   ];
 
   return (
@@ -289,6 +291,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
 
                     <div className="border-t border-[#1E222D] pt-2 mt-1 space-y-1">
+                      <Link
+                        href="/profile"
+                        onClick={() => setWalletMenuOpen(false)}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-[#F1F5F9] hover:bg-[#161922] transition-colors"
+                      >
+                        <User className="w-3.5 h-3.5 text-[#10B981]" />
+                        <span>{t("Mục Tôi (Hồ Sơ & ID)", "My Profile & ID")}</span>
+                      </Link>
+
                       <button
                         onClick={() => {
                           setWalletMenuOpen(false);
@@ -297,7 +308,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-[#F1F5F9] hover:bg-[#161922] transition-colors"
                       >
                         <Users className="w-3.5 h-3.5 text-[#E84142]" />
-                        <span>Đổi Tài Khoản / Vai Trò (1-Click)</span>
+                        <span>{t("Đổi Tài Khoản / Vai Trò (1-Click)", "Switch Persona (1-Click)")}</span>
                       </button>
 
                       <button
@@ -309,7 +320,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        <span>Đăng Xuất Tài Khoản</span>
+                        <span>{t("Đăng Xuất Tài Khoản", "Log Out")}</span>
                       </button>
                     </div>
                   </div>
@@ -372,6 +383,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Global Auth & Account Management Modal */}
       <AuthModal />
+
+      {/* Mandatory Username Onboarding Modal */}
+      <OnboardingModal />
     </div>
   );
 }
