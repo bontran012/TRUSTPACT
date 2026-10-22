@@ -1,0 +1,19 @@
+{
+  "name": "trustpact-telegram-bot",
+  "version": "1.0.0",
+  "description": "TrustPact Telegram Bot for instant Scam Radar & SBT Reputation lookup on Avalanche",
+  "main": "dist/bot.js",
+  "scripts": {
+    "start": "node dist/bot.js",
+    "dev": "ts-node src/bot.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
