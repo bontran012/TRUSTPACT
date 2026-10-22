@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatUnits } from "viem";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
@@ -278,6 +278,12 @@ export default function ScamRadarAndReputationPage() {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
+  // Mount state for SSR hydration safety
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Telegram Bot demo & copy state
   const [teleDemoType, setTeleDemoType] = useState<"scam" | "trusted">("scam");
   const [copiedTeleCmd, setCopiedTeleCmd] = useState(false);
@@ -292,12 +298,12 @@ export default function ScamRadarAndReputationPage() {
   const isFlagged = scamCount > 0;
   const hasVerified = scamCheckData ? Boolean(scamCheckData[1]) : false;
 
-  // Resolve user identity from activeQuery & resolvedSbtAddress
-  const matchedScamUser = activeQuery ? findUserByQuery(activeQuery) : null;
-  const matchedSbtUser = resolvedSbtAddress ? findUserByQuery(resolvedSbtAddress) : null;
+  // Resolve user identity from activeQuery & resolvedSbtAddress (client-only to prevent hydration mismatch)
+  const matchedScamUser = mounted && activeQuery ? findUserByQuery(activeQuery) : null;
+  const matchedSbtUser = mounted && resolvedSbtAddress ? findUserByQuery(resolvedSbtAddress) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" suppressHydrationWarning>
       {/* ── TOP PROTOCOL TELEMETRY BAR (Full 12 cols, 4 metric cells) ────────────────── */}
       <section className="grid grid-cols-2 lg:grid-cols-4 rounded-lg panel-border bg-[#101217] overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-[#1E222D]">
         <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
@@ -378,16 +384,18 @@ export default function ScamRadarAndReputationPage() {
                 </h2>
               </div>
               <div className="flex items-center gap-2">
-                <a
-                  href="https://t.me/TrustPact_Sentinel_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-all shadow-sm"
-                  title="Tra cứu nhanh qua Bot Telegram"
-                >
-                  <Send className="w-3 h-3 text-[#229ED9]" />
-                  <span>Bot Telegram: @TrustPact_Sentinel_bot</span>
-                </a>
+                {mounted && (
+                  <a
+                    href="https://t.me/TrustPact_Sentinel_bot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-all shadow-sm"
+                    title="Tra cứu nhanh qua Bot Telegram"
+                  >
+                    <Send className="w-3 h-3 text-[#229ED9]" />
+                    <span>Bot Telegram: @TrustPact_Sentinel_bot</span>
+                  </a>
+                )}
                 <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded">
                   Gasless 0đ Subnet
                 </span>

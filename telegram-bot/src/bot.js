@@ -18,7 +18,9 @@ try {
 } catch (e) {}
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-const WEB_URL = process.env.TRUSTPACT_WEB_URL || "http://localhost:3000";
+const BOT_USERNAME = process.env.BOT_USERNAME || "TrustPact_Sentinel_bot";
+// Telegram requires public HTTPS URLs for inline buttons
+const PUBLIC_WEB_URL = "https://trustpact.network";
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 async function sendTelegramMessage(chatId, text, replyMarkup) {
@@ -43,7 +45,11 @@ async function sendTelegramMessage(chatId, text, replyMarkup) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    return await res.json();
+    const resData = await res.json();
+    if (!resData.ok) {
+      console.error("[TELEGRAM API ERROR]:", resData);
+    }
+    return resData;
   } catch (err) {
     console.error("Lỗi khi gửi tin nhắn Telegram:", err);
   }
@@ -51,7 +57,7 @@ async function sendTelegramMessage(chatId, text, replyMarkup) {
 
 function getStartMessage(firstName = "Bạn") {
   return `
-🛡️ <b>CHÀO MỪNG ${firstName.toUpperCase()} ĐẾN VỚI TRUSTPACT SCAM RADAR BOT!</b>
+🛡️ <b>CHÀO MỪNG ${firstName.toUpperCase()} ĐẾN VỚI TRUSTPACT SENTINEL BOT!</b>
 
 Bot hỗ trợ bạn kiểm tra nhanh số tài khoản ngân hàng, User, hoặc địa chỉ ví có nằm trong <b>Sổ Đen Lừa Đảo L1</b> hay không trước khi giao dịch tiền thật.
 
@@ -92,10 +98,10 @@ function formatLookupResponse(query) {
     const replyMarkup = {
       inline_keyboard: [
         [
-          { text: "🔍 Xem Hồ Sơ Chi Tiết Trên Web", url: `${WEB_URL}/?q=${encodeURIComponent(query)}` },
+          { text: "🔍 Xem Chi Tiết Trên Web", url: `${PUBLIC_WEB_URL}/?q=${encodeURIComponent(query)}` },
         ],
         [
-          { text: "📢 Báo Cáo Thêm Bằng Chứng Lên L1", url: `${WEB_URL}/?report=${encodeURIComponent(query)}` },
+          { text: "📢 Báo Cáo Thêm Bằng Chứng Lên L1", url: `${PUBLIC_WEB_URL}/?report=${encodeURIComponent(query)}` },
         ],
       ],
     };
@@ -128,10 +134,10 @@ function formatLookupResponse(query) {
     const replyMarkup = {
       inline_keyboard: [
         [
-          { text: "🔐 Mở Phòng Két Sắt Với Đối Tác Này", url: `${WEB_URL}/pact/create?seller=${u.walletAddress}` },
+          { text: "🔐 Mở Phòng Két Sắt Với Đối Tác Này", url: `${PUBLIC_WEB_URL}/pact/create?seller=${u.walletAddress}` },
         ],
         [
-          { text: "🌐 Xem Thẻ Căn Cước Web3", url: `${WEB_URL}/?sbt=${u.walletAddress}` },
+          { text: "🌐 Xem Thẻ Căn Cước Web3", url: `${PUBLIC_WEB_URL}/?sbt=${u.walletAddress}` },
         ],
       ],
     };
@@ -153,10 +159,10 @@ function formatLookupResponse(query) {
   const replyMarkup = {
     inline_keyboard: [
       [
-        { text: "🔒 Mở Két Sắt Giao Dịch Ngay", url: `${WEB_URL}/pact/create` },
+        { text: "🔒 Mở Két Sắt Giao Dịch Ngay", url: `${PUBLIC_WEB_URL}/pact/create` },
       ],
       [
-        { text: "📱 Chia Sẻ Kết Quả Này", switch_inline_query: query },
+        { text: "👥 Thêm Bot Vào Nhóm Chat", url: `https://t.me/${BOT_USERNAME}?startgroup=true` },
       ],
     ],
   };
@@ -165,6 +171,30 @@ function formatLookupResponse(query) {
 }
 
 async function handleUpdate(update) {
+  // Handle Button Callback Queries
+  if (update.callback_query) {
+    const cb = update.callback_query;
+    const chatId = cb.message?.chat?.id;
+    const data = cb.data;
+
+    try {
+      await fetch(`${TELEGRAM_API}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: cb.id }),
+      });
+    } catch (e) {}
+
+    if (data === "check_scam") {
+      const res = formatLookupResponse("1903889922101");
+      await sendTelegramMessage(chatId, res.text, res.replyMarkup);
+    } else if (data === "check_broker") {
+      const res = formatLookupResponse("@hoangminh_otc");
+      await sendTelegramMessage(chatId, res.text, res.replyMarkup);
+    }
+    return;
+  }
+
   if (!update.message || !update.message.text) return;
 
   const msg = update.message;
@@ -183,8 +213,8 @@ async function handleUpdate(update) {
           { text: "⭐ Tra Cứu GDTG Uy Tín", callback_data: "check_broker" },
         ],
         [
-          { text: "🌐 Mở DApp Web TrustPact", url: WEB_URL },
-          { text: "👥 Thêm Bot Vào Nhóm Chat", url: `https://t.me/TrustPactRadarBot?startgroup=true` },
+          { text: "🌐 Mở DApp Web TrustPact", url: PUBLIC_WEB_URL },
+          { text: "👥 Thêm Bot Vào Nhóm Chat", url: `https://t.me/${BOT_USERNAME}?startgroup=true` },
         ],
       ],
     };
@@ -212,8 +242,8 @@ async function handleUpdate(update) {
 `;
     const replyMarkup = {
       inline_keyboard: [
-        [{ text: "🚀 Khởi Tạo Kèo Ký Quỹ Mới", url: `${WEB_URL}/pact/create` }],
-        [{ text: "📋 Xem Sổ Kèo Đang Chạy", url: `${WEB_URL}/pact` }],
+        [{ text: "🚀 Khởi Tạo Kèo Ký Quỹ Mới", url: `${PUBLIC_WEB_URL}/pact/create` }],
+        [{ text: "📋 Xem Sổ Kèo Đang Chạy", url: `${PUBLIC_WEB_URL}/pact` }],
       ],
     };
     await sendTelegramMessage(chatId, text, replyMarkup);
@@ -235,7 +265,7 @@ Phát hiện số tài khoản <code>${matchedScam.identifier}</code> (${matched
 `;
     await sendTelegramMessage(chatId, alertText, {
       inline_keyboard: [
-        [{ text: "🔍 Xem Bằng Chứng On-Chain", url: `${WEB_URL}/?q=${matchedScam.identifier}` }],
+        [{ text: "🔍 Xem Bằng Chứng On-Chain", url: `${PUBLIC_WEB_URL}/?q=${matchedScam.identifier}` }],
       ],
     });
     return;
