@@ -35,6 +35,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)", "Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         mono: ["var(--font-mono)", "JetBrains Mono", "monospace"],
+        display: ["var(--font-space)", "Space Grotesk", "sans-serif"],
       },
       borderRadius: {
         sm: "4px",

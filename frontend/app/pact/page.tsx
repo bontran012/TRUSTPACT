@@ -19,6 +19,8 @@ import {
   formatUsdc,
   shortenAddress,
 } from "@/src/lib/contracts";
+import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { BorderBeam } from "@/src/components/ui/BorderBeam";
 
 interface PactSummary {
   id: number;
@@ -95,12 +97,14 @@ export default function MyEscrowPactsPage() {
           </p>
         </div>
 
-        <Link
-          href="/pact/create"
-          className="px-4 py-2 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-medium inline-flex items-center gap-1.5 transition-colors self-start sm:self-auto"
-        >
-          <PlusSquare className="w-3.5 h-3.5" />
-          <span>Tạo Kèo Mới</span>
+        <Link href="/pact/create" className="self-start sm:self-auto">
+          <ShimmerButton
+            variant="primary"
+            className="px-4 py-2 rounded-md text-white text-xs font-medium inline-flex items-center gap-1.5 shadow-sm"
+          >
+            <PlusSquare className="w-3.5 h-3.5" />
+            <span>Tạo Kèo Mới</span>
+          </ShimmerButton>
         </Link>
       </div>
 

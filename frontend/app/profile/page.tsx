@@ -28,6 +28,10 @@ import {
 import { useAuth, UserRole, UserProfile } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { shortenAddress, CONTRACT_ADDRESSES } from "@/src/lib/contracts";
+import { BorderBeam } from "@/src/components/ui/BorderBeam";
+import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { NumberTicker } from "@/src/components/ui/NumberTicker";
+import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 export default function ProfilePage() {
   const {
@@ -179,140 +183,151 @@ export default function ProfilePage() {
         {/* ── LEFT PANE: PASSPORT CARD & STATS (5 COLS) ────────────────────── */}
         <div className="lg:col-span-5 space-y-5">
           {/* Identity Passport Card */}
-          <div className="rounded-xl panel-border bg-[#101217] p-5 space-y-4 font-mono text-xs relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#E84142]/5 rounded-bl-full pointer-events-none" />
+          <div className="relative rounded-xl panel-border bg-[#101217] overflow-hidden shadow-2xl">
+            <BorderBeam colorFrom="#10B981" colorTo="#E84142" duration={10} borderWidth={1.5} size={220} />
+            <CardSpotlight className="p-5 space-y-4 font-mono text-xs relative z-10" color="rgba(16, 185, 129, 0.08)" radius={280}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#E84142]/5 rounded-bl-full pointer-events-none" />
 
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2">
-                <Fingerprint className="w-4 h-4 text-[#E84142]" />
-                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                  {t("Thẻ Căn Cước Số TrustPact", "TrustPact Digital Passport")}
-                </span>
-              </div>
-              <span className="text-[10px] text-[#10B981] font-bold bg-[#10B981]/15 px-2 py-0.5 rounded border border-[#10B981]/30">
-                ACTIVE
-              </span>
-            </div>
-
-            {/* Avatar & Display Name */}
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[#1E222D] bg-[#090A0D] shrink-0 relative group">
-                <img
-                  src={currentUser?.avatarUrl}
-                  alt={currentUser?.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as any).src =
-                      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
-                  }}
-                />
-              </div>
-
-              <div className="space-y-1">
+              <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
                 <div className="flex items-center gap-2">
-                  <span className="font-sans font-bold text-sm text-[#F1F5F9]">{currentUser?.name}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[#10B981] font-bold">@{currentUser?.username}</span>
-                  <span className="text-[#64748B]">·</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
-                      currentUser?.role === "BROKER"
-                        ? "bg-[#10B981]/15 text-[#10B981]"
-                        : currentUser?.role === "SELLER"
-                        ? "bg-[#F59E0B]/15 text-[#F59E0B]"
-                        : "bg-[#3B82F6]/15 text-[#3B82F6]"
-                    }`}
-                  >
-                    {currentUser?.role === "BROKER"
-                      ? t("GDTG Bảo Chứng", "Broker")
-                      : currentUser?.role === "SELLER"
-                      ? t("Bên Bán (OTC)", "Seller")
-                      : t("Bên Mua", "Buyer")}
+                  <Fingerprint className="w-4 h-4 text-[#E84142]" />
+                  <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
+                    {t("Thẻ Căn Cước Số TrustPact", "TrustPact Digital Passport")}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#94A3B8] font-sans block">{currentUser?.telegram}</span>
+                <span className="text-[10px] text-[#10B981] font-bold bg-[#10B981]/15 px-2 py-0.5 rounded border border-[#10B981]/30">
+                  ACTIVE
+                </span>
               </div>
-            </div>
 
-            {/* Auto-Generated System ID Strip */}
-            <div className="p-3 rounded-lg bg-[#090A0D] border border-[#1E222D] space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#64748B] uppercase font-sans">
-                  {t("Mã ID Hệ Thống (Duy Nhất & Tự Sinh):", "Auto-Generated System ID:")}
-                </span>
-                <button
-                  onClick={handleCopyId}
-                  className="text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1 transition-colors"
-                >
-                  <Copy className="w-3 h-3" />
-                  <span>{copiedId ? t("Đã chép ✓", "Copied ✓") : t("Sao chép", "Copy")}</span>
-                </button>
-              </div>
-              <div className="text-sm font-bold text-[#F1F5F9] tracking-wider flex items-center justify-between">
-                <span>{currentUser?.id || "TP-1001"}</span>
-                <span className="text-[10px] text-[#10B981] font-sans font-normal">
-                  {t("Dùng để nhận diện & tìm kiếm", "Used for partner lookup")}
-                </span>
-              </div>
-            </div>
+              {/* Avatar & Display Name */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[#1E222D] bg-[#090A0D] shrink-0 relative group">
+                  <img
+                    src={currentUser?.avatarUrl}
+                    alt={currentUser?.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as any).src =
+                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                    }}
+                  />
+                </div>
 
-            {/* Linked Wallet Address */}
-            <div className="p-3 rounded-lg bg-[#090A0D] border border-[#1E222D] space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#64748B] uppercase font-sans">
-                  {t("Địa Chỉ Ví Web3:", "Linked Web3 Wallet:")}
-                </span>
-                <div className="flex items-center gap-2">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-sans font-bold text-sm text-[#F1F5F9]">{currentUser?.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#10B981] font-bold">@{currentUser?.username}</span>
+                    <span className="text-[#64748B]">·</span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
+                        currentUser?.role === "BROKER"
+                          ? "bg-[#10B981]/15 text-[#10B981]"
+                          : currentUser?.role === "SELLER"
+                          ? "bg-[#F59E0B]/15 text-[#F59E0B]"
+                          : "bg-[#3B82F6]/15 text-[#3B82F6]"
+                      }`}
+                    >
+                      {currentUser?.role === "BROKER"
+                        ? t("GDTG Bảo Chứng", "Broker")
+                        : currentUser?.role === "SELLER"
+                        ? t("Bên Bán (OTC)", "Seller")
+                        : t("Bên Mua", "Buyer")}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-[#94A3B8] font-sans block">{currentUser?.telegram}</span>
+                </div>
+              </div>
+
+              {/* Auto-Generated System ID Strip */}
+              <div className="p-3 rounded-lg bg-[#090A0D] border border-[#1E222D] space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[#64748B] uppercase font-sans">
+                    {t("Mã ID Hệ Thống (Duy Nhất & Tự Sinh):", "Auto-Generated System ID:")}
+                  </span>
                   <button
-                    onClick={handleCopyWallet}
+                    onClick={handleCopyId}
                     className="text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1 transition-colors"
                   >
                     <Copy className="w-3 h-3" />
-                    <span>{copiedWallet ? t("Đã chép ✓", "Copied ✓") : t("Sao chép", "Copy")}</span>
+                    <span>{copiedId ? t("Đã chép ✓", "Copied ✓") : t("Sao chép", "Copy")}</span>
                   </button>
-                  <a
-                    href={`https://testnet.snowtrace.io/address/${currentUser?.walletAddress}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#94A3B8] hover:text-[#F1F5F9]"
-                  >
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                </div>
+                <div className="text-sm font-bold text-[#F1F5F9] tracking-wider flex items-center justify-between">
+                  <span>{currentUser?.id || "TP-1001"}</span>
+                  <span className="text-[10px] text-[#10B981] font-sans font-normal">
+                    {t("Dùng để nhận diện & tìm kiếm", "Used for partner lookup")}
+                  </span>
                 </div>
               </div>
-              <span className="text-xs text-[#94A3B8] break-all block">
-                {currentUser?.walletAddress}
-              </span>
-            </div>
 
-            {/* Financial & Trust Telemetry */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] space-y-1">
-                <span className="text-[10px] text-[#64748B] block font-sans">
-                  {t("Số Dư Ví Ký Quỹ", "Escrow Wallet Balance")}
-                </span>
-                <span className="text-sm font-bold text-[#F1F5F9] block">
-                  {currentUser?.balanceUsdc.toLocaleString()} USDC
+              {/* Linked Wallet Address */}
+              <div className="p-3 rounded-lg bg-[#090A0D] border border-[#1E222D] space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[#64748B] uppercase font-sans">
+                    {t("Địa Chỉ Ví Web3:", "Linked Web3 Wallet:")}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopyWallet}
+                      className="text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1 transition-colors"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>{copiedWallet ? t("Đã chép ✓", "Copied ✓") : t("Sao chép", "Copy")}</span>
+                    </button>
+                    <a
+                      href={`https://testnet.snowtrace.io/address/${currentUser?.walletAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#94A3B8] hover:text-[#F1F5F9]"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+                <span className="text-xs text-[#94A3B8] break-all block">
+                  {currentUser?.walletAddress}
                 </span>
               </div>
 
-              <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] space-y-1">
-                <span className="text-[10px] text-[#64748B] block font-sans">
-                  {t("Uy Tín SBT", "TrustPassport SBT")}
-                </span>
-                <span className="text-sm font-bold text-[#10B981] block flex items-center gap-1">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>{currentUser?.successRate ?? 100}%</span>
-                </span>
-              </div>
-            </div>
+              {/* Financial & Trust Telemetry */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] space-y-1">
+                  <span className="text-[10px] text-[#64748B] block font-sans">
+                    {t("Số Dư Ví Ký Quỹ", "Escrow Wallet Balance")}
+                  </span>
+                  <div className="text-sm font-bold text-[#F1F5F9] tabular-nums">
+                    <NumberTicker
+                      value={currentUser?.balanceUsdc || 10000}
+                      decimals={2}
+                      suffix=" USDC"
+                    />
+                  </div>
+                </div>
 
-            {/* SBT Token Info */}
-            <div className="p-2.5 rounded bg-[#161922] border border-[#1E222D] flex items-center justify-between text-[11px]">
-              <span className="text-[#64748B]">{t("Soulbound Token:", "Soulbound Token:")}</span>
-              <span className="text-[#F1F5F9] font-bold">{currentUser?.sbtId || "#TP-1001"} (Non-Transferable)</span>
-            </div>
+                <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] space-y-1">
+                  <span className="text-[10px] text-[#64748B] block font-sans">
+                    {t("Uy Tín SBT", "TrustPassport SBT")}
+                  </span>
+                  <div className="text-sm font-bold text-[#10B981] flex items-center gap-1 tabular-nums">
+                    <ShieldCheck className="w-4 h-4" />
+                    <NumberTicker
+                      value={currentUser?.successRate ?? 100}
+                      decimals={1}
+                      suffix="%"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SBT Token Info */}
+              <div className="p-2.5 rounded bg-[#161922] border border-[#1E222D] flex items-center justify-between text-[11px]">
+                <span className="text-[#64748B]">{t("Soulbound Token:", "Soulbound Token:")}</span>
+                <span className="text-[#F1F5F9] font-bold">{currentUser?.sbtId || "#TP-1001"} (Non-Transferable)</span>
+              </div>
+            </CardSpotlight>
           </div>
 
           {/* Quick Partner Lookup Tool */}
@@ -540,14 +555,15 @@ export default function ProfilePage() {
                   ID: {currentUser?.id}
                 </span>
 
-                <button
+                <ShimmerButton
                   type="submit"
+                  variant="primary"
                   disabled={usernameStatus.type === "invalid" || !usernameInput.trim()}
-                  className="px-6 py-2.5 rounded-md bg-[#E84142] hover:bg-[#D13637] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-md"
+                  className="px-6 py-2.5 rounded-md font-bold text-xs flex items-center gap-2 shadow-md disabled:opacity-40"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>{t("Lưu Cập Nhật Hồ Sơ", "Save Profile Changes")}</span>
-                </button>
+                </ShimmerButton>
               </div>
             </form>
           </div>

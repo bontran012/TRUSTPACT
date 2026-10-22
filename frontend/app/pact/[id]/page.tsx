@@ -42,6 +42,9 @@ import {
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
+import { BorderBeam } from "@/src/components/ui/BorderBeam";
+import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 interface EscrowStruct {
   id: bigint;
@@ -728,27 +731,29 @@ export default function EscrowPactRoomPage() {
           </div>
 
           {/* ── VERIFIABLE ASSET HANDOVER & SECRET CREDENTIALS VAULT ─────────── */}
-          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-[#F59E0B]" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                  {t("Kho Bàn Giao Tài Sản Số & Mã Bảo Mật", "Digital Asset Handover & Secret Vault")}
+          <div className="relative rounded-lg panel-border bg-[#101217] overflow-hidden shadow-2xl">
+            <BorderBeam colorFrom="#10B981" colorTo="#E84142" duration={12} borderWidth={1.5} size={260} />
+            <CardSpotlight className="p-5 space-y-4 relative z-10" color="rgba(16, 185, 129, 0.08)" radius={320}>
+              <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-[#F59E0B]" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
+                    {t("Kho Bàn Giao Tài Sản Số & Mã Bảo Mật", "Digital Asset Handover & Secret Vault")}
+                  </span>
+                </div>
+
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                    handoverData.isHandedOver
+                      ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
+                      : "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
+                  }`}
+                >
+                  {handoverData.isHandedOver
+                    ? t("ĐÃ BÀN GIAO CHO BÊN MUA ✓", "HANDED OVER TO BUYER ✓")
+                    : t("CHỜ BÊN BÁN GỬI THÔNG TIN ⏳", "AWAITING SELLER SUBMISSION ⏳")}
                 </span>
               </div>
-
-              <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                  handoverData.isHandedOver
-                    ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
-                    : "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
-                }`}
-              >
-                {handoverData.isHandedOver
-                  ? t("ĐÃ BÀN GIAO CHO BÊN MUA ✓", "HANDED OVER TO BUYER ✓")
-                  : t("CHỜ BÊN BÁN GỬI THÔNG TIN ⏳", "AWAITING SELLER SUBMISSION ⏳")}
-              </span>
-            </div>
 
             {/* Display Credentials if Handed Over */}
             {handoverData.isHandedOver ? (
@@ -890,13 +895,14 @@ export default function EscrowPactRoomPage() {
                     </div>
                   </div>
 
-                  <button
+                  <ShimmerButton
                     type="submit"
-                    className="w-full mt-2 py-2.5 rounded-md bg-[#10B981] hover:bg-[#059669] text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
+                    variant="success"
+                    className="w-full mt-2 py-2.5 rounded-md font-sans font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{t("Xác Nhận Bàn Giao Tài Sản Vào Két Sắt", "Confirm Handover Into Escrow Vault")}</span>
-                  </button>
+                  </ShimmerButton>
                 </div>
               </form>
             ) : (
@@ -917,6 +923,7 @@ export default function EscrowPactRoomPage() {
                 </span>
               </div>
             )}
+            </CardSpotlight>
           </div>
 
           {/* ── 3-PARTY CHRONOLOGICAL AUDIT & COMMUNICATION STREAM ───────────── */}
@@ -1031,103 +1038,103 @@ export default function EscrowPactRoomPage() {
 
         {/* ── ZONE C: RIGHT (4 COLS) EXECUTION TERMINAL ───────────────────────── */}
         <div className="lg:col-span-4 space-y-5">
-          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4 font-mono text-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-              <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                {t("Thực Thi Smart Contract", "Smart Contract Execution Terminal")}
-              </span>
-              <span className="text-[10px] text-[#64748B]">UniversalEscrow</span>
-            </div>
-
-            {/* Financial Summary */}
-            <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2 text-xs">
-              <div className="flex justify-between items-center text-[#94A3B8]">
-                <span>{t("Giá trị ký quỹ:", "Escrow Amount:")}</span>
-                <span className="text-[#F1F5F9] font-bold tabular-nums">{dealAmountNum.toFixed(2)} USDC</span>
-              </div>
-              <div className="flex justify-between items-center text-[#94A3B8]">
-                <span>{t("Phí GDTG bảo lãnh (1.5%):", "Broker Escrow Fee (1.5%):")}</span>
-                <span className="text-[#F59E0B] tabular-nums">+{brokerFeeNum.toFixed(2)} USDC</span>
-              </div>
-              <div className="flex justify-between items-center text-[#94A3B8]">
-                <span>{t("Phí giao thức TrustPact (0.3%):", "Protocol Fee (0.3%):")}</span>
-                <span className="text-[#64748B] tabular-nums">+{protocolFeeNum.toFixed(2)} USDC</span>
-              </div>
-              <div className="pt-2 border-t border-[#1E222D] flex justify-between items-center text-sm">
-                <span className="font-sans font-bold text-[#F1F5F9]">{t("Bên Bán nhận thực tế:", "Net Seller Proceeds:")}</span>
-                <span className="font-bold text-[#10B981] tabular-nums">{netSellerReceives.toFixed(2)} USDC</span>
-              </div>
-            </div>
-
-            {/* Active Role Badge */}
-            <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between font-sans">
-              <span className="text-[11px] text-[#64748B]">{t("Tài khoản đang đăng nhập:", "Active Session Role:")}</span>
-              <span
-                className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
-                  isBuyer
-                    ? "bg-[#E84142]/10 text-[#E84142]"
-                    : isSeller
-                    ? "bg-[#10B981]/10 text-[#10B981]"
-                    : "bg-[#F59E0B]/10 text-[#F59E0B]"
-                }`}
-              >
-                {isBuyer
-                  ? t("Bên Mua (Buyer)", "Buyer")
-                  : isSeller
-                  ? t("Bên Bán (Seller)", "Seller")
-                  : t("GDTG (Broker)", "GDTG (Broker)")}
-              </span>
-            </div>
-
-            {/* ── ACTIONS FOR BUYER ────────────────────────────────────────── */}
-            {isBuyer && statusNumber === 0 && (
-              <div className="space-y-3 font-sans">
-                {/* 1. Buyer Confirm Delivery */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    executePactWrite(
-                      t("Xác Nhận Đã Nhận Đủ Hàng & Giải Ngân", "Confirm Delivery & Release Escrow"),
-                      "buyerConfirmDelivery",
-                      [pactId]
-                    )
-                  }
-                  className="w-full py-2.5 px-3 rounded-md bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{t("Nghiệm Thu Hài Lòng & Giải Ngân Ngay", "Approve & Release Funds Immediately")}</span>
-                </button>
-                <span className="text-[10px] text-[#64748B] block font-mono">
-                  {t(
-                    `Giải ngân ngay ${netSellerReceives} USDC cho Bên Bán và ${brokerFeeNum} USDC phí cho GDTG.`,
-                    `Instantly disburse ${netSellerReceives} USDC to Seller and ${brokerFeeNum} USDC fee to Broker.`
-                  )}
+          <div className="relative rounded-lg panel-border bg-[#101217] overflow-hidden shadow-2xl">
+            <BorderBeam colorFrom="#F59E0B" colorTo="#10B981" duration={12} borderWidth={1.5} size={220} />
+            <CardSpotlight className="p-5 space-y-4 font-mono text-xs relative z-10" color="rgba(245, 158, 11, 0.08)" radius={280}>
+              <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
+                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
+                  {t("Thực Thi Smart Contract", "Smart Contract Execution Terminal")}
                 </span>
+                <span className="text-[10px] text-[#64748B]">UniversalEscrow</span>
+              </div>
 
-                {/* 2. Auto-refund on Expired */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    executePactWrite(
-                      t("Rút 100% Tiền Về Ví (Quá Hạn Bàn Giao)", "Claim 100% Timeout Refund"),
-                      "buyerClaimExpiredRefund",
-                      [pactId]
-                    )
-                  }
-                  disabled={!isTimeExpired}
-                  className={`w-full py-2.5 px-3 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-2 ${
-                    isTimeExpired
-                      ? "bg-[#E84142] hover:bg-[#D13637] text-white shadow-md"
-                      : "bg-[#161922] border border-[#1E222D] text-[#64748B] cursor-not-allowed"
+              {/* Financial Summary */}
+              <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2 text-xs">
+                <div className="flex justify-between items-center text-[#94A3B8]">
+                  <span>{t("Giá trị ký quỹ:", "Escrow Amount:")}</span>
+                  <span className="text-[#F1F5F9] font-bold tabular-nums">{dealAmountNum.toFixed(2)} USDC</span>
+                </div>
+                <div className="flex justify-between items-center text-[#94A3B8]">
+                  <span>{t("Phí GDTG bảo lãnh (1.5%):", "Broker Escrow Fee (1.5%):")}</span>
+                  <span className="text-[#F59E0B] tabular-nums">+{brokerFeeNum.toFixed(2)} USDC</span>
+                </div>
+                <div className="flex justify-between items-center text-[#94A3B8]">
+                  <span>{t("Phí giao thức TrustPact (0.3%):", "Protocol Fee (0.3%):")}</span>
+                  <span className="text-[#64748B] tabular-nums">+{protocolFeeNum.toFixed(2)} USDC</span>
+                </div>
+                <div className="pt-2 border-t border-[#1E222D] flex justify-between items-center text-sm">
+                  <span className="font-sans font-bold text-[#F1F5F9]">{t("Bên Bán nhận thực tế:", "Net Seller Proceeds:")}</span>
+                  <span className="font-bold text-[#10B981] tabular-nums">{netSellerReceives.toFixed(2)} USDC</span>
+                </div>
+              </div>
+
+              {/* Active Role Badge */}
+              <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between font-sans">
+                <span className="text-[11px] text-[#64748B]">{t("Tài khoản đang đăng nhập:", "Active Session Role:")}</span>
+                <span
+                  className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
+                    isBuyer
+                      ? "bg-[#E84142]/10 text-[#E84142]"
+                      : isSeller
+                      ? "bg-[#10B981]/10 text-[#10B981]"
+                      : "bg-[#F59E0B]/10 text-[#F59E0B]"
                   }`}
                 >
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>
-                    {isTimeExpired
-                      ? t("Rút 100% Tiền Về Ví Ngay (Quá Hạn)", "Claim 100% Timeout Refund To Wallet")
-                      : t(`Khóa Rút Tiền (Còn ${timerDisplay})`, `Auto-Refund Locked (${timerDisplay} remaining)`)}
+                  {isBuyer
+                    ? t("Bên Mua (Buyer)", "Buyer")
+                    : isSeller
+                    ? t("Bên Bán (Seller)", "Seller")
+                    : t("GDTG (Broker)", "GDTG (Broker)")}
+                </span>
+              </div>
+
+              {/* ── ACTIONS FOR BUYER ────────────────────────────────────────── */}
+              {isBuyer && statusNumber === 0 && (
+                <div className="space-y-3 font-sans">
+                  {/* 1. Buyer Confirm Delivery */}
+                  <ShimmerButton
+                    type="button"
+                    onClick={() =>
+                      executePactWrite(
+                        t("Xác Nhận Đã Nhận Đủ Hàng & Giải Ngân", "Confirm Delivery & Release Escrow"),
+                        "buyerConfirmDelivery",
+                        [pactId]
+                      )
+                    }
+                    variant="success"
+                    className="w-full py-2.5 px-3 rounded-md text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{t("Nghiệm Thu Hài Lòng & Giải Ngân Ngay", "Approve & Release Funds Immediately")}</span>
+                  </ShimmerButton>
+                  <span className="text-[10px] text-[#64748B] block font-mono">
+                    {t(
+                      `Giải ngân ngay ${netSellerReceives} USDC cho Bên Bán và ${brokerFeeNum} USDC phí cho GDTG.`,
+                      `Instantly disburse ${netSellerReceives} USDC to Seller and ${brokerFeeNum} USDC fee to Broker.`
+                    )}
                   </span>
-                </button>
+
+                  {/* 2. Auto-refund on Expired */}
+                  <ShimmerButton
+                    type="button"
+                    onClick={() =>
+                      executePactWrite(
+                        t("Rút 100% Tiền Về Ví (Quá Hạn Bàn Giao)", "Claim 100% Timeout Refund"),
+                        "buyerClaimExpiredRefund",
+                        [pactId]
+                      )
+                    }
+                    disabled={!isTimeExpired}
+                    variant={isTimeExpired ? "danger" : "secondary"}
+                    className="w-full py-2.5 px-3 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>
+                      {isTimeExpired
+                        ? t("Rút 100% Tiền Về Ví Ngay (Quá Hạn)", "Claim 100% Timeout Refund To Wallet")
+                        : t(`Khóa Rút Tiền (Còn ${timerDisplay})`, `Auto-Refund Locked (${timerDisplay} remaining)`)}
+                    </span>
+                  </ShimmerButton>
 
                 {/* 3. Mutual Cancel */}
                 <div className="pt-2 border-t border-[#1E222D] space-y-2">
@@ -1168,7 +1175,7 @@ export default function EscrowPactRoomPage() {
             {isBroker && statusNumber === 0 && (
               <div className="space-y-3 font-sans">
                 {/* 1. Broker Release */}
-                <button
+                <ShimmerButton
                   type="button"
                   onClick={() =>
                     executePactWrite(
@@ -1177,11 +1184,12 @@ export default function EscrowPactRoomPage() {
                       [pactId]
                     )
                   }
-                  className="w-full py-2.5 px-3 rounded-md bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                  variant="success"
+                  className="w-full py-2.5 px-3 rounded-md text-white text-xs font-bold transition-colors flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>{t(`Giải Ngân Cho Seller (${netSellerReceives} USDC)`, `Release To Seller (${netSellerReceives} USDC)`)}</span>
-                </button>
+                </ShimmerButton>
 
                 {/* 2. Broker Refund Buyer */}
                 <button
@@ -1295,6 +1303,7 @@ export default function EscrowPactRoomPage() {
                 </span>
               </div>
             )}
+            </CardSpotlight>
           </div>
         </div>
       </div>

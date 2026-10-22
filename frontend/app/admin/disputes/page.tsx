@@ -32,6 +32,9 @@ import {
   shortenAddress,
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
+import { BorderBeam } from "@/src/components/ui/BorderBeam";
+import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 export default function AdminDisputesPage() {
   const { address, isConnected } = useAccount();
@@ -425,13 +428,15 @@ export default function AdminDisputesPage() {
 
         {/* RIGHT PANE: SLASHING EXECUTION CONSOLE (6 COLS) */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="border border-[#1E222D] bg-[#101217] rounded-lg p-5">
-            <div className="flex items-center gap-2 pb-3 border-b border-[#1E222D]">
-              <Gavel className="w-4 h-4 text-[#EF4444]" />
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
-                Bảng Điều Khiển Xử Phạt &amp; Bồi Hoàn (Restitution Console)
-              </h2>
-            </div>
+          <div className="relative border border-[#1E222D] bg-[#101217] rounded-lg overflow-hidden shadow-2xl">
+            <BorderBeam colorFrom="#EF4444" colorTo="#E84142" duration={10} borderWidth={1.5} size={250} />
+            <CardSpotlight className="p-5 relative z-10" color="rgba(239, 68, 68, 0.08)" radius={300}>
+              <div className="flex items-center gap-2 pb-3 border-b border-[#1E222D]">
+                <Gavel className="w-4 h-4 text-[#EF4444]" />
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+                  Bảng Điều Khiển Xử Phạt &amp; Bồi Hoàn (Restitution Console)
+                </h2>
+              </div>
 
             {/* Invariant Explanation Box */}
             <div className="mt-4 p-3.5 rounded-md bg-[#161922] border border-[#1E222D] space-y-2 text-xs">
@@ -541,8 +546,9 @@ export default function AdminDisputesPage() {
               </label>
 
               {/* Big Red Terminal Execution Button */}
-              <button
+              <ShimmerButton
                 type="submit"
+                variant="danger"
                 disabled={
                   !isAdminOrTreasury ||
                   !evidenceConfirmed ||
@@ -551,11 +557,7 @@ export default function AdminDisputesPage() {
                   isSlashPending ||
                   isSlashConfirming
                 }
-                className={`w-full py-3.5 px-4 rounded-md text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
-                  isAdminOrTreasury && evidenceConfirmed && escrow && escrow.status === 0
-                    ? "bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-lg shadow-[#EF4444]/20 cursor-pointer"
-                    : "bg-[#161922] text-[#64748B] border border-[#1E222D] cursor-not-allowed"
-                }`}
+                className="w-full py-3.5 px-4 rounded-md text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-40"
               >
                 <Gavel className="w-4 h-4" />
                 <span>
@@ -565,8 +567,9 @@ export default function AdminDisputesPage() {
                     ? "Đang Xác Nhận Giao Dịch..."
                     : "KÍCH HOẠT TỊCH THU CỌC & BỒI HOÀN NẠN NHÂN (EXECUTE RESTITUTION)"}
                 </span>
-              </button>
+              </ShimmerButton>
             </form>
+            </CardSpotlight>
           </div>
         </div>
       </div>

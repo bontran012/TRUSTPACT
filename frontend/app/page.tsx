@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { formatUnits } from "viem";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import {
   Search,
@@ -32,6 +33,10 @@ import {
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 import { useAuth } from "@/src/context/AuthContext";
+import { BorderBeam } from "@/src/components/ui/BorderBeam";
+import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { NumberTicker } from "@/src/components/ui/NumberTicker";
+import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 type CategoryKey = "phone" | "bank" | "telegram" | "wallet";
 
@@ -290,7 +295,11 @@ export default function ScamRadarAndReputationPage() {
             Tổng Vốn Cọc GDTG (Aave V3 TVL)
           </span>
           <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
-            {formatUsdc(totalPrincipal as bigint)} USDC
+            <NumberTicker
+              value={totalPrincipal ? Number(formatUnits(totalPrincipal as bigint, 6)) : 15000}
+              decimals={2}
+              suffix=" USDC"
+            />
           </div>
           <span className="text-[11px] font-mono text-[#10B981] flex items-center gap-1">
             <TrendingUp className="w-3 h-3" />
@@ -303,10 +312,15 @@ export default function ScamRadarAndReputationPage() {
             Lãi Thực Tế Đang Sinh (aUSDC APY)
           </span>
           <div className="text-xl sm:text-2xl font-bold font-mono text-[#10B981] tabular-nums">
-            +5.20% APY
+            <NumberTicker value={5.2} decimals={2} prefix="+" suffix="% APY" />
           </div>
           <span className="text-[11px] font-mono text-[#94A3B8]">
-            Đã tích lũy: {formatUsdc(totalAccruedYield as bigint)} USDC
+            Đã tích lũy:{" "}
+            <NumberTicker
+              value={totalAccruedYield ? Number(formatUnits(totalAccruedYield as bigint, 6)) : 342.5}
+              decimals={2}
+            />{" "}
+            USDC
           </span>
         </div>
 
@@ -315,7 +329,10 @@ export default function ScamRadarAndReputationPage() {
             Tổng Giao Dịch Đã Bảo Vệ
           </span>
           <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
-            {totalEscrows !== undefined ? Number(totalEscrows) : 101} Hợp Đồng
+            <NumberTicker
+              value={totalEscrows !== undefined ? Number(totalEscrows) : 101}
+              suffix=" Hợp Đồng"
+            />
           </div>
           <span className="text-[11px] font-mono text-[#94A3B8]">
             0.8s finality trên Fuji C-Chain
@@ -327,7 +344,10 @@ export default function ScamRadarAndReputationPage() {
             Bản Ghi Sổ Đen L1 (Gas 0đ)
           </span>
           <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
-            {totalL1Reports !== undefined ? Number(totalL1Reports) : 142} Đối Tượng
+            <NumberTicker
+              value={totalL1Reports !== undefined ? Number(totalL1Reports) : 142}
+              suffix=" Đối Tượng"
+            />
           </div>
           <span className="text-[11px] font-mono text-[#EF4444]">
             Bất biến trên Custom L1 Subnet
@@ -394,13 +414,13 @@ export default function ScamRadarAndReputationPage() {
                     className="w-full bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2.5 text-xs font-mono text-[#F1F5F9] placeholder-[#64748B] focus:outline-none transition-colors"
                   />
                 </div>
-                <button
+                <ShimmerButton
                   type="submit"
                   disabled={isCheckingScam}
-                  className="px-4 py-2.5 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-medium transition-colors shrink-0 disabled:opacity-50"
+                  className="px-4 py-2.5 rounded-md text-xs font-medium shrink-0 disabled:opacity-50"
                 >
                   {isCheckingScam ? "Đang Quét L1..." : "Quét Sổ Đen L1"}
-                </button>
+                </ShimmerButton>
               </div>
 
               {/* Quick Presets */}
@@ -738,12 +758,13 @@ export default function ScamRadarAndReputationPage() {
                   >
                     Hủy
                   </button>
-                  <button
+                  <ShimmerButton
                     type="submit"
-                    className="px-4 py-1.5 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-medium"
+                    variant="danger"
+                    className="px-4 py-1.5 rounded-md text-xs font-medium"
                   >
                     Ký Lệnh Gửi Lên L1
-                  </button>
+                  </ShimmerButton>
                 </div>
               </form>
             )}
@@ -783,79 +804,94 @@ export default function ScamRadarAndReputationPage() {
             </form>
 
             {/* Hardware-Style SBT Credential Card */}
-            <div className="relative rounded-lg border border-[#1E222D] bg-[#090A0D] p-4 space-y-3 overflow-hidden shadow-inner font-mono text-xs">
-              {/* Soulbound watermark */}
-              <div className="absolute right-2 top-2 pointer-events-none select-none text-[22px] font-extrabold text-[#1E222D]/60 tracking-wider">
-                NON-TRANSFERABLE
-              </div>
-
-              <div className="flex items-center justify-between relative z-10 border-b border-[#1E222D] pb-2.5">
-                <div>
-                  <span className="text-[10px] text-[#64748B] block uppercase">Định Danh Hộ Chiếu SBT</span>
-                  <span className="font-bold text-[#F1F5F9]">#TP-{resolvedSbtAddress.slice(2, 6).toUpperCase()}</span>
+            <div className="relative rounded-lg border border-[#1E222D] bg-[#090A0D] overflow-hidden shadow-inner font-mono text-xs">
+              <BorderBeam colorFrom="#F59E0B" colorTo="#E84142" duration={10} size={160} borderWidth={1.5} />
+              <CardSpotlight className="p-4 space-y-3" color="rgba(245, 158, 11, 0.08)" radius={240}>
+                {/* Soulbound watermark */}
+                <div className="absolute right-2 top-2 pointer-events-none select-none text-[22px] font-extrabold text-[#1E222D]/60 tracking-wider">
+                  NON-TRANSFERABLE
                 </div>
-                {brokerProfile && (brokerProfile as any).isVerified ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-[10px] font-bold">
-                    <Check className="w-3 h-3" />
-                    TICK XANH BẢO CHỨNG
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] text-[10px]">
-                    Thành Viên Tiêu Chuẩn
-                  </span>
-                )}
-              </div>
 
-              <div className="space-y-2 relative z-10 text-[11px]">
-                <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Địa chỉ ví:</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#F1F5F9]">{shortenAddress(resolvedSbtAddress)}</span>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(resolvedSbtAddress)}
-                      className="text-[#64748B] hover:text-[#F1F5F9]"
-                    >
-                      {copiedText === resolvedSbtAddress ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
-                    </button>
+                <div className="flex items-center justify-between relative z-10 border-b border-[#1E222D] pb-2.5">
+                  <div>
+                    <span className="text-[10px] text-[#64748B] block uppercase">Định Danh Hộ Chiếu SBT</span>
+                    <span className="font-bold text-[#F1F5F9]">#TP-{resolvedSbtAddress.slice(2, 6).toUpperCase()}</span>
+                  </div>
+                  {brokerProfile && (brokerProfile as any).isVerified ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-[10px] font-bold">
+                      <Check className="w-3 h-3" />
+                      TICK XANH BẢO CHỨNG
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] text-[10px]">
+                      Thành Viên Tiêu Chuẩn
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2 relative z-10 text-[11px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748B]">Địa chỉ ví:</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#F1F5F9]">{shortenAddress(resolvedSbtAddress)}</span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(resolvedSbtAddress)}
+                        className="text-[#64748B] hover:text-[#F1F5F9]"
+                      >
+                        {copiedText === resolvedSbtAddress ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748B]">Tỷ lệ hoàn thành:</span>
+                    <span className="font-bold text-[#10B981] tabular-nums">
+                      <NumberTicker
+                        value={sbtSuccessRate !== undefined ? Number(sbtSuccessRate) / 100 : 100.0}
+                        decimals={1}
+                        suffix="%"
+                      />
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748B]">Số kèo thành công / Tổng kèo:</span>
+                    <span className="text-[#F1F5F9] tabular-nums">
+                      {sbtProfile ? `${Number((sbtProfile as any).successfulDeals)} / ${Number((sbtProfile as any).totalDeals)}` : "128 / 128"} kèo
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748B]">Tổng volume luân chuyển:</span>
+                    <span className="text-[#F1F5F9] tabular-nums font-semibold">
+                      <NumberTicker
+                        value={sbtProfile ? Number(formatUnits((sbtProfile as any).totalVolumeUSDC, 6)) : 64250.0}
+                        decimals={2}
+                        suffix=" USDC"
+                      />
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748B]">Cọc Aave V3 đang khóa:</span>
+                    <span className="text-[#10B981] tabular-nums font-semibold">
+                      <NumberTicker
+                        value={brokerProfile ? Number(formatUnits((brokerProfile as any).stakedBalance, 6)) : 5000.0}
+                        decimals={2}
+                        suffix=" USDC"
+                      />
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#64748B]">Số lần bị phạt vi phạm:</span>
+                    <span className="text-[#EF4444] tabular-nums">
+                      {sbtProfile ? Number((sbtProfile as any).slashedCount) : 0} Lần
+                    </span>
                   </div>
                 </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Tỷ lệ hoàn thành:</span>
-                  <span className="font-bold text-[#10B981] tabular-nums">
-                    {sbtSuccessRate !== undefined ? `${(Number(sbtSuccessRate) / 100).toFixed(1)}%` : "100.0%"}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Số kèo thành công / Tổng kèo:</span>
-                  <span className="text-[#F1F5F9] tabular-nums">
-                    {sbtProfile ? `${Number((sbtProfile as any).successfulDeals)} / ${Number((sbtProfile as any).totalDeals)}` : "128 / 128"} kèo
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Tổng volume luân chuyển:</span>
-                  <span className="text-[#F1F5F9] tabular-nums font-semibold">
-                    {sbtProfile ? formatUsdc((sbtProfile as any).totalVolumeUSDC) : "64,250.00"} USDC
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Cọc Aave V3 đang khóa:</span>
-                  <span className="text-[#10B981] tabular-nums font-semibold">
-                    {brokerProfile ? formatUsdc((brokerProfile as any).stakedBalance) : "5,000.00"} USDC
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-[#64748B]">Số lần bị phạt vi phạm:</span>
-                  <span className="text-[#EF4444] tabular-nums">
-                    {sbtProfile ? Number((sbtProfile as any).slashedCount) : 0} Lần
-                  </span>
-                </div>
-              </div>
+              </CardSpotlight>
             </div>
           </div>
 

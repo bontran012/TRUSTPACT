@@ -27,6 +27,10 @@ import {
   parseContractError,
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
+import { BorderBeam } from "@/src/components/ui/BorderBeam";
+import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { NumberTicker } from "@/src/components/ui/NumberTicker";
+import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 export default function BrokerStakingAndYieldPage() {
   const { address } = useAccount();
@@ -254,7 +258,7 @@ export default function BrokerStakingAndYieldPage() {
             1. Vốn Gốc &amp; Hạn Mức Cọc
           </span>
           <div className="text-xl font-bold text-[#F1F5F9] tabular-nums">
-            {stakedNum.toLocaleString()} USDC
+            <NumberTicker value={stakedNum} decimals={2} suffix=" USDC" />
           </div>
           <div>
             {isBlacklisted ? (
@@ -280,7 +284,7 @@ export default function BrokerStakingAndYieldPage() {
             2. Phân Bổ Hạn Mức Bảo Lãnh
           </span>
           <div className="text-xl font-bold text-[#F59E0B] tabular-nums">
-            {availableQuotaNum.toLocaleString()} USDC
+            <NumberTicker value={availableQuotaNum} decimals={2} suffix=" USDC" />
           </div>
           <div className="space-y-1">
             <div className="w-full bg-[#090A0D] rounded-full h-1.5 overflow-hidden flex border border-[#1E222D]">
@@ -308,7 +312,7 @@ export default function BrokerStakingAndYieldPage() {
             3. Lãi Thực Tế Aave V3 (+5.2%)
           </span>
           <div className="text-xl font-bold text-[#10B981] tabular-nums">
-            +{totalLiveYield} USDC
+            <NumberTicker value={Number(totalLiveYield) || 0} decimals={2} prefix="+" suffix=" USDC" />
           </div>
           <div className="text-[10px] text-[#94A3B8] flex justify-between border-t border-[#1E222D] pt-1">
             <span>GDTG 80%: <strong className="text-[#10B981]">+{brokerShare80}</strong></span>
@@ -322,7 +326,7 @@ export default function BrokerStakingAndYieldPage() {
             4. Hiệu Suất GDTG (Broker)
           </span>
           <div className="text-xl font-bold text-[#F1F5F9] tabular-nums">
-            {successfulDeals} / {totalDeals} Kèo
+            <NumberTicker value={successfulDeals} /> / <NumberTicker value={totalDeals} /> Kèo
           </div>
           <div className="flex justify-between text-[10px]">
             <span className="text-[#10B981]">Tỷ lệ: {totalDeals > 0 ? ((successfulDeals / totalDeals) * 100).toFixed(1) : "100"}%</span>
@@ -335,35 +339,37 @@ export default function BrokerStakingAndYieldPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ── LEFT COLUMN (7 COLS): STAKE & UNSTAKE TERMINAL ────────────────── */}
         <div className="lg:col-span-7 space-y-5">
-          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
-            {/* Terminal Tabs */}
-            <div className="flex items-center gap-2 border-b border-[#1E222D] pb-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab("stake")}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold uppercase transition-colors ${
-                  activeTab === "stake"
-                    ? "bg-[#161922] text-[#F1F5F9] border border-[#1E222D]"
-                    : "text-[#94A3B8] hover:text-[#F1F5F9]"
-                }`}
-              >
-                <ArrowUpRight className="w-3.5 h-3.5 text-[#10B981]" />
-                <span>Nạp Cọc Bảo Hiểm (stakeInsurance)</span>
-              </button>
+          <div className="relative rounded-lg panel-border bg-[#101217] overflow-hidden shadow-2xl">
+            <BorderBeam colorFrom="#10B981" colorTo="#F59E0B" duration={12} borderWidth={1.5} size={220} />
+            <CardSpotlight className="p-5 space-y-4 relative z-10" color="rgba(16, 185, 129, 0.08)" radius={300}>
+              {/* Terminal Tabs */}
+              <div className="flex items-center gap-2 border-b border-[#1E222D] pb-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("stake")}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold uppercase transition-colors ${
+                    activeTab === "stake"
+                      ? "bg-[#161922] text-[#F1F5F9] border border-[#1E222D]"
+                      : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                  }`}
+                >
+                  <ArrowUpRight className="w-3.5 h-3.5 text-[#10B981]" />
+                  <span>Nạp Cọc Bảo Hiểm (stakeInsurance)</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab("unstake")}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold uppercase transition-colors ${
-                  activeTab === "unstake"
-                    ? "bg-[#161922] text-[#F1F5F9] border border-[#1E222D]"
-                    : "text-[#94A3B8] hover:text-[#F1F5F9]"
-                }`}
-              >
-                <ArrowDownLeft className="w-3.5 h-3.5 text-[#E84142]" />
-                <span>Rút Vốn &amp; Chốt Lãi (unstakeInsurance)</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("unstake")}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold uppercase transition-colors ${
+                    activeTab === "unstake"
+                      ? "bg-[#161922] text-[#F1F5F9] border border-[#1E222D]"
+                      : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                  }`}
+                >
+                  <ArrowDownLeft className="w-3.5 h-3.5 text-[#E84142]" />
+                  <span>Rút Vốn &amp; Chốt Lãi (unstakeInsurance)</span>
+                </button>
+              </div>
 
             {/* TAB 1: STAKE FORM */}
             {activeTab === "stake" && (
@@ -422,15 +428,12 @@ export default function BrokerStakingAndYieldPage() {
 
                 {/* 2-Step Action Buttons */}
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <button
+                  <ShimmerButton
                     type="button"
                     onClick={handleApproveStake}
                     disabled={isStakeApproved || stakeAmountBigInt === 0n}
-                    className={`py-2.5 px-3 rounded-md font-sans text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors ${
-                      isStakeApproved
-                        ? "bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] cursor-default"
-                        : "bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#F1F5F9]"
-                    }`}
+                    variant={isStakeApproved ? "success" : "secondary"}
+                    className="py-2.5 px-3 rounded-md font-sans text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
                   >
                     {isStakeApproved ? (
                       <>
@@ -440,16 +443,17 @@ export default function BrokerStakingAndYieldPage() {
                     ) : (
                       <span>1. Cấp Quyền (Approve)</span>
                     )}
-                  </button>
+                  </ShimmerButton>
 
-                  <button
+                  <ShimmerButton
                     type="submit"
                     disabled={!isStakeApproved}
-                    className="py-2.5 px-3 rounded-md font-sans text-xs font-bold bg-[#E84142] hover:bg-[#D13637] text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    variant="primary"
+                    className="py-2.5 px-3 rounded-md font-sans text-xs font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
                     <ArrowUpRight className="w-3.5 h-3.5" />
                     <span>2. Nạp Cọc &amp; Kích Hoạt Lãi</span>
-                  </button>
+                  </ShimmerButton>
                 </div>
               </form>
             )}
@@ -511,16 +515,18 @@ export default function BrokerStakingAndYieldPage() {
                   </div>
                 )}
 
-                <button
+                <ShimmerButton
                   type="submit"
                   disabled={!isUnstakeValid}
-                  className="w-full py-2.5 px-3 rounded-md font-sans text-xs font-bold bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#F1F5F9] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  variant="danger"
+                  className="w-full py-2.5 px-3 rounded-md font-sans text-xs font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
-                  <ArrowDownLeft className="w-3.5 h-3.5 text-[#E84142]" />
+                  <ArrowDownLeft className="w-3.5 h-3.5 text-white" />
                   <span>Rút Vốn Gốc &amp; Chốt Lãi Về Ví</span>
-                </button>
+                </ShimmerButton>
               </form>
             )}
+            </CardSpotlight>
           </div>
         </div>
 

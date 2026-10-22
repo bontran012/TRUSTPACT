@@ -41,3 +41,7 @@ frontend/public/*.png
 frontend/public/images/
 frontend_code.txt
 TRUSTPACT_FULL_SOURCE.txt
+
+# Python cache
+__pycache__/
+*.pyc
