@@ -1059,43 +1059,7 @@ export default function ScamRadarAndReputationPage() {
             </div>
           </div>
 
-          {/* x402 Micro-payment API Endpoint Box */}
-          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-[#10B981]" />
-                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                  Cổng API Trả Phí Vi Mô x402
-                </span>
-              </div>
-              <span className="text-[10px] text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded border border-[#10B981]/20">
-                0.01 USDC / Query
-              </span>
-            </div>
 
-            <p className="text-[11px] text-[#94A3B8] font-sans leading-relaxed">
-              Tích hợp kiểm tra tự động cho Telegram Group Bots &amp; Discord Server. Trả phí tức thì qua cơ chế HTTP 402 Payment Required:
-            </p>
-
-            <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] text-[#10B981] overflow-x-auto text-[11px]">
-              <code>
-                curl -X GET &quot;https://trustpact.network/api/x402/check?id=1903889922101&quot; \<br />
-                &nbsp;&nbsp;-H &quot;X-402-Payment: 0.01_USDC&quot;
-              </code>
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] text-[#64748B]">
-              <span>Tình trạng gateway: <strong className="text-[#10B981]">ONLINE (Avalanche Subnet)</strong></span>
-              <a
-                href="https://testnet.snowtrace.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1"
-              >
-                Docs <ExternalLink className="w-2.5 h-2.5" />
-              </a>
-            </div>
-          </div>
         </div>
       </div>
 
