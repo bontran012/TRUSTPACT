@@ -163,8 +163,7 @@ export default function ScamRadarAndReputationPage() {
   const [reportDescription, setReportDescription] = useState("");
   const [reportEvidenceUri, setReportEvidenceUri] = useState("");
 
-  // ── SBT Lookup State ─────────────────────────────────────────────────
-  const [sbtTargetAddress, setSbtTargetAddress] = useState<string>("");
+  // ── SBT Lookup State (Synchronized with main search) ─────────────────
   const [resolvedSbtAddress, setResolvedSbtAddress] = useState<`0x${string}`>(
     (address as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A"
   );
@@ -203,8 +202,17 @@ export default function ScamRadarAndReputationPage() {
 
   const handleScanSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!queryInput.trim()) return;
-    setActiveQuery(queryInput.trim());
+    const clean = queryInput.trim();
+    if (!clean) return;
+    setActiveQuery(clean);
+
+    // Automatically synchronize SBT Card on the right
+    const matched = findUserByQuery(clean);
+    if (matched) {
+      setResolvedSbtAddress(matched.walletAddress);
+    } else if (clean.startsWith("0x") && clean.length === 42) {
+      setResolvedSbtAddress(clean as `0x${string}`);
+    }
   };
 
   const handleReportScamSubmit = async (e: React.FormEvent) => {
@@ -260,19 +268,6 @@ export default function ScamRadarAndReputationPage() {
     }
   };
 
-  const handleSbtLookupSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = sbtTargetAddress.trim();
-    if (!clean) return;
-    const matched = findUserByQuery(clean);
-    if (matched) {
-      setResolvedSbtAddress(matched.walletAddress);
-      return;
-    }
-    if (clean.startsWith("0x") && clean.length === 42) {
-      setResolvedSbtAddress(clean as `0x${string}`);
-    }
-  };
 
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const copyToClipboard = (text: string) => {
@@ -368,7 +363,7 @@ export default function ScamRadarAndReputationPage() {
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#E84142]" />
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                  Hệ Thống Rà Quét Lừa Đảo On-Chain (ScamRegistryL1)
+                  Hệ Thống Rà Quét Lừa Đảo &amp; Tra Cứu Tín Nhiệm (Unified Radar)
                 </h2>
               </div>
               <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded">
@@ -412,8 +407,8 @@ export default function ScamRadarAndReputationPage() {
                         : selectedCategory === "phone"
                         ? "Nhập số điện thoại (vd: 0909888999)..."
                         : selectedCategory === "telegram"
-                        ? "Nhập username Telegram (vd: @otc_vn_fake_admin)..."
-                        : "Nhập địa chỉ ví 0x..."
+                        ? "Nhập username Telegram (vd: @otc_vn_fake_admin hoặc @hoangminh_otc)..."
+                        : "Nhập địa chỉ ví 0x, @username, hoặc Mã ID (vd: TP-2002)..."
                     }
                     className="w-full bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2.5 text-xs font-mono text-[#F1F5F9] placeholder-[#64748B] focus:outline-none transition-colors"
                   />
@@ -423,7 +418,7 @@ export default function ScamRadarAndReputationPage() {
                   disabled={isCheckingScam}
                   className="px-4 py-2.5 rounded-md text-xs font-medium shrink-0 disabled:opacity-50"
                 >
-                  {isCheckingScam ? "Đang Quét L1..." : "Quét Sổ Đen L1"}
+                  {isCheckingScam ? "Đang Tra Cứu..." : "Tra Cứu On-Chain"}
                 </ShimmerButton>
               </div>
 
@@ -455,6 +450,7 @@ export default function ScamRadarAndReputationPage() {
                   onClick={() => {
                     setQueryInput("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                     setActiveQuery("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
+                    setResolvedSbtAddress("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                   }}
                   className="px-2 py-0.5 rounded border border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] font-mono hover:bg-[#10B981]/20 transition-colors"
                 >
@@ -866,35 +862,24 @@ export default function ScamRadarAndReputationPage() {
 
         {/* ── RIGHT PANE (5 COLS): SBT REPUTATION & X402 ────────────────────────── */}
         <div className="lg:col-span-5 space-y-5">
-          {/* SBT Lookup Input */}
+          {/* Unified SBT Reputation Credential Box */}
           <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-[#F59E0B]" />
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                  Tra Cứu Hộ Chiếu Tín Nhiệm (TrustPassportSBT)
+                  Hộ Chiếu Tín Nhiệm (TrustPassportSBT)
                 </h3>
               </div>
-              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-2 py-0.5 rounded">
-                ERC-721 Soulbound
+              <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-0.5 rounded flex items-center gap-1 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                Đồng Bộ Tự Động
               </span>
             </div>
 
-            <form onSubmit={handleSbtLookupSubmit} className="flex gap-2">
-              <input
-                type="text"
-                value={sbtTargetAddress}
-                onChange={(e) => setSbtTargetAddress(e.target.value)}
-                placeholder="Nhập 0x..., @username, hoặc Mã ID (vd: TP-1001)..."
-                className="flex-1 bg-[#090A0D] border border-[#1E222D] focus:border-[#F59E0B] rounded-md px-3 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="px-3.5 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9]"
-              >
-                Tra Cứu
-              </button>
-            </form>
+            <p className="text-[11px] text-[#94A3B8] leading-relaxed">
+              Tự động liên kết và trích xuất chỉ số tín nhiệm On-Chain (ERC-721 Soulbound) theo đối tượng được tra cứu ở thanh công cụ chính.
+            </p>
 
             {/* Hardware-Style SBT Credential Card */}
             <div className="relative rounded-lg border border-[#1E222D] bg-[#090A0D] overflow-hidden shadow-inner font-mono text-xs">
