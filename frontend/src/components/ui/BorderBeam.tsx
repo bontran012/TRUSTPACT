@@ -8,6 +8,7 @@ interface BorderBeamProps {
   duration?: number;
   colorFrom?: string;
   colorTo?: string;
+  borderWidth?: number;
 }
 
 export function BorderBeam({
@@ -16,6 +17,7 @@ export function BorderBeam({
   duration = 6,
   colorFrom = "#E84142",
   colorTo = "#F59E0B",
+  borderWidth = 1.5,
 }: BorderBeamProps) {
   return (
     <div

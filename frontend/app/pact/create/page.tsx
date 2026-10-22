@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { parseAbiItem, formatUnits } from "viem";
@@ -86,7 +86,7 @@ const REGISTERED_BROKERS: BrokerItem[] = [
   },
 ];
 
-export default function CreateEscrowPactPage() {
+function CreateEscrowPactContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -944,5 +944,22 @@ export default function CreateEscrowPactPage() {
         onClose={() => setTxStatus({ step: "idle" })}
       />
     </div>
+  );
+}
+
+export default function CreateEscrowPactPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0B0E14] text-white flex items-center justify-center font-mono text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-[#10B981] border-t-transparent rounded-full animate-spin"></div>
+            <span>Đang tải thông tin giao dịch...</span>
+          </div>
+        </div>
+      }
+    >
+      <CreateEscrowPactContent />
+    </Suspense>
   );
 }
