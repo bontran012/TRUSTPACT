@@ -77,20 +77,32 @@ function lookupTarget(query) {
   const clean = query.trim().replace(/^@/, "").toLowerCase();
   if (!clean) return null;
 
-  // 1. Check Scam Blacklist
-  const matchedScam = KNOWN_SCAM_DATABASE.find(
-    (s) => s.identifier.toLowerCase() === clean || s.identifier.replace(/\s+/g, "") === clean
-  );
+  // 1. Check Scam Blacklist (exact or substring match if message contains the scam identifier)
+  const matchedScam = KNOWN_SCAM_DATABASE.find((s) => {
+    const sId = s.identifier.toLowerCase();
+    const sIdNoSpace = s.identifier.replace(/\s+/g, "");
+    return clean === sId || clean === sIdNoSpace || clean.includes(sId) || clean.includes(sIdNoSpace);
+  });
 
   // 2. Check Trusted Registry
-  const matchedUser = TRUSTED_USERS_DATABASE.find(
-    (u) =>
-      u.username.toLowerCase() === clean ||
-      u.id.toLowerCase() === clean ||
-      u.walletAddress.toLowerCase() === clean ||
-      u.zalo.replace(/\s+/g, "") === clean ||
-      u.telegram.toLowerCase().replace(/^@/, "") === clean
-  );
+  const matchedUser = TRUSTED_USERS_DATABASE.find((u) => {
+    const uName = u.username.toLowerCase();
+    const uId = u.id.toLowerCase();
+    const uWallet = u.walletAddress.toLowerCase();
+    const uZalo = u.zalo.replace(/\s+/g, "");
+    const uTele = u.telegram.toLowerCase().replace(/^@/, "");
+
+    return (
+      clean === uName ||
+      clean === uId ||
+      clean === uWallet ||
+      clean === uZalo ||
+      clean === uTele ||
+      clean.includes(uName) ||
+      clean.includes(uZalo) ||
+      clean.includes(uTele)
+    );
+  });
 
   return {
     query,

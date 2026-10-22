@@ -57,16 +57,18 @@ async function sendTelegramMessage(chatId, text, replyMarkup) {
 
 function getStartMessage(firstName = "Bạn") {
   return `
-🛡️ <b>CHÀO MỪNG ${firstName.toUpperCase()} ĐẾN VỚI TRUSTPACT SENTINEL BOT!</b>
+🛡️ <b>TRUSTPACT SENTINEL — HỆ THỐNG GÁC ĐỀN ON-CHAIN</b>
 
-Bot hỗ trợ bạn kiểm tra nhanh số tài khoản ngân hàng, User, hoặc địa chỉ ví có nằm trong <b>Sổ Đen Lừa Đảo L1</b> hay không trước khi giao dịch tiền thật.
+Chào <b>${firstName}</b>! Bot hỗ trợ bạn tra cứu cảnh báo lừa đảo và kiểm tra độ uy tín của đối tác trước khi giao dịch tiền thật.
 
-📌 <b>CÁC LỆNH HỖ TRỢ:</b>
-• <code>/check &lt;STK hoặc @username&gt;</code> — Tra cứu cảnh báo lừa đảo & SBT Tín Nhiệm
-• <code>/pact</code> — Mở phòng Két Sắt 3 Bên bảo vệ dòng tiền
-• <code>/help</code> — Xem hướng dẫn chi tiết
+👉 <b>BẠN KHÔNG CẦN GÕ LỆNH GÌ CẢ!</b>
+Chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào đây:
+• <b>Số tài khoản ngân hàng:</b> vd <code>1903889922101</code>
+• <b>Số điện thoại:</b> vd <code>0909123456</code>
+• <b>User / Telegram:</b> vd <code>@hoangminh_otc</code>
+• <b>Địa chỉ ví Web3:</b> vd <code>0x89C3...</code>
 
-💡 <i>Mẹo: Bạn có thể thêm bot này vào nhóm Telegram OTC. Bot sẽ tự động cảnh báo ngay khi phát hiện STK lừa đảo xuất hiện trong tin nhắn của nhóm!</i>
+⚡ <i>Bot sẽ tự động quét cơ sở dữ liệu Sổ Đen L1 và Hộ Chiếu Tín Nhiệm SBT để trả kết quả ngay lập tức!</i>
 `;
 }
 
@@ -209,10 +211,6 @@ async function handleUpdate(update) {
     const replyMarkup = {
       inline_keyboard: [
         [
-          { text: "🔍 Tra Cứu Thử STK Lừa Đảo", callback_data: "check_scam" },
-          { text: "⭐ Tra Cứu GDTG Uy Tín", callback_data: "check_broker" },
-        ],
-        [
           { text: "🌐 Mở DApp Web TrustPact", url: PUBLIC_WEB_URL },
           { text: "👥 Thêm Bot Vào Nhóm Chat", url: `https://t.me/${BOT_USERNAME}?startgroup=true` },
         ],
@@ -222,7 +220,8 @@ async function handleUpdate(update) {
     return;
   }
 
-  if (rawText.startsWith("/check ") || rawText.startsWith("/radar ") || rawText.startsWith("/tim ")) {
+  // Handle explicit /check commands
+  if (rawText.startsWith("/check ") || rawText.startsWith("/radar ") || rawText.startsWith("/tim ") || rawText.startsWith("/so ")) {
     const parts = rawText.split(" ");
     const query = parts.slice(1).join(" ").trim();
     const res = formatLookupResponse(query);
