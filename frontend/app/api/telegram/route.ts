@@ -8,7 +8,7 @@ import {
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8835448254:AAGag-yMuT-cAlqZNqZCRE6N8QGf6iPdSQw";
 const BOT_USERNAME = process.env.BOT_USERNAME || "TrustPact_Sentinel_bot";
-const PUBLIC_WEB_URL = process.env.NEXT_PUBLIC_APP_URL || "https://trustpact.network";
+const PUBLIC_WEB_URL = process.env.NEXT_PUBLIC_APP_URL || "https://trustpact-mocha.vercel.app";
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 async function sendTelegramMessage(chatId: number | string, text: string, replyMarkup?: any) {
@@ -38,6 +38,7 @@ async function sendTelegramMessage(chatId: number | string, text: string, replyM
 // ── POST: INCOMING TELEGRAM WEBHOOK (SERVERLESS) ──────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    const webUrl = req.nextUrl.origin || PUBLIC_WEB_URL;
     const update = await req.json();
 
     // 1. Handle Callback Queries (Button clicks)
@@ -55,11 +56,33 @@ export async function POST(req: NextRequest) {
       } catch (e) {}
 
       if (data === "check_scam" && chatId) {
-        const res = formatLookupResponse("1903889922101", PUBLIC_WEB_URL);
-        await sendTelegramMessage(chatId, res.text, res.replyMarkup);
+        const guideText = `
+🔍 <b>HƯỚNG DẪN TRA CỨU NHANH (KHÔNG CẦN GÕ LỆNH):</b>
+
+Bạn chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào khung chat này:
+• <b>Số tài khoản ngân hàng:</b> (ví dụ <code>1903889922101</code>)
+• <b>Số điện thoại:</b> (ví dụ <code>0988776655</code>)
+• <b>Username Telegram:</b> (ví dụ <code>@username</code>)
+• <b>Địa chỉ ví Web3:</b> (ví dụ <code>0x30F1492bC78E12a899Ad34De91eF11B12E7a889A</code>)
+
+⚡ <i>Bot sẽ tự động quét Sổ Đen Custom L1 và trả về kết quả ngay lập tức!</i>
+`;
+        await sendTelegramMessage(chatId, guideText);
       } else if (data === "check_broker" && chatId) {
-        const res = formatLookupResponse("@hoangminh_otc", PUBLIC_WEB_URL);
-        await sendTelegramMessage(chatId, res.text, res.replyMarkup);
+        const brokerGuide = `
+🛡️ <b>DANH SÁCH GDTG / TRUNG GIAN UY TÍN BẢO CHỨNG:</b>
+
+1. <b>Nguyễn Nam</b> (<code>@nguyennam_otc</code>) - Cọc 5,000 USDC (Aave V3)
+2. <b>Hoàng Minh</b> (<code>@hoangminh_otc</code>) - Cọc 2,500 USDC (Aave V3)
+3. <b>Trần Tuấn</b> (<code>@trantuan_dev</code>) - Cọc 1,200 USDC (Aave V3)
+
+👉 <i>Gửi tin nhắn <code>@hoangminh_otc</code> để xem chi tiết Hộ Chiếu SBT & Căn Cước Web3!</i>
+`;
+        await sendTelegramMessage(chatId, brokerGuide, {
+          inline_keyboard: [
+            [{ text: "🌐 Xem Danh Sách GDTG Trên Web", url: `${webUrl}/broker` }],
+          ],
+        });
       }
       return NextResponse.json({ ok: true });
     }
@@ -77,7 +100,7 @@ export async function POST(req: NextRequest) {
         const replyMarkup = {
           inline_keyboard: [
             [
-              { text: "🌐 Mở DApp Web TrustPact", url: PUBLIC_WEB_URL },
+              { text: "🌐 Mở DApp Web TrustPact", url: webUrl },
               { text: "👥 Thêm Vào Nhóm Chat OTC", url: `https://t.me/${BOT_USERNAME}?startgroup=true` },
             ],
           ],
@@ -99,8 +122,8 @@ export async function POST(req: NextRequest) {
 `;
         const replyMarkup = {
           inline_keyboard: [
-            [{ text: "🚀 Khởi Tạo Kèo Ký Quỹ Mới", url: `${PUBLIC_WEB_URL}/pact/create` }],
-            [{ text: "📋 Xem Sổ Kèo Đang Chạy", url: `${PUBLIC_WEB_URL}/pact` }],
+            [{ text: "🚀 Khởi Tạo Kèo Ký Quỹ Mới", url: `${webUrl}/pact/create` }],
+            [{ text: "📋 Xem Sổ Kèo Đang Chạy", url: `${webUrl}/pact` }],
           ],
         };
         await sendTelegramMessage(chatId, text, replyMarkup);
@@ -122,7 +145,7 @@ Phát hiện số tài khoản <code>${matchedScam.identifier}</code> (${matched
 `;
         await sendTelegramMessage(chatId, alertText, {
           inline_keyboard: [
-            [{ text: "🔍 Xem Bằng Chứng On-Chain", url: `${PUBLIC_WEB_URL}/?q=${matchedScam.identifier}` }],
+            [{ text: "🔍 Xem Bằng Chứng On-Chain", url: `${webUrl}/?q=${matchedScam.identifier}` }],
           ],
         });
         return NextResponse.json({ ok: true });
@@ -135,7 +158,7 @@ Phát hiện số tài khoản <code>${matchedScam.identifier}</code> (${matched
       }
 
       if (query.length >= 2 && !query.startsWith("/")) {
-        const res = formatLookupResponse(query, PUBLIC_WEB_URL);
+        const res = formatLookupResponse(query, webUrl);
         await sendTelegramMessage(chatId, res.text, res.replyMarkup);
         return NextResponse.json({ ok: true });
       }
