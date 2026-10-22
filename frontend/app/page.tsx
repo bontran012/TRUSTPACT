@@ -379,14 +379,14 @@ export default function ScamRadarAndReputationPage() {
               </div>
               <div className="flex items-center gap-2">
                 <a
-                  href="https://t.me/TrustPactRadarBot"
+                  href="https://t.me/TrustPact_Sentinel_bot"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-all shadow-sm"
                   title="Tra cứu nhanh qua Bot Telegram"
                 >
                   <Send className="w-3 h-3 text-[#229ED9]" />
-                  <span>Bot Telegram: @TrustPactRadarBot</span>
+                  <span>Bot Telegram: @TrustPact_Sentinel_bot</span>
                 </a>
                 <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded">
                   Gasless 0đ Subnet
@@ -1091,9 +1091,9 @@ export default function ScamRadarAndReputationPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9] flex items-center gap-1.5 font-sans">
-                    <span>Bot Telegram Tra Cứu Tức Thì</span>
+                    <span>TrustPact Sentinel Bot</span>
                   </h3>
-                  <span className="text-[10px] font-mono text-[#38B6FF]">@TrustPactRadarBot</span>
+                  <span className="text-[10px] font-mono text-[#38B6FF]">@TrustPact_Sentinel_bot</span>
                 </div>
               </div>
               <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-0.5 rounded flex items-center gap-1 font-bold">
@@ -1198,7 +1198,7 @@ export default function ScamRadarAndReputationPage() {
             <div className="space-y-2 pt-1 font-sans">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <a
-                  href="https://t.me/TrustPactRadarBot"
+                  href="https://t.me/TrustPact_Sentinel_bot"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3.5 py-2.5 rounded-md bg-[#229ED9] hover:bg-[#1C8CC4] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md text-center"
@@ -1209,7 +1209,7 @@ export default function ScamRadarAndReputationPage() {
                 </a>
 
                 <a
-                  href="https://t.me/TrustPactRadarBot?startgroup=true"
+                  href="https://t.me/TrustPact_Sentinel_bot?startgroup=true"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3.5 py-2.5 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] hover:border-[#229ED9] text-[#F1F5F9] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-center"

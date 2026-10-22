@@ -1,5 +1,21 @@
 // TrustPact Telegram Bot Runner (Zero external dependencies)
+const fs = require("fs");
+const path = require("path");
 const { lookupTarget, KNOWN_SCAM_DATABASE } = require("./data");
+
+// Auto-load .env if present
+try {
+  const envPath = path.resolve(__dirname, "../.env");
+  if (fs.existsSync(envPath)) {
+    const lines = fs.readFileSync(envPath, "utf-8").split("\n");
+    for (const line of lines) {
+      const match = line.trim().match(/^([^=]+)=(.*)$/);
+      if (match && !process.env[match[1]]) {
+        process.env[match[1]] = match[2].trim();
+      }
+    }
+  }
+} catch (e) {}
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const WEB_URL = process.env.TRUSTPACT_WEB_URL || "http://localhost:3000";
