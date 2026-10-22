@@ -286,6 +286,10 @@ export default function ScamRadarAndReputationPage() {
   const isFlagged = scamCount > 0;
   const hasVerified = scamCheckData ? Boolean(scamCheckData[1]) : false;
 
+  // Resolve user identity from activeQuery & resolvedSbtAddress
+  const matchedScamUser = activeQuery ? findUserByQuery(activeQuery) : null;
+  const matchedSbtUser = resolvedSbtAddress ? findUserByQuery(resolvedSbtAddress) : null;
+
   return (
     <div className="space-y-6">
       {/* ── TOP PROTOCOL TELEMETRY BAR (Full 12 cols, 4 metric cells) ────────────────── */}
@@ -454,7 +458,7 @@ export default function ScamRadarAndReputationPage() {
                   }}
                   className="px-2 py-0.5 rounded border border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] font-mono hover:bg-[#10B981]/20 transition-colors"
                 >
-                  0x89C3...0002 (Clean)
+                  @hoangminh_otc (0x89C3...0002 - Clean)
                 </button>
               </div>
             </form>
@@ -464,7 +468,7 @@ export default function ScamRadarAndReputationPage() {
               <div className="pt-2 animate-in fade-in duration-200">
                 {!isFlagged ? (
                   /* CLEAN DOSSIER */
-                  <div className="p-4 rounded-md border border-[#10B981]/30 bg-[#10B981]/5 space-y-3">
+                  <div className="p-4 rounded-md border border-[#10B981]/30 bg-[#10B981]/5 space-y-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2 text-[#10B981]">
                         <ShieldCheck className="w-4 h-4 shrink-0" />
@@ -477,19 +481,74 @@ export default function ScamRadarAndReputationPage() {
                       </span>
                     </div>
 
+                    {/* Member Identity Profile Card if matched registered user */}
+                    {matchedScamUser ? (
+                      <div className="p-3 rounded-lg bg-[#090A0D] border border-[#10B981]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-sans">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={matchedScamUser.avatarUrl}
+                            alt={matchedScamUser.name}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-[#10B981]/40 shrink-0"
+                            onError={(e) => {
+                              (e.target as any).src =
+                                "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                            }}
+                          />
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-sm text-[#F1F5F9]">{matchedScamUser.name}</span>
+                              <span className="text-xs text-[#10B981] font-mono font-bold bg-[#10B981]/15 px-2 py-0.5 rounded border border-[#10B981]/30">
+                                @{matchedScamUser.username}
+                              </span>
+                              <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-1.5 py-0.5 rounded font-bold">
+                                {matchedScamUser.id}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-[#94A3B8] font-mono flex items-center gap-2 flex-wrap">
+                              <span>Tên Đăng Nhập: <strong className="text-[#10B981]">@{matchedScamUser.username}</strong></span>
+                              <span>•</span>
+                              <span>Ví: <strong className="text-[#F1F5F9]">{shortenAddress(matchedScamUser.walletAddress)}</strong></span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-left sm:text-right shrink-0 font-mono text-xs border-t sm:border-t-0 sm:border-l border-[#1E222D] pt-2 sm:pt-0 sm:pl-3">
+                          <span className="text-[10px] text-[#64748B] uppercase block">Tỷ Lệ Tín Nhiệm SBT</span>
+                          <span className="text-[#10B981] font-bold text-sm">{matchedScamUser.successRate}% Hoàn Thành</span>
+                          <span className="text-[10px] text-[#94A3B8] block">{matchedScamUser.completedDeals} kèo uy tín</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between text-xs font-mono">
+                        <span className="text-[#64748B]">Tên đăng nhập / Định danh tra cứu:</span>
+                        <span className="text-[#F1F5F9] font-bold">{activeQuery}</span>
+                      </div>
+                    )}
+
                     <div className="text-xs text-[#94A3B8] leading-relaxed">
-                      Định danh <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{activeQuery}</code> chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
-                      Để đảm bảo an toàn tuyệt đối khi thanh toán, khuyến nghị mở phòng ký quỹ bảo vệ.
+                      {matchedScamUser ? (
+                        <span>
+                          Thành viên <strong className="text-[#10B981] font-mono">@{matchedScamUser.username}</strong> ({matchedScamUser.name} · Mã ID: <strong className="text-[#F59E0B] font-mono">{matchedScamUser.id}</strong> · Ví: <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{shortenAddress(matchedScamUser.walletAddress)}</code>) chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
+                        </span>
+                      ) : (
+                        <span>
+                          Định danh <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{activeQuery}</code> {activeQuery.startsWith("@") ? `(Tên đăng nhập: ${activeQuery})` : ""} chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
+                        </span>
+                      )}
+                      {" "}Để đảm bảo an toàn tuyệt đối khi thanh toán, khuyến nghị mở phòng ký quỹ bảo vệ.
                     </div>
 
-                    <div className="pt-2 border-t border-[#10B981]/20 flex items-center justify-between">
+                    <div className="pt-2 border-t border-[#10B981]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <span className="text-[11px] text-[#64748B]">Bảo vệ giao dịch bằng Smart Contract:</span>
                       <Link
-                        href={`/pact/create?seller=${activeQuery.startsWith("0x") ? activeQuery : ""}`}
-                        className="px-3 py-1.5 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9] inline-flex items-center gap-1.5 transition-colors"
+                        href={`/pact/create?seller=${matchedScamUser ? matchedScamUser.walletAddress : activeQuery.startsWith("0x") ? activeQuery : ""}`}
+                        className="px-3.5 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#10B981]/40 hover:border-[#10B981] text-xs font-semibold text-[#F1F5F9] inline-flex items-center gap-1.5 transition-all shadow-sm"
                       >
-                        <Lock className="w-3 h-3 text-[#10B981]" />
-                        <span>Tạo Kèo Ký Quỹ Với Đối Tác Này</span>
+                        <Lock className="w-3.5 h-3.5 text-[#10B981]" />
+                        <span>
+                          {matchedScamUser
+                            ? `Tạo Kèo Ký Quỹ Với @${matchedScamUser.username} (${matchedScamUser.name})`
+                            : "Tạo Kèo Ký Quỹ Với Đối Tác Này"}
+                        </span>
                       </Link>
                     </div>
                   </div>
@@ -508,10 +567,44 @@ export default function ScamRadarAndReputationPage() {
                       </span>
                     </div>
 
-                    <div className="text-xs text-[#94A3B8] space-y-1">
-                      <div>
-                        Định danh vi phạm: <strong className="text-[#F1F5F9] font-mono">{activeQuery}</strong>
-                      </div>
+                    <div className="text-xs text-[#94A3B8] space-y-2">
+                      {matchedScamUser ? (
+                        <div className="p-3 rounded-lg bg-[#090A0D] border border-[#EF4444]/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-sans">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={matchedScamUser.avatarUrl}
+                              alt={matchedScamUser.name}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-[#EF4444]/50 shrink-0"
+                              onError={(e) => {
+                                (e.target as any).src =
+                                  "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                              }}
+                            />
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-sm text-[#F1F5F9]">{matchedScamUser.name}</span>
+                                <span className="text-xs text-[#EF4444] font-mono font-bold bg-[#EF4444]/15 px-2 py-0.5 rounded border border-[#EF4444]/30">
+                                  @{matchedScamUser.username}
+                                </span>
+                                <span className="text-[10px] font-mono text-[#EF4444] bg-[#EF4444]/10 px-1.5 py-0.5 rounded font-bold">
+                                  ID: {matchedScamUser.id}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-[#EF4444] font-mono block">
+                                Tên Đăng Nhập: @{matchedScamUser.username} · Ví: {shortenAddress(matchedScamUser.walletAddress)}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-xs font-bold text-[#EF4444] font-mono uppercase bg-[#EF4444]/20 border border-[#EF4444]/40 px-2 py-1 rounded shrink-0">
+                            ĐÃ BỊ TỐ CÁO
+                          </span>
+                        </div>
+                      ) : (
+                        <div>
+                          Định danh vi phạm: <strong className="text-[#F1F5F9] font-mono">{activeQuery}</strong> {activeQuery.startsWith("@") ? `(Tên đăng nhập: ${activeQuery})` : ""}
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-2">
                         <span>Trạng thái kiểm duyệt:</span>
                         {hasVerified ? (
@@ -815,7 +908,9 @@ export default function ScamRadarAndReputationPage() {
                 <div className="flex items-center justify-between relative z-10 border-b border-[#1E222D] pb-2.5">
                   <div>
                     <span className="text-[10px] text-[#64748B] block uppercase">Định Danh Hộ Chiếu SBT</span>
-                    <span className="font-bold text-[#F1F5F9]">#TP-{resolvedSbtAddress.slice(2, 6).toUpperCase()}</span>
+                    <span className="font-bold text-[#F1F5F9]">
+                      {matchedSbtUser ? `${matchedSbtUser.id} (@${matchedSbtUser.username})` : `#TP-${resolvedSbtAddress.slice(2, 6).toUpperCase()}`}
+                    </span>
                   </div>
                   {brokerProfile && (brokerProfile as any).isVerified ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981] text-[10px] font-bold">
@@ -830,6 +925,15 @@ export default function ScamRadarAndReputationPage() {
                 </div>
 
                 <div className="space-y-2 relative z-10 text-[11px]">
+                  {matchedSbtUser && (
+                    <div className="flex justify-between items-center pb-2 border-b border-[#1E222D]">
+                      <span className="text-[#64748B]">Tên đăng nhập (User):</span>
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="text-[#10B981]">@{matchedSbtUser.username}</span>
+                        <span className="text-[#94A3B8]">({matchedSbtUser.name})</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B]">Địa chỉ ví:</span>
                     <div className="flex items-center gap-1">
