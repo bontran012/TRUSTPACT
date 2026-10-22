@@ -42,6 +42,8 @@ export function AuthModal() {
   const [customName, setCustomName] = useState(currentUser?.name || "");
   const [customRole, setCustomRole] = useState<UserRole>(currentUser?.role || "BUYER");
   const [customTelegram, setCustomTelegram] = useState(currentUser?.telegram || "");
+  const [customZalo, setCustomZalo] = useState(currentUser?.zalo || "");
+  const [customFacebook, setCustomFacebook] = useState(currentUser?.facebook || "");
   const [usernameStatus, setUsernameStatus] = useState<{
     type: "idle" | "valid" | "invalid";
     msg: string;
@@ -53,6 +55,8 @@ export function AuthModal() {
       setCustomName(currentUser.name || "");
       setCustomRole(currentUser.role || "BUYER");
       setCustomTelegram(currentUser.telegram || "");
+      setCustomZalo(currentUser.zalo || "");
+      setCustomFacebook(currentUser.facebook || "");
     }
   }, [currentUser]);
 
@@ -80,12 +84,12 @@ export function AuthModal() {
     if (check.available) {
       setUsernameStatus({
         type: "valid",
-        msg: t("✓ Tên đăng nhập khả dụng", "✓ Username is available"),
+        msg: t("✓ User khả dụng", "✓ Username is available"),
       });
     } else {
       setUsernameStatus({
         type: "invalid",
-        msg: check.error || t("Tên đăng nhập không hợp lệ", "Invalid username"),
+        msg: check.error || t("User không hợp lệ", "Invalid username"),
       });
     }
   };
@@ -99,6 +103,8 @@ export function AuthModal() {
       name: customName,
       role: customRole,
       telegram: customTelegram,
+      zalo: customZalo.trim(),
+      facebook: customFacebook.trim(),
     });
 
     if (res.success) {
@@ -319,7 +325,7 @@ export function AuthModal() {
             {/* Username Input with Live Uniqueness Check */}
             <div>
               <label className="text-[#94A3B8] block mb-1">
-                {t("Tên Đăng Nhập (Username - Không trùng lặp)", "Username (Unique Handle)")}
+                {t("User (Tên tài khoản không trùng lặp)", "User (Unique Handle)")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
@@ -382,7 +388,29 @@ export function AuthModal() {
                 value={customTelegram}
                 onChange={(e) => setCustomTelegram(e.target.value)}
                 placeholder="VD: @hoang_crypto"
-                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
+                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] font-mono focus:outline-none focus:border-[#E84142]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[#94A3B8] block mb-1">{t("Số Zalo Liên Hệ", "Zalo Contact")}</label>
+              <input
+                type="text"
+                value={customZalo}
+                onChange={(e) => setCustomZalo(e.target.value)}
+                placeholder="VD: 0912345678"
+                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] font-mono focus:outline-none focus:border-[#0068FF]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[#94A3B8] block mb-1">{t("Liên Kết Facebook", "Facebook Profile")}</label>
+              <input
+                type="text"
+                value={customFacebook}
+                onChange={(e) => setCustomFacebook(e.target.value)}
+                placeholder="https://facebook.com/..."
+                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] font-mono focus:outline-none focus:border-[#1877F2]"
               />
             </div>
 

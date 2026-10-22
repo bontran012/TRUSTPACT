@@ -13,6 +13,8 @@ export interface UserProfile {
   walletAddress: `0x${string}`;
   email?: string;
   telegram?: string;
+  zalo?: string;
+  facebook?: string;
   avatarUrl: string;
   sbtId?: string;
   successRate?: number;
@@ -31,6 +33,8 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     walletAddress: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
     email: "tuan.le@gmail.com",
     telegram: "@tuan_buyer",
+    zalo: "0909112233",
+    facebook: "facebook.com/tuan.le.crypto",
     avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
     sbtId: "#TP-1001",
     successRate: 100,
@@ -47,6 +51,8 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     walletAddress: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
     email: "hoangminh.otc@gmail.com",
     telegram: "@hoangminh_otc",
+    zalo: "0988776655",
+    facebook: "facebook.com/hoangminh.otc",
     avatarUrl: "/images/avatar-hoang.jpg",
     sbtId: "#TP-2002",
     successRate: 99.4,
@@ -63,6 +69,8 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     walletAddress: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
     email: "nam.escrow@trustpact.io",
     telegram: "@nam_escrow_official",
+    zalo: "0912345678",
+    facebook: "facebook.com/nam.escrow.official",
     avatarUrl: "/images/avatar-nam.jpg",
     sbtId: "#TP-30F1",
     successRate: 100,
@@ -269,6 +277,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         walletAddress: (profileData.walletAddress || currentUser?.walletAddress || (address as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001") as `0x${string}`,
         email: profileData.email || currentUser?.email || "",
         telegram: profileData.telegram || currentUser?.telegram || `@${cleanUsername}`,
+        zalo: profileData.zalo !== undefined ? profileData.zalo : currentUser?.zalo || "",
+        facebook: profileData.facebook !== undefined ? profileData.facebook : currentUser?.facebook || "",
         avatarUrl: profileData.avatarUrl || currentUser?.avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
         sbtId: currentUser?.sbtId || `#${assignedId}`,
         successRate: currentUser?.successRate ?? 100,
@@ -300,7 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [checkUsernameAvailability, currentUser, registeredUsers, address]
   );
 
-  // Search users by query (username, ID, name, wallet)
+  // Search users by query (username, ID, name, wallet, zalo, facebook, telegram)
   const searchUsers = useCallback(
     (query: string): UserProfile[] => {
       const q = query.trim().replace(/^@/, "").toLowerCase();
@@ -310,7 +320,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           u.username.toLowerCase().includes(q) ||
           u.id.toLowerCase().includes(q) ||
           u.name.toLowerCase().includes(q) ||
-          u.walletAddress.toLowerCase().includes(q)
+          u.walletAddress.toLowerCase().includes(q) ||
+          (u.zalo && u.zalo.toLowerCase().includes(q)) ||
+          (u.facebook && u.facebook.toLowerCase().includes(q)) ||
+          (u.telegram && u.telegram.toLowerCase().includes(q))
       );
     },
     [registeredUsers]
@@ -326,7 +339,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           (u) =>
             u.username.toLowerCase() === q ||
             u.id.toLowerCase() === q ||
-            u.walletAddress.toLowerCase() === q
+            u.walletAddress.toLowerCase() === q ||
+            (u.zalo && u.zalo.replace(/\s+/g, "").toLowerCase() === q.replace(/\s+/g, "")) ||
+            (u.facebook && u.facebook.toLowerCase().includes(q)) ||
+            (u.telegram && u.telegram.toLowerCase().replace(/^@/, "") === q)
         ) || null
       );
     },

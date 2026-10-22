@@ -490,7 +490,7 @@ export default function ScamRadarAndReputationPage() {
                                 "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
                             }}
                           />
-                          <div className="space-y-0.5">
+                          <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-sm text-[#F1F5F9]">{matchedScamUser.name}</span>
                               <span className="text-xs text-[#10B981] font-mono font-bold bg-[#10B981]/15 px-2 py-0.5 rounded border border-[#10B981]/30">
@@ -501,9 +501,45 @@ export default function ScamRadarAndReputationPage() {
                               </span>
                             </div>
                             <div className="text-[11px] text-[#94A3B8] font-mono flex items-center gap-2 flex-wrap">
-                              <span>Tên Đăng Nhập: <strong className="text-[#10B981]">@{matchedScamUser.username}</strong></span>
+                              <span>User: <strong className="text-[#10B981]">@{matchedScamUser.username}</strong></span>
                               <span>•</span>
                               <span>Ví: <strong className="text-[#F1F5F9]">{shortenAddress(matchedScamUser.walletAddress)}</strong></span>
+                            </div>
+                            {/* Contact Badges (Telegram, Zalo, Facebook) */}
+                            <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
+                              {matchedScamUser.telegram && (
+                                <a
+                                  href={`https://t.me/${matchedScamUser.telegram.replace(/^@/, "")}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-colors"
+                                >
+                                  <span>TG:</span>
+                                  <span>{matchedScamUser.telegram}</span>
+                                </a>
+                              )}
+                              {matchedScamUser.zalo && (
+                                <a
+                                  href={`https://zalo.me/${matchedScamUser.zalo.replace(/[^0-9]/g, "")}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#0068FF]/15 text-[#388BFF] border border-[#0068FF]/30 text-[10px] font-semibold hover:bg-[#0068FF]/25 transition-colors"
+                                >
+                                  <span>Zalo:</span>
+                                  <span>{matchedScamUser.zalo}</span>
+                                </a>
+                              )}
+                              {matchedScamUser.facebook && (
+                                <a
+                                  href={matchedScamUser.facebook.startsWith("http") ? matchedScamUser.facebook : `https://${matchedScamUser.facebook}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1877F2]/15 text-[#4599FF] border border-[#1877F2]/30 text-[10px] font-semibold hover:bg-[#1877F2]/25 transition-colors"
+                                >
+                                  <span>FB:</span>
+                                  <span>{matchedScamUser.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, "") || "Link FB"}</span>
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -515,7 +551,7 @@ export default function ScamRadarAndReputationPage() {
                       </div>
                     ) : (
                       <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between text-xs font-mono">
-                        <span className="text-[#64748B]">Tên đăng nhập / Định danh tra cứu:</span>
+                        <span className="text-[#64748B]">User / Định danh tra cứu:</span>
                         <span className="text-[#F1F5F9] font-bold">{activeQuery}</span>
                       </div>
                     )}
@@ -527,7 +563,7 @@ export default function ScamRadarAndReputationPage() {
                         </span>
                       ) : (
                         <span>
-                          Định danh <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{activeQuery}</code> {activeQuery.startsWith("@") ? `(Tên đăng nhập: ${activeQuery})` : ""} chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
+                          Định danh <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{activeQuery}</code> {activeQuery.startsWith("@") ? `(User: ${activeQuery})` : ""} chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
                         </span>
                       )}
                       {" "}Để đảm bảo an toàn tuyệt đối khi thanh toán, khuyến nghị mở phòng ký quỹ bảo vệ.
@@ -587,7 +623,7 @@ export default function ScamRadarAndReputationPage() {
                                 </span>
                               </div>
                               <span className="text-[11px] text-[#EF4444] font-mono block">
-                                Tên Đăng Nhập: @{matchedScamUser.username} · Ví: {shortenAddress(matchedScamUser.walletAddress)}
+                                User: @{matchedScamUser.username} · Ví: {shortenAddress(matchedScamUser.walletAddress)}
                               </span>
                             </div>
                           </div>
@@ -597,7 +633,7 @@ export default function ScamRadarAndReputationPage() {
                         </div>
                       ) : (
                         <div>
-                          Định danh vi phạm: <strong className="text-[#F1F5F9] font-mono">{activeQuery}</strong> {activeQuery.startsWith("@") ? `(Tên đăng nhập: ${activeQuery})` : ""}
+                          Định danh vi phạm: <strong className="text-[#F1F5F9] font-mono">{activeQuery}</strong> {activeQuery.startsWith("@") ? `(User: ${activeQuery})` : ""}
                         </div>
                       )}
 
@@ -911,13 +947,52 @@ export default function ScamRadarAndReputationPage() {
 
                 <div className="space-y-2 relative z-10 text-[11px]">
                   {matchedSbtUser && (
-                    <div className="flex justify-between items-center pb-2 border-b border-[#1E222D]">
-                      <span className="text-[#64748B]">Tên đăng nhập (User):</span>
-                      <div className="flex items-center gap-1.5 font-bold">
-                        <span className="text-[#10B981]">@{matchedSbtUser.username}</span>
-                        <span className="text-[#94A3B8]">({matchedSbtUser.name})</span>
+                    <>
+                      <div className="flex justify-between items-center pb-2 border-b border-[#1E222D]">
+                        <span className="text-[#64748B]">User:</span>
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <span className="text-[#10B981]">@{matchedSbtUser.username}</span>
+                          <span className="text-[#94A3B8]">({matchedSbtUser.name})</span>
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Contact Badges (Telegram, Zalo, Facebook) */}
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-[#1E222D]">
+                        <span className="text-[#64748B]">Liên hệ:</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {matchedSbtUser.telegram && (
+                            <a
+                              href={`https://t.me/${matchedSbtUser.telegram.replace(/^@/, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-colors"
+                            >
+                              <span>TG: {matchedSbtUser.telegram}</span>
+                            </a>
+                          )}
+                          {matchedSbtUser.zalo && (
+                            <a
+                              href={`https://zalo.me/${matchedSbtUser.zalo.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#0068FF]/15 text-[#388BFF] border border-[#0068FF]/30 text-[10px] font-semibold hover:bg-[#0068FF]/25 transition-colors"
+                            >
+                              <span>Zalo: {matchedSbtUser.zalo}</span>
+                            </a>
+                          )}
+                          {matchedSbtUser.facebook && (
+                            <a
+                              href={matchedSbtUser.facebook.startsWith("http") ? matchedSbtUser.facebook : `https://${matchedSbtUser.facebook}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1877F2]/15 text-[#4599FF] border border-[#1877F2]/30 text-[10px] font-semibold hover:bg-[#1877F2]/25 transition-colors"
+                            >
+                              <span>FB: {matchedSbtUser.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, "") || "Link FB"}</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </>
                   )}
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B]">Địa chỉ ví:</span>

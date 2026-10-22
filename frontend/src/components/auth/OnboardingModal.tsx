@@ -29,6 +29,8 @@ export function OnboardingModal() {
   const [displayNameInput, setDisplayNameInput] = useState("");
   const [roleInput, setRoleInput] = useState<UserRole>("BUYER");
   const [telegramInput, setTelegramInput] = useState("");
+  const [zaloInput, setZaloInput] = useState("");
+  const [facebookInput, setFacebookInput] = useState("");
   const [statusMessage, setStatusMessage] = useState<{
     type: "idle" | "valid" | "invalid";
     msg: string;
@@ -42,6 +44,8 @@ export function OnboardingModal() {
       setDisplayNameInput(currentUser.name || "");
       setRoleInput(currentUser.role || "BUYER");
       setTelegramInput(currentUser.telegram || "");
+      setZaloInput(currentUser.zalo || "");
+      setFacebookInput(currentUser.facebook || "");
     }
   }, [currentUser]);
 
@@ -59,12 +63,12 @@ export function OnboardingModal() {
     if (check.available) {
       setStatusMessage({
         type: "valid",
-        msg: t("✓ Tên đăng nhập khả dụng và hợp lệ", "✓ Username is available and valid"),
+        msg: t("✓ User khả dụng và hợp lệ", "✓ Username is available and valid"),
       });
     } else {
       setStatusMessage({
         type: "invalid",
-        msg: check.error || t("Tên đăng nhập không hợp lệ", "Invalid username"),
+        msg: check.error || t("User không hợp lệ", "Invalid username"),
       });
     }
   };
@@ -80,12 +84,14 @@ export function OnboardingModal() {
       name: displayNameInput.trim() || usernameInput,
       role: roleInput,
       telegram: telegramInput.trim() || `@${usernameInput}`,
+      zalo: zaloInput.trim(),
+      facebook: facebookInput.trim(),
     });
 
     if (!res.success) {
       setStatusMessage({
         type: "invalid",
-        msg: res.error || t("Không thể đăng ký tên đăng nhập", "Could not register username"),
+        msg: res.error || t("Không thể đăng ký User", "Could not register username"),
       });
     }
   };
@@ -100,14 +106,14 @@ export function OnboardingModal() {
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-[#F1F5F9] flex items-center gap-1.5">
-              <span>{t("Thiết Lập Tên Đăng Nhập", "Setup Unique Username")}</span>
+              <span>{t("Thiết Lập User", "Setup Unique User")}</span>
               <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                 Bắt Buộc
               </span>
             </h2>
             <p className="text-xs text-[#94A3B8]">
               {t(
-                "Định danh duy nhất không trùng lặp để đối tác tìm kiếm & khởi tạo Két Sắt 3 Bên.",
+                "Định danh User duy nhất không trùng lặp để đối tác tìm kiếm & khởi tạo Két Sắt 3 Bên.",
                 "Unique identifier required for partners to search and create 3-party escrows."
               )}
             </p>
@@ -140,7 +146,7 @@ export function OnboardingModal() {
           {/* 1. Username Field */}
           <div>
             <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-              {t("Tên Đăng Nhập (Username - Không dấu, không trùng lặp) *", "Username (Unique, no spaces) *")}
+              {t("User (Tên tài khoản không dấu, không trùng lặp) *", "User (Unique, no spaces) *")}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
@@ -179,8 +185,8 @@ export function OnboardingModal() {
             )}
             <span className="text-[10px] text-[#64748B] block mt-1">
               {t(
-                "Tên đăng nhập này sẽ dùng để người khác tìm thấy bạn khi lập giao dịch.",
-                "Partners will search this handle to transact with you."
+                "User này sẽ dùng để người khác tìm thấy bạn khi lập giao dịch.",
+                "Partners will search this user handle to transact with you."
               )}
             </span>
           </div>
@@ -225,7 +231,35 @@ export function OnboardingModal() {
               value={telegramInput}
               onChange={(e) => setTelegramInput(e.target.value)}
               placeholder="@telegram_handle"
-              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none"
+              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none font-mono"
+            />
+          </div>
+
+          {/* 5. Zalo Contact */}
+          <div>
+            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
+              {t("Số Zalo Liên Hệ (Tùy chọn)", "Zalo Contact (Optional)")}
+            </label>
+            <input
+              type="text"
+              value={zaloInput}
+              onChange={(e) => setZaloInput(e.target.value)}
+              placeholder="VD: 0912345678"
+              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#0068FF] text-xs text-[#F1F5F9] focus:outline-none font-mono"
+            />
+          </div>
+
+          {/* 6. Facebook Contact */}
+          <div>
+            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
+              {t("Liên Kết Facebook (Tùy chọn)", "Facebook Profile (Optional)")}
+            </label>
+            <input
+              type="text"
+              value={facebookInput}
+              onChange={(e) => setFacebookInput(e.target.value)}
+              placeholder="https://facebook.com/..."
+              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#1877F2] text-xs text-[#F1F5F9] focus:outline-none font-mono"
             />
           </div>
 
@@ -237,7 +271,7 @@ export function OnboardingModal() {
               className="w-full py-2.5 rounded-md bg-[#E84142] hover:bg-[#D13637] disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{t("Hoàn Tất Đăng Ký Tên Đăng Nhập", "Complete Username Registration")}</span>
+              <span>{t("Hoàn Tất Đăng Ký User", "Complete User Registration")}</span>
             </button>
           </div>
         </form>

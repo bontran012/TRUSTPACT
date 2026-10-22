@@ -51,6 +51,8 @@ export default function ProfilePage() {
   const [displayNameInput, setDisplayNameInput] = useState(currentUser?.name || "");
   const [roleInput, setRoleInput] = useState<UserRole>(currentUser?.role || "BUYER");
   const [telegramInput, setTelegramInput] = useState(currentUser?.telegram || "");
+  const [zaloInput, setZaloInput] = useState(currentUser?.zalo || "");
+  const [facebookInput, setFacebookInput] = useState(currentUser?.facebook || "");
   const [avatarUrlInput, setAvatarUrlInput] = useState(currentUser?.avatarUrl || "");
 
   // Status & notifications
@@ -72,6 +74,8 @@ export default function ProfilePage() {
       setDisplayNameInput(currentUser.name || "");
       setRoleInput(currentUser.role || "BUYER");
       setTelegramInput(currentUser.telegram || "");
+      setZaloInput(currentUser.zalo || "");
+      setFacebookInput(currentUser.facebook || "");
       setAvatarUrlInput(currentUser.avatarUrl || "");
     }
   }, [currentUser]);
@@ -90,12 +94,12 @@ export default function ProfilePage() {
     if (check.available) {
       setUsernameStatus({
         type: "valid",
-        msg: t("✓ Tên đăng nhập hợp lệ và sẵn sàng sử dụng", "✓ Username is available"),
+        msg: t("✓ User hợp lệ và sẵn sàng sử dụng", "✓ Username is available"),
       });
     } else {
       setUsernameStatus({
         type: "invalid",
-        msg: check.error || t("Tên đăng nhập không hợp lệ", "Invalid username"),
+        msg: check.error || t("User không hợp lệ", "Invalid username"),
       });
     }
   };
@@ -125,6 +129,8 @@ export default function ProfilePage() {
       name: displayNameInput.trim() || usernameInput,
       role: roleInput,
       telegram: telegramInput.trim() || `@${usernameInput}`,
+      zalo: zaloInput.trim(),
+      facebook: facebookInput.trim(),
       avatarUrl: avatarUrlInput.trim() || currentUser?.avatarUrl,
     });
 
@@ -154,7 +160,7 @@ export default function ProfilePage() {
           </div>
           <p className="text-xs text-[#94A3B8] mt-1">
             {t(
-              "Quản lý Tên Đăng Nhập độc nhất, Mã ID Hệ Thống tự sinh, Hạn mức ký quỹ & SBT Tín Nhiệm.",
+              "Quản lý User độc nhất, Mã ID Hệ Thống tự sinh, Hạn mức ký quỹ & SBT Tín Nhiệm.",
               "Manage your unique username, auto-generated System ID, escrow limit & SBT trust passport."
             )}
           </p>
@@ -214,12 +220,12 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-sans font-bold text-sm text-[#F1F5F9]">{currentUser?.name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[#10B981] font-bold">@{currentUser?.username}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[#10B981] font-bold">User: @{currentUser?.username}</span>
                     <span className="text-[#64748B]">·</span>
                     <span
                       className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
@@ -237,7 +243,40 @@ export default function ProfilePage() {
                         : t("Bên Mua", "Buyer")}
                     </span>
                   </div>
-                  <span className="text-[11px] text-[#94A3B8] font-sans block">{currentUser?.telegram}</span>
+
+                  {/* Social & Contact Channels */}
+                  <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                    {currentUser?.telegram && (
+                      <a
+                        href={`https://t.me/${currentUser.telegram.replace(/^@/, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-colors"
+                      >
+                        <span>TG: {currentUser.telegram}</span>
+                      </a>
+                    )}
+                    {currentUser?.zalo && (
+                      <a
+                        href={`https://zalo.me/${currentUser.zalo.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#0068FF]/15 text-[#388BFF] border border-[#0068FF]/30 text-[10px] font-semibold hover:bg-[#0068FF]/25 transition-colors"
+                      >
+                        <span>Zalo: {currentUser.zalo}</span>
+                      </a>
+                    )}
+                    {currentUser?.facebook && (
+                      <a
+                        href={currentUser.facebook.startsWith("http") ? currentUser.facebook : `https://${currentUser.facebook}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1877F2]/15 text-[#4599FF] border border-[#1877F2]/30 text-[10px] font-semibold hover:bg-[#1877F2]/25 transition-colors"
+                      >
+                        <span>FB: {currentUser.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, "") || "Link FB"}</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -405,18 +444,18 @@ export default function ProfilePage() {
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>
                   {t(
-                    "Đã lưu thành công! Tên đăng nhập và thông tin của bạn đã được cập nhật toàn hệ thống.",
-                    "Changes saved successfully! Your username and identity have been updated."
+                    "Đã lưu thành công! Thông tin User của bạn đã được cập nhật toàn hệ thống.",
+                    "Changes saved successfully! Your user identity has been updated."
                   )}
                 </span>
               </div>
             )}
 
             <form onSubmit={handleSaveProfile} className="space-y-4 text-xs font-sans">
-              {/* Field 1: Unique Username */}
+              {/* Field 1: Unique User Handle */}
               <div>
                 <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Tên Đăng Nhập (Username - Không dấu, độc nhất trên hệ thống) *", "Unique Username (No spaces) *")}
+                  {t("User (Tên tài khoản độc nhất trên hệ thống) *", "User (Unique handle, no spaces) *")}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
@@ -454,8 +493,8 @@ export default function ProfilePage() {
                 )}
                 <span className="text-[10px] text-[#64748B] block mt-1">
                   {t(
-                    "Tên đăng nhập không được trùng với bất kỳ ai. Người mua, người bán hoặc GDTG khác có thể nhập tên này để tìm bạn nhanh chóng.",
-                    "Must be unique. Trading partners and brokers can search for you by this username."
+                    "User không được trùng với bất kỳ ai. Người mua, người bán hoặc GDTG khác có thể nhập User để tìm bạn nhanh chóng.",
+                    "Must be unique. Trading partners and brokers can search for you by this user handle."
                   )}
                 </span>
               </div>
@@ -507,11 +546,45 @@ export default function ProfilePage() {
                   value={telegramInput}
                   onChange={(e) => setTelegramInput(e.target.value)}
                   placeholder="@telegram_handle"
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none font-mono"
                 />
               </div>
 
-              {/* Field 5: Avatar URL */}
+              {/* Field 5: Contact Zalo */}
+              <div>
+                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
+                  {t("Số Zalo (Liên hệ trực tiếp khi giao dịch)", "Zalo Contact")}
+                </label>
+                <input
+                  type="text"
+                  value={zaloInput}
+                  onChange={(e) => setZaloInput(e.target.value)}
+                  placeholder="VD: 0912345678 hoặc link zalo.me/..."
+                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#0068FF] text-xs text-[#F1F5F9] focus:outline-none font-mono"
+                />
+                <span className="text-[10px] text-[#64748B] block mt-1">
+                  {t("Số điện thoại đăng ký Zalo để đối tác nhắn tin xác nhận nhanh chóng.", "Zalo phone number for fast verification.")}
+                </span>
+              </div>
+
+              {/* Field 6: Contact Facebook */}
+              <div>
+                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
+                  {t("Liên Kết Facebook (Trang cá nhân / Fanpage uy tín)", "Facebook Profile Link")}
+                </label>
+                <input
+                  type="text"
+                  value={facebookInput}
+                  onChange={(e) => setFacebookInput(e.target.value)}
+                  placeholder="https://facebook.com/username..."
+                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#1877F2] text-xs text-[#F1F5F9] focus:outline-none font-mono"
+                />
+                <span className="text-[10px] text-[#64748B] block mt-1">
+                  {t("Link trang cá nhân Facebook để đối tác kiểm tra danh tính và uy tín xã hội.", "Facebook profile link for social verification.")}
+                </span>
+              </div>
+
+              {/* Field 7: Avatar URL */}
               <div>
                 <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
                   {t("Đường Dẫn Ảnh Đại Diện (Avatar URL)", "Avatar Image URL")}
