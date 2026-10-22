@@ -230,16 +230,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (usernameInput: string, excludeUserId?: string) => {
       const clean = usernameInput.trim().replace(/^@/, "").toLowerCase();
       if (!clean) {
-        return { available: false, error: "Tên đăng nhập không được để trống" };
+        return { available: false, error: "User không được để trống" };
       }
       if (clean.length < 3) {
-        return { available: false, error: "Tên đăng nhập phải có ít nhất 3 ký tự" };
+        return { available: false, error: "User phải có ít nhất 3 ký tự" };
       }
       if (clean.length > 20) {
-        return { available: false, error: "Tên đăng nhập không được vượt quá 20 ký tự" };
+        return { available: false, error: "User không được vượt quá 20 ký tự" };
       }
       if (!/^[a-zA-Z0-9_]+$/.test(clean)) {
-        return { available: false, error: "Chỉ được chứa chữ cái, chữ số và dấu gạch dưới (_)" };
+        return { available: false, error: "User chỉ được chứa chữ cái, chữ số và dấu gạch dưới (_)" };
       }
 
       const isTaken = registeredUsers.some((u) => {
@@ -248,7 +248,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (isTaken) {
-        return { available: false, error: "Tên đăng nhập này đã có người sử dụng!" };
+        return { available: false, error: "User này đã có người sử dụng!" };
       }
       return { available: true };
     },

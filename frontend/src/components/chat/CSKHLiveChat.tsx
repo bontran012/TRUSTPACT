@@ -168,7 +168,7 @@ export function CSKHLiveChat() {
             </div>
           </div>
 
-          {/* User Dossier Summary Card (Tên đăng nhập, ví, thông tin tài khoản) */}
+          {/* User Dossier Summary Card (User, ví, thông tin tài khoản) */}
           <div className="px-3.5 py-2.5 bg-[#090A0D] border-b border-[#1E222D] text-[11px] font-mono space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-[#64748B]">Tài khoản khiếu nại:</span>

@@ -272,8 +272,8 @@ export function AuthModal() {
               </span>
               <p className="text-[#94A3B8] leading-relaxed text-[11px]">
                 {t(
-                  "Hệ thống sẽ đồng bộ tài khoản với địa chỉ ví Avalanche Fuji C-Chain của bạn. Khi kết nối lần đầu, bạn sẽ được tự động cấp một ID duy nhất và thiết lập Tên Đăng Nhập riêng.",
-                  "Synchronizes with your Avalanche Fuji C-Chain address. On your first login, a unique System ID is assigned and you can configure your username."
+                  "Hệ thống sẽ đồng bộ tài khoản với địa chỉ ví Avalanche Fuji C-Chain của bạn. Khi kết nối lần đầu, bạn sẽ được tự động cấp một ID duy nhất và thiết lập User riêng.",
+                  "Synchronizes with your Avalanche Fuji C-Chain address. On your first login, a unique System ID is assigned and you can configure your user handle."
                 )}
               </p>
             </div>
