@@ -105,6 +105,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/pact/create", label: t("Tạo Kèo Ký Quỹ", "Create Escrow"), icon: PlusSquare },
     { href: "/pact", label: t("Sổ Kèo Của Tôi", "My Deals"), icon: Lock, exact: true },
     { href: "/broker/stake", label: t("Cọc GDTG & Lãi Aave", "Stake & Aave Yield"), icon: Landmark },
+    { href: "/compliance", label: t("Pháp Lý & Công Nghệ", "Compliance & Tech"), icon: Scale, exact: true },
     { href: "/profile", label: t("Mục Tôi", "My Profile"), icon: User, exact: true },
   ];
 
@@ -366,18 +367,57 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── MAIN WORKSPACE CONTENT ─────────────────────────────────── */}
       <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 sm:p-6">{children}</main>
 
-      {/* ── FOOTER TELEMETRY STRIP ─────────────────────────────────── */}
-      <footer className="border-t border-[#1E222D] bg-[#090A0D] py-3 text-[11px] font-mono text-[#64748B]">
-        <div className="max-w-[1440px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span>TRUSTPACT CORE PROTOCOL</span>
-            <span>·</span>
-            <span>FUJI C-CHAIN #43113</span>
-            <span>·</span>
-            <span>ZERO-GAS L1 RADAR #99943113</span>
+      {/* ── FOOTER TELEMETRY & COMPLIANCE STRIP ───────────────────── */}
+      <footer className="border-t border-[#1E222D] bg-[#090A0D] py-5 text-xs text-[#94A3B8]">
+        <div className="max-w-[1440px] mx-auto px-4 space-y-3">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 border-b border-[#1E222D] pb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#E84142]" />
+              <span className="font-bold text-white text-sm">TRUSTPACT</span>
+              <span className="text-[#64748B]">·</span>
+              <span className="text-xs text-[#94A3B8]">Institutional 3-Party Escrow & Scam Radar on Avalanche</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-xs">
+              <Link
+                href="/compliance"
+                className="hover:text-white flex items-center gap-1.5 transition-colors text-[#38BDF8] font-medium"
+              >
+                <Scale className="w-3.5 h-3.5" />
+                <span>Khung Pháp Lý (Điều 328 BLDS) & 3 Trụ Cột Avalanche</span>
+              </Link>
+              <a
+                href="https://t.me/TrustPact_Sentinel_bot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white flex items-center gap-1 transition-colors text-[#229ED9]"
+              >
+                <span>Telegram Bot @TrustPact_Sentinel_bot</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a
+                href="https://testnet.snowtrace.io/address/0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white flex items-center gap-1 transition-colors font-mono text-[11px]"
+              >
+                <span>Snowtrace Fuji Escrow</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
-          <div>
-            <span>Smart Contracts Audited · Avalanche UniHack 2026 Production Release</span>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] font-mono text-[#64748B]">
+            <div className="flex items-center gap-2">
+              <span>FUJI C-CHAIN #43113</span>
+              <span>·</span>
+              <span>ZERO-GAS L1 RADAR #99943113</span>
+              <span>·</span>
+              <span>AAVE V3 YIELD 80/20</span>
+            </div>
+            <div>
+              <span>Avalanche UniHack 2026 Production Submission · 100% Fuji Testnet</span>
+            </div>
           </div>
         </div>
       </footer>

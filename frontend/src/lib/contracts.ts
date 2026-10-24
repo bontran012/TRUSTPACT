@@ -1,10 +1,10 @@
 import { formatUnits, parseUnits } from "viem";
 
 export const CONTRACT_ADDRESSES = {
-  universalEscrow: (process.env.NEXT_PUBLIC_UNIVERSAL_ESCROW || "0x51E2b1239c09d57aC7bAfF094553b6A1B022B854") as `0x${string}`,
-  stakedBrokerRegistry: (process.env.NEXT_PUBLIC_BROKER_REGISTRY || "0x39Aa21F51E2b1239c09d57aC7bAfF094553b6A1B") as `0x${string}`,
-  trustPassportSBT: (process.env.NEXT_PUBLIC_TRUST_PASSPORT_SBT || "0x789C21F51E2b1239c09d57aC7bAfF094553b6A1C") as `0x${string}`,
-  scamRegistryL1: (process.env.NEXT_PUBLIC_SCAM_REGISTRY_L1 || "0x52C84043CD9c86523674805113B78444499cB73a") as `0x${string}`,
+  universalEscrow: (process.env.NEXT_PUBLIC_UNIVERSAL_ESCROW || "0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0") as `0x${string}`,
+  stakedBrokerRegistry: (process.env.NEXT_PUBLIC_BROKER_REGISTRY || "0x7eB341096Ca95BB4F227A10daEd9c413F2F60Ca2") as `0x${string}`,
+  trustPassportSBT: (process.env.NEXT_PUBLIC_TRUST_PASSPORT_SBT || "0x84d9F79A513D5CBFe6dC1E5B971cc811e64d3296") as `0x${string}`,
+  scamRegistryL1: (process.env.NEXT_PUBLIC_SCAM_REGISTRY_L1 || "0x3f8C012cee1412170386a6a8C8968F903C8f3362") as `0x${string}`,
   usdc: (process.env.NEXT_PUBLIC_USDC_ADDRESS || "0x5425890298aed601595a70AB815c96711a31Bc65") as `0x${string}`,
   aUsdc: (process.env.NEXT_PUBLIC_A_USDC_ADDRESS || "0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40") as `0x${string}`,
   aaveV3Pool: (process.env.NEXT_PUBLIC_FUJI_AAVE_V3_POOL || "0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40") as `0x${string}`,
@@ -472,3 +472,46 @@ export function parseContractError(err: any): string {
   }
   return msg.length > 100 ? `${msg.slice(0, 100)}...` : msg;
 }
+
+export function getSnowtraceAddressUrl(address: string): string {
+  return `https://testnet.snowtrace.io/address/${address}`;
+}
+
+export function getSnowtraceTxUrl(txHash: string): string {
+  return `https://testnet.snowtrace.io/tx/${txHash}`;
+}
+
+export const VERIFIED_FUJI_CONTRACTS = [
+  {
+    name: "UniversalEscrow",
+    title: "Két Sắt Ký Quỹ 3 Bên (Tri-Party Escrow)",
+    purpose: "Bảo đảm thực hiện nghĩa vụ dân sự theo Điều 292 & Điều 328 Bộ luật Dân sự 2015. Tự động thanh toán/hoàn tiền.",
+    address: CONTRACT_ADDRESSES.universalEscrow,
+    explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.universalEscrow}`,
+    subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.universalEscrow}`,
+  },
+  {
+    name: "StakedBrokerRegistry",
+    title: "Sổ Ký Cược Broker & Sinh Lãi Aave V3",
+    purpose: "Broker nạp bảo chứng ký cược nhận hạn mức; tự động gửi Aave V3 sinh lãi thực tế 80% cho Broker, 20% quỹ bảo hiểm.",
+    address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
+    explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.stakedBrokerRegistry}`,
+    subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.stakedBrokerRegistry}`,
+  },
+  {
+    name: "TrustPassportSBT",
+    title: "Hộ Chiếu Tín Nhiệm Linh Hồn (ERC-721 SBT)",
+    purpose: "Chứng chỉ uy tín bất biến gắn chặt ví Broker (Non-transferable), ngăn chặn mua bán nick hay ngụy tạo đánh giá.",
+    address: CONTRACT_ADDRESSES.trustPassportSBT,
+    explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.trustPassportSBT}`,
+    subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.trustPassportSBT}`,
+  },
+  {
+    name: "ScamRegistryL1",
+    title: "Radar Chống Lừa Đảo Avalanche L1 (Zero-Gas)",
+    purpose: "Kho dữ liệu cảnh báo lừa đảo STK/Ví/SĐT cộng đồng với chi phí gas = 0, kết nối bot Telegram & Teleporter.",
+    address: CONTRACT_ADDRESSES.scamRegistryL1,
+    explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.scamRegistryL1}`,
+    subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.scamRegistryL1}`,
+  },
+];

@@ -1,27 +1,86 @@
 # 🛡️ TrustPact (UyTinNet)
-### Decentralized Social Escrow & Real-Yield Staking Protocol on Avalanche
+### Institutional Tri-Party Escrow & Scam Radar on Avalanche
 > **Avalanche UniHack 2026** — *Track A: Social Finance (SocialFi)*
 
-[![Avalanche](https://img.shields.io/badge/Network-Avalanche%20Fuji%20%26%20Custom%20L1-E84142?logo=avalanche&logoColor=white)](https://avax.network/)
-[![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.24-363636?logo=solidity)](https://soliditylang.org/)
-[![Foundry](https://img.shields.io/badge/Built%20with-Foundry-FFDB1C)](https://getfoundry.sh/)
-[![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black?logo=next.js)](https://nextjs.org/)
-[![Aave V3](https://img.shields.io/badge/DeFi-Aave%20V3%20Yield-B6509E?logo=aave)](https://aave.com/)
+[![Live Web](https://img.shields.io/badge/Live%20Demo-trustpact--mocha.vercel.app-E84142?style=for-the-badge&logo=vercel&logoColor=white)](https://trustpact-mocha.vercel.app/)
+[![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-@TrustPact__Sentinel__bot-229ED9?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/TrustPact_Sentinel_bot)
+[![Network](https://img.shields.io/badge/Avalanche%20Fuji-C--Chain%20%2343113-E84142?style=for-the-badge&logo=avalanche&logoColor=white)](https://testnet.snowtrace.io/address/0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0)
+[![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.24-363636?style=for-the-badge&logo=solidity)](https://soliditylang.org/)
+[![Foundry](https://img.shields.io/badge/Foundry-100%25%20Tests%20Passing-FFDB1C?style=for-the-badge)](https://getfoundry.sh/)
 
 ---
 
-## 📌 Tổng Quan Dự Án (Executive Summary)
+## 🌐 Hệ Sinh Thái Trực Tuyến (Live Deployments)
 
-**TrustPact (UyTinNet)** là nền tảng ký quỹ giao dịch P2P và xác thực tín nhiệm phi tập trung thế hệ mới, giải quyết triệt để nạn lừa đảo trực tuyến (Scam P2P, Fake Bill, trung gian giả mạo) trong các giao dịch chuyển nhượng tài sản số, OTC crypto, tài khoản game và dịch vụ công nghệ tại Việt Nam và Đông Nam Á.
-
-Dự án kết hợp sức mạnh kiến trúc đa chuỗi của **Avalanche (Custom L1 + Fuji C-Chain)** với hạ tầng tài chính **Aave V3 Lending Pool**:
-1. **Pillar 1 — Sổ Đen & Tín Nhiệm 0đ Gas (Avalanche Custom L1 Subnet):** Cơ sở dữ liệu phòng chống lừa đảo on-chain miễn phí gas cho cộng đồng, kết hợp định danh Soulbound Token (TrustPassport SBT - ERC721 phi chuyển nhượng).
-2. **Pillar 2 — Két Sắt Ký Quỹ Ba Bên (Universal Escrow):** Hợp đồng thông minh phong tỏa quỹ 3 bên (Buyer - GDTG - Seller) với tốc độ quyết toán **Snowman 0.8s**, tự động giải ngân tức thời và cơ chế bồi thường (Economic Slashing) 100% nếu phát hiện trung gian gian lận.
-3. **Pillar 3 — Cọc Bảo Chứng Sinh Lợi Tức Aave V3 (DeFi Real-Yield):** Vốn cọc bảo chứng của Thương nhân Trung Gian được gửi vào Lending Pool Aave V3 để sinh lãi thụ động theo từng block (80% chia sẻ cho Broker, 20% duy trì giao thức).
+- 🚀 **Trang Web Hoạt Động (Production Web App):** [https://trustpact-mocha.vercel.app](https://trustpact-mocha.vercel.app)
+- 🤖 **Bot Telegram Giám Sát & Tra Cứu Scam 24/7:** [@TrustPact_Sentinel_bot](https://t.me/TrustPact_Sentinel_bot)
+- 📜 **Trang Minh Chứng Pháp Lý & Công Nghệ:** [https://trustpact-mocha.vercel.app/compliance](https://trustpact-mocha.vercel.app/compliance)
 
 ---
 
-## 🏛️ Kiến Trúc Hệ Thống (System Architecture)
+## 🏛️ Smart Contracts Đã Triển Khai Trên Avalanche Fuji C-Chain (#43113)
+
+Tất cả 4 hợp đồng cốt lõi đã được biên dịch bằng **Foundry**, phát sóng on-chain (broadcast) và xác thực bytecode trên mạng Avalanche Fuji Testnet:
+
+| Tên Hợp Đồng | Địa Chỉ Ví Smart Contract (Fuji C-Chain) | Trình Khám Phá (Snowtrace Explorer) |
+| :--- | :--- | :--- |
+| **`UniversalEscrow.sol`** | `0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0) |
+| **`StakedBrokerRegistry.sol`** | `0x7eB341096Ca95BB4F227A10daEd9c413F2F60Ca2` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x7eB341096Ca95BB4F227A10daEd9c413F2F60Ca2) |
+| **`TrustPassportSBT.sol`** | `0x84d9F79A513D5CBFe6dC1E5B971cc811e64d3296` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x84d9F79A513D5CBFe6dC1E5B971cc811e64d3296) |
+| **`ScamRegistryL1.sol`** | `0x3f8C012cee1412170386a6a8C8968F903C8f3362` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x3f8C012cee1412170386a6a8C8968F903C8f3362) |
+
+> **Wiring Liên Kết Bảo Mật On-Chain:**
+> - `StakedBrokerRegistry.setEscrowContract(UniversalEscrow)` đã kích hoạt thành công.
+> - `TrustPassportSBT.setAuthorizedUpdater(StakedBrokerRegistry)` đã kích hoạt thành công.
+
+---
+
+## ⚖️ Tuân Thủ Khung Pháp Lý Việt Nam (UniHack Rule 8 Compliance)
+
+Dự án TrustPact được thiết kế với sự thấu hiểu sâu sắc và tôn trọng tuyệt đối hệ thống pháp luật Việt Nam:
+
+### 1. Tuyên Bố Giới Hạn Pháp Lý Bắt Buộc:
+- ⚠️ **Crypto KHÔNG PHẢI là phương tiện thanh toán hợp pháp tại Việt Nam** (Căn cứ theo *Nghị định 80/2016/NĐ-CP*, *Nghị định 52/2024/NĐ-CP* và *Công văn 5747/NHNN-PC* của Ngân hàng Nhà nước).
+- ❌ TrustPact **tuyệt đối không** sử dụng tiền mã hóa để trả lương, thanh toán học phí, hoặc mua bán hàng hóa tiêu dùng thay thế cho Đồng Việt Nam (VND).
+- ❌ TrustPact **không thực hiện tư vấn tài chính hay đầu tư có thu phí** (vốn đòi hỏi giấy phép quản lý quỹ của Ủy ban Chứng khoán Nhà nước).
+- ❌ Mọi tài sản chứng khoán token hóa (Tokenized Stocks) đều được geoblocked theo đúng quy định quốc tế và luật pháp Việt Nam.
+
+### 2. Bản Chất Pháp Lý Dân Sự Của TrustPact:
+- ⚖️ **Cơ Chế Ký Cược / Đặt Cọc Bảo Đảm Thực Hiện Nghĩa Vụ Dân Sự** theo **Điều 292** và **Điều 328 Bộ luật Dân sự 2015**:
+  > *"Đặt cọc là việc một bên giao cho bên kia một khoản tiền hoặc kim khí quý, đá quý hoặc vật có giá trị khác trong một thời hạn để bảo đảm giao kết hoặc thực hiện hợp đồng."* (Khoản 1 Điều 328 BLDS 2015).
+- Trong giao dịch P2P tài sản số và dịch vụ phần mềm xuyên biên giới, tài sản số (USDC/Digital Assets) đóng vai trò là **"Vật có giá trị dân sự"** do các bên đương sự tự nguyện ủy thác vào két sắt hợp đồng thông minh phi tập trung để làm tài sản bảo đảm.
+- **Két sắt `UniversalEscrow`** đóng vai trò là bên thứ ba giữ vật ký cược trung lập, tự động hóa thanh toán hoặc hoàn tiền theo đúng cam kết dân sự, loại bỏ hoàn toàn tình trạng quỵt nợ hoặc lừa đảo.
+- **Thương nhân Trung gian (Broker)** đóng vai trò là Bên thứ ba chứng kiến / hòa giải độc lập. Để hành nghề, Broker phải ký cược tài sản vào `StakedBrokerRegistry`, chịu chế tài phạt cọc (Slashing) bồi thường 100% nếu có hành vi gian lận.
+
+---
+
+## 🎯 Ba Trụ Cột Công Nghệ Avalanche Bắt Buộc (UniHack Rule 9 Answers)
+
+Hội đồng giám khảo UniHack 2026 đặt ra 3 câu hỏi cốt lõi cho mọi dự án tham gia:
+
+### 1. Tại sao phải On-Chain? (Why On-Chain?)
+- **Triệt tiêu hoàn toàn nạn Exit Scam:** Trong các nhóm giao dịch trung gian truyền thống tại Việt Nam (Zalo, Telegram, Facebook), quản trị viên hoặc bên trung gian rất dễ ôm tiền bỏ trốn khi gặp giao dịch lớn hoặc bị hack tài khoản mạng xã hội. Két sắt On-chain (`UniversalEscrow`) khóa tiền trực tiếp bằng mã nguồn mở bất biến, không một cá nhân nào có quyền tự ý biển thủ.
+- **Giải quyết tranh chấp minh bạch không phụ thuộc ngân hàng:** Giao dịch ngân hàng Web2 thường xuyên gặp rủi ro tài khoản bị phong tỏa, lệnh chuyển tiền bị treo hoặc làm giả ảnh chụp chuyển khoản (Fake Bill). On-chain quyết toán tự động, tiền vào ví tức thì với bằng chứng giao dịch không thể làm giả.
+- **Định danh Tín nhiệm Soulbound Token (TrustPassport SBT):** Mọi giao dịch thành công, điểm đánh giá và lịch sử cọc của Broker được khắc vĩnh viễn lên SBT (ERC-721 phi chuyển nhượng). Chống hoàn toàn tình trạng mua bán nick trung gian cũ để đi lừa đảo.
+
+### 2. Tại sao là Avalanche? (Why Avalanche?)
+- **Tốc độ xác thực cực nhanh (Sub-second Finality < 0.8s):** Nhờ cơ chế đồng thuận **Snowman Consensus** trên Avalanche C-Chain, các giao dịch nạp cọc, xác nhận bàn giao và giải ngân diễn ra trong nháy mắt. Điều này giải quyết bài toán cốt tử về trải nghiệm người dùng trong thương mại P2P mà Ethereum (12s) hay các L2 (cần chờ rollup finality) không thể đáp ứng.
+- **Kiến trúc Đa Chuỗi C-Chain + Custom L1 (Subnet):**
+  - **Avalanche C-Chain:** Đảm nhận vai trò Két sắt Ký Quỹ giá trị cao, nạp cọc bảo chứng và kết nối giao thức thanh khoản Aave V3.
+  - **Custom L1 Subnet (Zero-Gas):** Đảm nhận vai trò Radar Tra cứu & Báo cáo Sổ đen lừa đảo cộng đồng với chi phí mạng **0đ Gas**. Nhờ đó, bot Telegram và người dùng phổ thông có thể thực hiện hàng triệu lượt tra cứu mỗi ngày mà không bị tốn phí hay nghẽn mạng chính.
+- **Avalanche Teleporter (ICM):** Đồng bộ hóa trạng thái gian lận giữa Custom L1 và C-Chain bằng công nghệ Inter-Chain Messaging bản địa.
+
+### 3. Lợi tức từ đâu ra? (Where does Yield come from?)
+- **Nguyên tắc cốt tử (UniHack Rule 7):** Tuyệt đối **KHÔNG** in token lạm phát vô căn cứ hay sử dụng mô hình Ponzi lấy tiền người sau trả người trước.
+- **Tích Hợp Thực Tế Với Aave V3 Liquidity Pool Trên Avalanche:** Tiền cọc bảo lãnh của các Broker trong `StakedBrokerRegistry.sol` được tự động nạp vào Aave V3 Fuji Lending Pool (`0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40`), tạo ra dòng tiền lãi thực (**Real-Yield APY ~5.20%**) từ nhu cầu vay vốn thị trường.
+- **Cơ chế phân bổ lợi tức 80/20 bền vững:**
+  - **80% Lợi tức Aave** được trả định kỳ cho Broker như một phần thưởng kinh tế khuyến khích họ duy trì cọc lớn để bảo lãnh giao dịch.
+  - **20% Lợi tức Aave** được đưa vào Quỹ Bảo Hiểm & Vận Hành (Protocol Treasury & Insurance Pool) để bù đắp rủi ro cho người dùng khi xảy ra bất khả kháng.
+  - **Vốn cọc gốc (Principal) luôn được bảo toàn 100%**, chỉ có tiền lãi phát sinh mới được phân phối.
+
+---
+
+## 🏛️ Kiến Trúc Tổng Thể (Architecture Overview)
 
 ```
                             +---------------------------------------+
@@ -38,39 +97,18 @@ Dự án kết hợp sức mạnh kiến trúc đa chuỗi của **Avalanche (Cu
 +-----------------------------------+                         +-----------------------------------+
 | • ScamRegistryL1.sol              |                         | • UniversalEscrow.sol             |
 |   - Sổ đen tài khoản / SĐT lừa đảo|                         |   - Két sắt 3 bên Buyer/Broker/Seller|
-|   - Bằng chứng IPFS bất biến      |                         |   - Phê duyệt giải ngân tức thì   |
+|   - Báo cáo cộng đồng gas-free    |                         |   - Giải ngân tức thì 0.8 giây    |
 | • TrustPassportSBT.sol            |                         | • StakedBrokerRegistry.sol        |
-|   - Soulbound ERC-721 định danh   |                         |   - Quản lý hạn mức cọc (120%)    |
-|   - Điểm tín nhiệm, Star Rating   |                         |   - Điều phối Aave V3 Lending Pool|
+|   - Soulbound ERC-721 định danh   |                         |   - Hạn mức cọc bảo chứng (120%)  |
+|   - Điểm tín nhiệm, Star Rating   |                         |   - Tích hợp Aave V3 Lending Pool |
 +-----------------------------------+                         +-----------------+-----------------+
                  ^                                                              |
                  |                                                              v
 +----------------+------------------+                         +-----------------------------------+
 |        x402 Micro-Payment         |                         |       Aave V3 Lending Pool        |
-|    ERC-7730 / Telegram Bot API    |                         |    (Real-Yield aUSDC Compounding) |
+|    Telegram Bot Sentinel API      |                         |    (Real-Yield aUSDC Compounding) |
 +-----------------------------------+                         +-----------------------------------+
 ```
-
----
-
-## 🚀 Các Tính Năng Nổi Bật (Key Features)
-
-### 1. Tra Cứu Gian Lận & Tín Nhiệm On-Chain (Check Scam 0đ Gas)
-- Tìm kiếm tức thì số tài khoản ngân hàng, số điện thoại, địa chỉ ví.
-- Báo cáo lừa đảo phi tập trung kèm bằng chứng IPFS hash.
-- Phí giao dịch 0đ Gas trên Avalanche Custom L1 Subnet, mở rộng qua x402 gateway cho Telegram Bot tra cứu vi mô.
-
-### 2. Két Sắt Ký Quỹ Ba Bên (Universal Escrow)
-- **Bên Mua (Buyer):** Nạp tiền ký quỹ (USDC) vào Smart Contract an toàn. Có quyền khiếu nại hoặc tự động rút tiền nếu quá hạn quy định.
-- **Bên Bán (Seller):** Yên tâm giao hàng/chuyển nhượng tài sản sau khi Smart Contract phong tỏa quỹ thành công.
-- **Bên Trung Gian (Broker):** Giám định quy chuẩn bàn giao, bấm duyệt giải ngân tức thì **0.8 giây** hoặc hoàn tiền về cho Bên Mua.
-- **Economic Slashing:** Giao thức tự động trích cọc Aave của Broker để đền bù 100% cho Buyer nếu Broker gian lận.
-
-### 3. Cọc Aave V3 & Chia Sẻ Lợi Tức Thực (Real-Yield 80/20)
-- Tiền cọc bảo chứng không bị nằm chết mà được điều phối vào Aave V3 sinh lời thụ động (~5.20% Supply APY).
-- Lợi tức tăng trưởng liên tục theo từng block qua aUSDC.
-- Cơ chế phân phối: **80% cho Broker**, **20% cho Quỹ Phát Triển Sàn**.
-- Hạn mức tiếp nhận kèo linh hoạt theo tỷ lệ an toàn: `Max Limit = Vốn Cọc × 120%`.
 
 ---
 
@@ -81,10 +119,10 @@ TRUSTPACT/
 ├── contracts/                   # Smart Contract Suite (Foundry)
 │   ├── src/
 │   │   ├── core/
-│   │   │   ├── UniversalEscrow.sol         # Két sắt ký quỹ 3 bên
-│   │   │   └── StakedBrokerRegistry.sol    # Quản lý cọc & Aave V3
+│   │   │   ├── UniversalEscrow.sol         # Két sắt ký quỹ 3 bên (Điều 328 BLDS)
+│   │   │   └── StakedBrokerRegistry.sol    # Quản lý cọc & Aave V3 Real-Yield
 │   │   ├── scam-radar/
-│   │   │   └── ScamRegistryL1.sol          # Sổ đen gian lận L1
+│   │   │   └── ScamRegistryL1.sol          # Sổ đen gian lận L1 0đ Gas
 │   │   ├── reputation/
 │   │   │   └── TrustPassportSBT.sol        # Soulbound Token tín nhiệm
 │   │   └── interfaces/                     # Contract Interfaces
@@ -94,17 +132,19 @@ TRUSTPACT/
 │   └── test/                               # Foundry Test Suite (100% Pass)
 ├── frontend/                    # Web Application (Next.js 14 App Router)
 │   ├── app/
-│   │   ├── page.tsx                        # Cổng Tra cứu Scam & Tín nhiệm
-│   │   ├── create/page.tsx                 # Studio Khởi tạo Hợp đồng Ký quỹ
-│   │   ├── room/[id]/page.tsx              # Phòng Đối soát Ký quỹ 3 Bên
-│   │   └── broker/page.tsx                 # Dashboard Quản lý Cọc Aave V3
-│   ├── components/                         # UI Components & Icons
-│   ├── lib/store.ts                        # Client Store & Simulated State
+│   │   ├── page.tsx                        # Cổng Tra cứu Scam & Tín nhiệm SBT
+│   │   ├── pact/create/page.tsx            # Studio Khởi tạo Hợp đồng Ký quỹ
+│   │   ├── pact/[id]/page.tsx              # Phòng Đối soát Ký quỹ 3 Bên
+│   │   ├── pact/page.tsx                   # Sổ Kèo Của Tôi (My Deals)
+│   │   ├── broker/stake/page.tsx           # Dashboard Quản lý Cọc & Lãi Aave V3
+│   │   ├── compliance/page.tsx             # Trang Pháp Lý VN & 3 Trụ Cột Avalanche
+│   │   └── api/telegram-webhook/route.ts   # Webhook Bot Telegram Serverless
+│   ├── src/lib/contracts.ts                # ABIs, Addresses & Web3 Helpers
 │   └── public/images/                      # 3D Assets & Photorealistic Avatars
 ├── l1-network/                  # Avalanche Custom L1 Network Configuration
 │   ├── genesis.json                        # Zero-gas Subnet EVM Genesis
 │   └── README.md                           # Hướng dẫn tạo Subnet với Avalanche CLI
-└── x402-service/                # Micro-payment Payment Gateway (ERC-7730)
+└── x402-service/                # Micro-payment Gateway & Telegram Telemetry
 ```
 
 ---
@@ -118,7 +158,7 @@ TRUSTPACT/
 
 ---
 
-### 1. Khởi Chạy Frontend
+### 1. Khởi Chạy Web App (Frontend)
 
 ```bash
 cd frontend
@@ -126,42 +166,33 @@ npm install
 npm run dev
 ```
 
-Mở trình duyệt tại [http://localhost:3000](http://localhost:3000).
+Mở trình duyệt tại [http://localhost:3000](http://localhost:3000) hoặc truy cập trực tiếp bản cloud tại [https://trustpact-mocha.vercel.app](https://trustpact-mocha.vercel.app).
 
 ---
 
-### 2. Kiểm Thử Smart Contracts (Foundry)
+### 2. Kiểm Thử Smart Contracts (Foundry Test Suite)
 
 ```bash
 cd contracts
 forge test -vvv
 ```
 
-Tất cả các bài test kiểm thử kịch bản:
-- Happy path giải ngân tức thì 0.8s
-- Hoàn quỹ 100% cho Bên Mua
-- Tự động rút quỹ khi quá hạn (Timeout Auto-Refund)
-- Chém cọc trung gian gian lận (Slashing)
-- Chia tách lợi tức Aave V3 (80/20 Yield Split)
-- Mint & Khóa chuyển nhượng Soulbound Token (SBT)
-
----
-
-### 3. Triển Khai Lên Avalanche Fuji C-Chain
-
-```bash
-cd contracts
-forge script script/DeployCChain.s.sol:DeployCChain \
-  --rpc-url https://api.avax-test.network/ext/bc/C/rpc \
-  --broadcast \
-  --verify
-```
+Toàn bộ các bộ test kiểm tra nghiêm ngặt:
+- ✅ **Happy Path:** Buyer nạp cọc -> Broker kiểm duyệt -> Giải ngân tức thì 0.8s về Seller + phí về Broker.
+- ✅ **Broker Hoàn Tiền:** Broker bấm hoàn 100% về cho Buyer khi giao dịch không thành công.
+- ✅ **Tự Động Rút Tiền Quá Hạn (Timeout Auto-Refund):** Buyer tự rút tiền khi hết duration mà Broker/Seller không giải quyết.
+- ✅ **Hòa Giải Hai Bên (Settlement):** Chia tỷ lệ hoàn tiền Buyer và trả Seller theo thỏa thuận.
+- ✅ **Chế Tài Chém Cọc (Slashing):** Phạt cọc Broker gian lận, bồi thường 100% cho Buyer.
+- ✅ **Aave V3 Real-Yield:** Tích hợp chia lãi 80% cho Broker và 20% cho sàn.
+- ✅ **Soulbound Token (SBT):** Đúc chứng chỉ uy tín, chặn 100% lệnh chuyển nhượng ví (`transferFrom` reverts).
 
 ---
 
 ## 👥 Đội Ngũ Phát Triển (Team)
 
-Dự án được xây dựng và tối ưu cho cuộc thi **Avalanche UniHack 2026**.
+Dự án được xây dựng và hoàn thiện cho cuộc thi **Avalanche UniHack 2026** (Track A: Social Finance).
 
-- **Repository:** [https://github.com/bontran012/TRUSTPACT](https://github.com/bontran012/TRUSTPACT)
+- **GitHub Repository:** [https://github.com/bontran012/TRUSTPACT](https://github.com/bontran012/TRUSTPACT)
+- **Production Web App:** [https://trustpact-mocha.vercel.app](https://trustpact-mocha.vercel.app)
+- **Telegram Sentinel Bot:** [@TrustPact_Sentinel_bot](https://t.me/TrustPact_Sentinel_bot)
 - **License:** MIT
