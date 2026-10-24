@@ -340,7 +340,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Mobile Subnav Strip */}
-        <div className="xl:hidden flex items-center overflow-x-auto no-scrollbar border-t border-[#1E222D] bg-[#090A0D] px-4 h-10">
+        <div className="md:hidden flex items-center overflow-x-auto no-scrollbar border-t border-[#1E222D] bg-[#090A0D] px-4 h-10">
           {navLinks.map((link) => {
             const isActive = link.exact
               ? pathname === link.href

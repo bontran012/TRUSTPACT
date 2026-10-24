@@ -41,6 +41,7 @@ export default function BrokerStakingAndYieldPage() {
   const [stakeInput, setStakeInput] = useState("1000");
   const [unstakeInput, setUnstakeInput] = useState("500");
   const [txStatus, setTxStatus] = useState<TxStatus>({ step: "idle" });
+  const [useSampleBroker, setUseSampleBroker] = useState<boolean>(!address);
 
   // ── Web3 Contract Reads ──────────────────────────────────────────────
   // 1. Read Broker Profile
@@ -110,18 +111,26 @@ export default function BrokerStakingAndYieldPage() {
   });
 
   // Derived Values
-  const stakedBalance = brokerProfile ? (brokerProfile as any).stakedBalance as bigint : 0n;
-  const activeHoldingAllocated = brokerProfile ? (brokerProfile as any).activeHoldingAllocated as bigint : 0n;
-  const isVerified = brokerProfile ? Boolean((brokerProfile as any).isVerified) : false;
-  const isBlacklisted = brokerProfile ? Boolean((brokerProfile as any).isBlacklisted) : false;
-  const successfulDeals = brokerProfile ? Number((brokerProfile as any).successfulDeals) : 0;
-  const totalDeals = brokerProfile ? Number((brokerProfile as any).totalDeals) : 0;
-  const slashedCount = brokerProfile ? Number((brokerProfile as any).slashedCount) : 0;
+  const realStaked = brokerProfile ? Number(formatUnits((brokerProfile as any).stakedBalance as bigint, 6)) : 0;
+  const isUsingSample = useSampleBroker || (realStaked === 0 && !address);
 
-  const stakedNum = Number(formatUnits(stakedBalance, 6));
-  const activeAllocatedNum = Number(formatUnits(activeHoldingAllocated, 6));
-  const availableQuotaNum = availableQuota ? Number(formatUnits(availableQuota as bigint, 6)) : Math.max(0, stakedNum * 1.2 - activeAllocatedNum);
+  const stakedNum = isUsingSample ? 5000 : realStaked;
+  const activeAllocatedNum = isUsingSample
+    ? 1000
+    : brokerProfile
+    ? Number(formatUnits((brokerProfile as any).activeHoldingAllocated as bigint, 6))
+    : 0;
+  const availableQuotaNum = isUsingSample
+    ? 5000
+    : availableQuota
+    ? Number(formatUnits(availableQuota as bigint, 6))
+    : Math.max(0, stakedNum * 1.2 - activeAllocatedNum);
   const maxFreeStakeToUnstake = Math.max(0, stakedNum - activeAllocatedNum);
+  const isVerified = isUsingSample ? true : brokerProfile ? Boolean((brokerProfile as any).isVerified) : false;
+  const isBlacklisted = isUsingSample ? false : brokerProfile ? Boolean((brokerProfile as any).isBlacklisted) : false;
+  const successfulDeals = isUsingSample ? 128 : brokerProfile ? Number((brokerProfile as any).successfulDeals) : 0;
+  const totalDeals = isUsingSample ? 128 : brokerProfile ? Number((brokerProfile as any).totalDeals) : 0;
+  const slashedCount = isUsingSample ? 0 : brokerProfile ? Number((brokerProfile as any).slashedCount) : 0;
 
   // Micro-Yield Continuous Ticker
   const [liveYieldIncrement, setLiveYieldIncrement] = useState(0);
@@ -244,9 +253,35 @@ export default function BrokerStakingAndYieldPage() {
             Khai thác lợi tức kép liên tục từ Aave V3 Lending Pool trên Avalanche Fuji C-Chain
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-[#64748B]">Quota Multiplier:</span>
-          <span className="font-bold text-[#10B981]">120% (1.2x)</span>
+        <div className="flex items-center gap-3 text-xs font-mono flex-wrap">
+          <div className="flex items-center gap-1.5 p-1 rounded-md bg-[#101217] border border-[#1E222D]">
+            <button
+              type="button"
+              onClick={() => setUseSampleBroker(true)}
+              className={`px-2.5 py-1 rounded transition-colors text-[11px] ${
+                isUsingSample
+                  ? "bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] font-bold"
+                  : "text-[#64748B] hover:text-[#94A3B8]"
+              }`}
+            >
+              Hồ Sơ GDTG Mẫu (Nguyễn Nam · 5,000 USDC)
+            </button>
+            <button
+              type="button"
+              onClick={() => setUseSampleBroker(false)}
+              className={`px-2.5 py-1 rounded transition-colors text-[11px] ${
+                !isUsingSample
+                  ? "bg-[#E84142]/15 border border-[#E84142]/30 text-[#E84142] font-bold"
+                  : "text-[#64748B] hover:text-[#94A3B8]"
+              }`}
+            >
+              Ví Cá Nhân Của Bạn
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-[#64748B]">Hạn mức:</span>
+            <span className="font-bold text-[#10B981]">120% (1.2x)</span>
+          </div>
         </div>
       </div>
 
