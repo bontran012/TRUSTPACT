@@ -278,10 +278,23 @@ export default function ScamRadarAndReputationPage() {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
-  // Mount state for SSR hydration safety
+  // Mount state for SSR hydration safety & auto URL query reader (?q=...)
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlQuery = params.get("q");
+      if (urlQuery && urlQuery.trim()) {
+        const clean = urlQuery.trim();
+        setQueryInput(clean);
+        setActiveQuery(clean);
+        if (clean.startsWith("0x")) setSelectedCategory("wallet");
+        else if (clean.startsWith("@")) setSelectedCategory("telegram");
+        else if (/^\d{10,14}$/.test(clean)) setSelectedCategory("bank");
+        else if (/^\d{9,11}$/.test(clean)) setSelectedCategory("phone");
+      }
+    }
   }, []);
 
   // Telegram Bot demo & copy state
