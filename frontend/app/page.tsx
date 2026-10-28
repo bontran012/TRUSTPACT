@@ -484,33 +484,47 @@ export default function ScamRadarAndReputationPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setSelectedCategory("bank");
                     setQueryInput("1903889922101");
                     setActiveQuery("1903889922101");
                   }}
                   className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
                 >
-                  1903889922101 (Scam)
+                  STK 1903889922101 (Scam)
                 </button>
                 <button
                   type="button"
                   onClick={() => {
+                    setSelectedCategory("phone");
+                    setQueryInput("0982736182");
+                    setActiveQuery("0982736182");
+                  }}
+                  className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
+                >
+                  SĐT 0982736182 (Scam)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory("telegram");
                     setQueryInput("@otc_vn_fake_admin");
                     setActiveQuery("@otc_vn_fake_admin");
                   }}
                   className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
                 >
-                  @otc_vn_fake_admin (Scam)
+                  TG @otc_vn_fake_admin (Scam)
                 </button>
                 <button
                   type="button"
                   onClick={() => {
+                    setSelectedCategory("wallet");
                     setQueryInput("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                     setActiveQuery("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                     setResolvedSbtAddress("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                   }}
                   className="px-2 py-0.5 rounded border border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] font-mono hover:bg-[#10B981]/20 transition-colors"
                 >
-                  @hoangminh_otc (0x89C3...0002 - Clean)
+                  Ví @hoangminh_otc (0x89C3...0002 - Uy Tín)
                 </button>
               </div>
             </form>

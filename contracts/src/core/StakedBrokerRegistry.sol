@@ -26,6 +26,9 @@ contract StakedBrokerRegistry is IBrokerRegistry, ReentrancyGuard {
     TrustPassportSBT public trustPassportSBT;
     event QuotaMultiplierUpdated(uint256 newMultiplierBps);
     event TrustPassportSBTUpdated(address indexed newSBT);
+    event EscrowContractUpdated(address indexed newEscrow);
+    event TreasuryUpdated(address indexed newTreasury);
+    event AdminUpdated(address indexed newAdmin);
     modifier onlyEscrow() {
         require(msg.sender == escrowContract, "Only Escrow allowed");
         _;
@@ -46,14 +49,17 @@ contract StakedBrokerRegistry is IBrokerRegistry, ReentrancyGuard {
     function setEscrowContract(address _escrow) external onlyAdmin {
         require(_escrow != address(0), "Zero address");
         escrowContract = _escrow;
+        emit EscrowContractUpdated(_escrow);
     }
     function setTreasury(address _treasury) external onlyAdmin {
         require(_treasury != address(0), "Zero address");
         treasury = _treasury;
+        emit TreasuryUpdated(_treasury);
     }
     function setAdmin(address _admin) external onlyAdmin {
         require(_admin != address(0), "Zero address");
         admin = _admin;
+        emit AdminUpdated(_admin);
     }
     function setTrustPassportSBT(address _sbt) external onlyAdmin {
         require(_sbt != address(0), "Zero address");
@@ -181,7 +187,8 @@ contract StakedBrokerRegistry is IBrokerRegistry, ReentrancyGuard {
         }
         emit StakeSlashed(_broker, _victim, _compensation);
         emit BrokerBlacklisted(_broker);
-        aavePool.withdraw(address(usdc), _compensation, address(this));
+        uint256 withdrawn = aavePool.withdraw(address(usdc), _compensation, address(this));
+        require(withdrawn >= _compensation, "Aave withdraw failed");
         usdc.safeTransfer(_victim, _compensation);
     }
     function getAvailableQuota(address _broker) external view override returns (uint256) {
