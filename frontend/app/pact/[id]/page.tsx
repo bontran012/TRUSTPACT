@@ -219,9 +219,10 @@ export default function EscrowPactRoomPage() {
   const connectedLower = effectiveAddress?.toLowerCase();
 
   const userRole = currentUser?.role;
-  const isSeller = userRole === "SELLER" || connectedLower === escrowItem.seller.toLowerCase();
-  const isBroker = userRole === "BROKER" || connectedLower === escrowItem.broker.toLowerCase();
-  const isBuyer = userRole === "BUYER" || connectedLower === escrowItem.buyer.toLowerCase() || (!isSeller && !isBroker);
+  const isAdmin = userRole === "ADMIN" || connectedLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
+  const isSeller = !isAdmin && (userRole === "SELLER" || connectedLower === escrowItem.seller.toLowerCase());
+  const isBroker = isAdmin || userRole === "BROKER" || connectedLower === escrowItem.broker.toLowerCase();
+  const isBuyer = !isAdmin && !isSeller && (userRole === "BUYER" || connectedLower === escrowItem.buyer.toLowerCase() || !isBroker);
 
   // Exact Fees
   const dealAmountNum = Number(escrowItem.amount) / 1e6;
@@ -1121,14 +1122,18 @@ export default function EscrowPactRoomPage() {
                 <span className="text-[11px] text-[#64748B]">{t("Tài khoản đang đăng nhập:", "Active Session Role:")}</span>
                 <span
                   className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
-                    isBuyer
+                    isAdmin
+                      ? "bg-[#A855F7]/15 text-[#C084FC] border border-[#A855F7]/30"
+                      : isBuyer
                       ? "bg-[#E84142]/10 text-[#E84142]"
                       : isSeller
                       ? "bg-[#10B981]/10 text-[#10B981]"
                       : "bg-[#F59E0B]/10 text-[#F59E0B]"
                   }`}
                 >
-                  {isBuyer
+                  {isAdmin
+                    ? t("Admin Tối Cao (Toàn Quyền Can Thiệp)", "Super Admin (Full Intervene Rights)")
+                    : isBuyer
                     ? t("Bên Mua (Buyer)", "Buyer")
                     : isSeller
                     ? t("Bên Bán (Seller)", "Seller")
@@ -1219,9 +1224,15 @@ export default function EscrowPactRoomPage() {
               </div>
             )}
 
-            {/* ── ACTIONS FOR BROKER ───────────────────────────────────────── */}
+            {/* ── ACTIONS FOR BROKER & ADMIN ───────────────────────────────── */}
             {isBroker && statusNumber === 0 && (
               <div className="space-y-3 font-sans">
+                {isAdmin && (
+                  <div className="p-2.5 rounded bg-[#A855F7]/10 border border-[#A855F7]/30 text-[11px] text-[#D8B4FE] flex items-center gap-2 font-medium">
+                    <Shield className="w-4 h-4 text-[#C084FC] shrink-0" />
+                    <span>{t("QUYỀN ADMIN TỐI CAO: Bạn sở hữu toàn bộ quyền can thiệp, giải ngân hoặc hoàn tiền thay thế GDTG.", "SUPER ADMIN: You hold full authority to release or refund on behalf of Broker.")}</span>
+                  </div>
+                )}
                 {/* 1. Broker Release */}
                 <ShimmerButton
                   type="button"
@@ -1303,6 +1314,26 @@ export default function EscrowPactRoomPage() {
                     {t("Ký Lệnh Hòa Giải Phân Chia", "Execute Settlement Split")}
                   </button>
                 </div>
+
+                {/* 4. Admin Slashing Option */}
+                {isAdmin && (
+                  <div className="pt-2 border-t border-[#1E222D]">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        executePactWrite(
+                          t("Admin Phán Quyết: Chém Cọc GDTG & Đền 100% Cho Buyer", "Admin Slash Corrupt Broker & Compensate Buyer"),
+                          "adminSlashCorruptBroker",
+                          [pactId, escrowItem.amount]
+                        )
+                      }
+                      className="w-full py-2.5 px-3 rounded-md bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 text-xs font-bold text-[#EF4444] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>{t("Chém Cọc GDTG Gian Lận (Bồi Thường Cho Buyer)", "Slash Corrupt Broker (Compensate Buyer)")}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

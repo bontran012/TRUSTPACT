@@ -192,17 +192,45 @@ contract UniversalEscrowTest is Test {
         escrow.brokerRelease(id);
     }
 
+    function test_AdminCanReleaseOnBehalfOfBroker() public {
+        vm.prank(buyer);
+        uint256 id = escrow.createEscrow(payable(seller), broker, DEAL_AMOUNT, DEAL_DURATION, BROKER_FEE_BPS);
+
+        uint256 sellerBalBefore = usdc.balanceOf(seller);
+        // Admin overrides and releases on behalf of broker (emergency/administrative intervention)
+        vm.prank(admin);
+        escrow.brokerRelease(id);
+
+        assertEq(usdc.balanceOf(seller) - sellerBalBefore, 982 * 1e6);
+        IUniversalEscrow.EscrowItem memory item = escrow.getEscrow(id);
+        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Completed));
+    }
+
     function test_BrokerReleaseUnauthorizedReverts() public {
         vm.prank(buyer);
         uint256 id = escrow.createEscrow(payable(seller), broker, DEAL_AMOUNT, DEAL_DURATION, BROKER_FEE_BPS);
 
         vm.prank(stranger);
-        vm.expectRevert("Only broker");
+        vm.expectRevert("Only broker or admin");
         escrow.brokerRelease(id);
 
         vm.prank(seller);
-        vm.expectRevert("Only broker");
+        vm.expectRevert("Only broker or admin");
         escrow.brokerRelease(id);
+    }
+
+    function test_AdminCanRefundBuyerOnBehalfOfBroker() public {
+        vm.prank(buyer);
+        uint256 id = escrow.createEscrow(payable(seller), broker, DEAL_AMOUNT, DEAL_DURATION, BROKER_FEE_BPS);
+
+        uint256 buyerBalBefore = usdc.balanceOf(buyer);
+        // Admin overrides and refunds buyer on behalf of broker
+        vm.prank(admin);
+        escrow.brokerRefundBuyer(id);
+
+        assertEq(usdc.balanceOf(buyer) - buyerBalBefore, DEAL_AMOUNT);
+        IUniversalEscrow.EscrowItem memory item = escrow.getEscrow(id);
+        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Completed));
     }
 
     // =========================================================================
@@ -275,11 +303,11 @@ contract UniversalEscrowTest is Test {
         uint256 id = escrow.createEscrow(payable(seller), broker, DEAL_AMOUNT, DEAL_DURATION, BROKER_FEE_BPS);
 
         vm.prank(buyer);
-        vm.expectRevert("Only broker");
+        vm.expectRevert("Only broker or admin");
         escrow.brokerRefundBuyer(id);
 
         vm.prank(seller);
-        vm.expectRevert("Only broker");
+        vm.expectRevert("Only broker or admin");
         escrow.brokerRefundBuyer(id);
     }
 
@@ -323,7 +351,7 @@ contract UniversalEscrowTest is Test {
         uint256 id = escrow.createEscrow(payable(seller), broker, DEAL_AMOUNT, DEAL_DURATION, BROKER_FEE_BPS);
 
         vm.prank(stranger);
-        vm.expectRevert("Only broker");
+        vm.expectRevert("Only broker or admin");
         escrow.brokerSettle(id, 500 * 1e6, 500 * 1e6);
     }
 

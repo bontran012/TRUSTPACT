@@ -220,14 +220,18 @@ export function AuthModal() {
                           <span className="text-xs font-bold text-[#F1F5F9]">{account.name}</span>
                           <span
                             className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase ${
-                              account.role === "BROKER"
+                              account.role === "ADMIN"
+                                ? "bg-[#A855F7]/15 text-[#C084FC] border border-[#A855F7]/30"
+                                : account.role === "BROKER"
                                 ? "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
                                 : account.role === "SELLER"
                                 ? "bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30"
                                 : "bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30"
                             }`}
                           >
-                            {account.role === "BROKER"
+                            {account.role === "ADMIN"
+                              ? t("Admin Tối Cao", "Super Admin")
+                              : account.role === "BROKER"
                               ? t("GDTG Bảo Chứng", "Staked Broker")
                               : account.role === "SELLER"
                               ? t("Bên Bán (OTC)", "OTC Seller")

@@ -92,7 +92,7 @@ contract UniversalEscrow is IUniversalEscrow, ReentrancyGuard {
     }
     function brokerRelease(uint256 _id) external override nonReentrant {
         EscrowItem storage item = escrows[_id];
-        require(msg.sender == item.broker, "Only broker");
+        require(msg.sender == item.broker || msg.sender == admin, "Only broker or admin");
         require(item.status == EscrowStatus.Active, "Invalid status");
         emit BrokerReleased(_id);
         _executeRelease(item);
@@ -106,7 +106,7 @@ contract UniversalEscrow is IUniversalEscrow, ReentrancyGuard {
     }
     function brokerRefundBuyer(uint256 _id) external override nonReentrant {
         EscrowItem storage item = escrows[_id];
-        require(msg.sender == item.broker, "Only broker");
+        require(msg.sender == item.broker || msg.sender == admin, "Only broker or admin");
         require(item.status == EscrowStatus.Active, "Invalid status");
         item.status = EscrowStatus.Completed;
         emit RefundExecuted(_id, item.amount);
@@ -115,7 +115,7 @@ contract UniversalEscrow is IUniversalEscrow, ReentrancyGuard {
     }
     function brokerSettle(uint256 _id, uint256 _refundToBuyer, uint256 _payoutToSeller) external override nonReentrant {
         EscrowItem storage item = escrows[_id];
-        require(msg.sender == item.broker, "Only broker");
+        require(msg.sender == item.broker || msg.sender == admin, "Only broker or admin");
         require(item.status == EscrowStatus.Active, "Invalid status");
         require(_refundToBuyer + _payoutToSeller == item.amount, "Total must match");
         item.status = EscrowStatus.Completed;

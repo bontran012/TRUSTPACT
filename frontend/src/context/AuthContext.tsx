@@ -79,6 +79,24 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     registeredAt: "2023-08-04",
     hasCustomUsername: true,
   },
+  {
+    id: "TP-9999",
+    username: "super_admin",
+    name: "Quản Trị Viên Tối Cao (Admin TrustPact)",
+    role: "ADMIN",
+    walletAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    email: "admin@trustpact.io",
+    telegram: "@TrustPact_Sentinel_bot",
+    zalo: "0900009999",
+    facebook: "facebook.com/trustpact.official",
+    avatarUrl: "/images/avatar-nam.jpg",
+    sbtId: "#TP-ADMIN",
+    successRate: 100,
+    completedDeals: 999,
+    balanceUsdc: 50000,
+    registeredAt: "2023-01-01",
+    hasCustomUsername: true,
+  },
 ];
 
 // Helper to generate a unique 5-digit system ID
