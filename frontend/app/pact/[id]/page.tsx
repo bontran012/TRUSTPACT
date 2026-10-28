@@ -360,8 +360,20 @@ export default function EscrowPactRoomPage() {
   const executePactWrite = async (actionTitle: string, functionName: any, args: any[]) => {
     setTxStatus({ step: "awaiting_signature", actionTitle });
 
-    // Try real on-chain call
-    if (address && writeContractAsync) {
+    // Verify if connected wallet address actually matches the on-chain role for this action
+    const addrLower = address?.toLowerCase();
+    const isWalletEligibleOnChain =
+      addrLower &&
+      ((functionName === "buyerConfirmDelivery" && addrLower === escrowItem.buyer.toLowerCase()) ||
+       (functionName === "brokerRelease" && (addrLower === escrowItem.broker.toLowerCase() || addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")) ||
+       (functionName === "brokerRefundBuyer" && (addrLower === escrowItem.broker.toLowerCase() || addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")) ||
+       (functionName === "brokerSettle" && (addrLower === escrowItem.broker.toLowerCase() || addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")) ||
+       (functionName === "buyerClaimExpiredRefund" && addrLower === escrowItem.buyer.toLowerCase()) ||
+       (functionName === "mutualCancelEscrow" && (addrLower === escrowItem.buyer.toLowerCase() || addrLower === escrowItem.seller.toLowerCase())) ||
+       (functionName === "adminSlashCorruptBroker" && addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"));
+
+    // Try real on-chain call if connected wallet is legitimately authorized on-chain
+    if (isWalletEligibleOnChain && writeContractAsync) {
       try {
         const hash = await writeContractAsync({
           address: CONTRACT_ADDRESSES.universalEscrow,
