@@ -95,6 +95,7 @@ contract UniversalEscrow is IUniversalEscrow, ReentrancyGuard {
         require(msg.sender == item.broker || msg.sender == admin, "Only broker or admin");
         require(item.status == EscrowStatus.Active, "Invalid status");
         emit BrokerReleased(_id);
+        if (msg.sender == admin && msg.sender != item.broker) { emit AdminIntervened(_id, admin, "release"); }
         _executeRelease(item);
     }
     function buyerConfirmDelivery(uint256 _id) external override nonReentrant {
@@ -109,6 +110,7 @@ contract UniversalEscrow is IUniversalEscrow, ReentrancyGuard {
         require(msg.sender == item.broker || msg.sender == admin, "Only broker or admin");
         require(item.status == EscrowStatus.Active, "Invalid status");
         item.status = EscrowStatus.Completed;
+        if (msg.sender == admin && msg.sender != item.broker) { emit AdminIntervened(_id, admin, "refund"); }
         emit RefundExecuted(_id, item.amount);
         brokerRegistry.releaseQuota(item.broker, item.amount);
         usdc.safeTransfer(item.buyer, item.amount);
@@ -119,6 +121,7 @@ contract UniversalEscrow is IUniversalEscrow, ReentrancyGuard {
         require(item.status == EscrowStatus.Active, "Invalid status");
         require(_refundToBuyer + _payoutToSeller == item.amount, "Total must match");
         item.status = EscrowStatus.Completed;
+        if (msg.sender == admin && msg.sender != item.broker) { emit AdminIntervened(_id, admin, "settle"); }
         emit SettlementExecuted(_id, _refundToBuyer, _payoutToSeller);
         brokerRegistry.releaseQuota(item.broker, item.amount);
         if (_refundToBuyer > 0) usdc.safeTransfer(item.buyer, _refundToBuyer);

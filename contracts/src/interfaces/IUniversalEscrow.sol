@@ -33,6 +33,8 @@ interface IUniversalEscrow {
     event BrokerRegistryUpdated(address indexed newBrokerRegistry);
     event AdminUpdated(address indexed newAdmin);
     event EscrowRated(uint256 indexed id, address indexed broker, address indexed buyer, uint8 stars, uint256 tipAmount);
+    /// @notice Emitted when admin intervenes on behalf of an inactive/corrupt broker
+    event AdminIntervened(uint256 indexed id, address indexed admin, string action);
 
     function createEscrow(
         address payable _seller,

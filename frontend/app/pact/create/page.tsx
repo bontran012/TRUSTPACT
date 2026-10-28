@@ -65,24 +65,13 @@ const REGISTERED_BROKERS: BrokerItem[] = [
   {
     id: "broker-hoang",
     name: "Hoàng Minh (Thương Nhân P2P Bảo Lãnh)",
-    address: "0x44B1492bC78E12a899Ad34De91eF11B12E7a889B",
+    address: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
     badge: "Senior Escrow",
     stakedAmount: 2500,
     availableQuota: 3000,
     successRate: 99.2,
     rating: 4.9,
     deals: 84,
-  },
-  {
-    id: "broker-tuan",
-    name: "Trần Tuấn (Audit Mã Nguồn & Tên Miền)",
-    address: "0x55C1492bC78E12a899Ad34De91eF11B12E7a889C",
-    badge: "Tech Mediator",
-    stakedAmount: 1200,
-    availableQuota: 1440,
-    successRate: 98.5,
-    rating: 4.8,
-    deals: 42,
   },
 ];
 
