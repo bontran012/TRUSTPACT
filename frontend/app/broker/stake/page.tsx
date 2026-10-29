@@ -132,22 +132,12 @@ export default function BrokerStakingAndYieldPage() {
   const totalDeals = isUsingSample ? 128 : brokerProfile ? Number((brokerProfile as any).totalDeals) : 0;
   const slashedCount = isUsingSample ? 0 : brokerProfile ? Number((brokerProfile as any).slashedCount) : 0;
 
-  // Micro-Yield Continuous Ticker
-  const [liveYieldIncrement, setLiveYieldIncrement] = useState(0);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      // Simulate real-time continuous interest compounding at 5.2% APY per second
-      if (stakedNum > 0) {
-        setLiveYieldIncrement((prev) => prev + (stakedNum * 0.052) / (365 * 86400));
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [stakedNum]);
-
-  const baseYieldNum = estimatedYieldRaw ? Number(formatUnits(estimatedYieldRaw as bigint, 6)) : (stakedNum * 0.052 * 0.8 * 14) / 365;
-  const totalLiveYield = +(baseYieldNum + liveYieldIncrement).toFixed(6);
-  const brokerShare80 = +(totalLiveYield * 0.8).toFixed(6);
-  const treasuryShare20 = +(totalLiveYield * 0.2).toFixed(6);
+  // Real Accrued Yield Calculation (Stable on-chain / Aave V3)
+  const totalLiveYield = estimatedYieldRaw
+    ? Number(formatUnits(estimatedYieldRaw as bigint, 6))
+    : +((stakedNum * 0.052 * 0.8 * 14) / 365).toFixed(2);
+  const brokerShare80 = +(totalLiveYield * 0.8).toFixed(2);
+  const treasuryShare20 = +(totalLiveYield * 0.2).toFixed(2);
 
   // Stake Allowance
   const stakeAmountBigInt = parseUsdc(stakeInput);
@@ -292,8 +282,8 @@ export default function BrokerStakingAndYieldPage() {
           <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
             1. Vốn Gốc &amp; Hạn Mức Cọc
           </span>
-          <div className="text-xl font-bold text-[#F1F5F9] tabular-nums">
-            <NumberTicker value={stakedNum} decimals={2} suffix=" USDC" />
+          <div className="text-xl font-bold text-[#F1F5F9] tabular-nums font-mono">
+            {stakedNum.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
           </div>
           <div>
             {isBlacklisted ? (
@@ -318,8 +308,8 @@ export default function BrokerStakingAndYieldPage() {
           <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
             2. Phân Bổ Hạn Mức Bảo Lãnh
           </span>
-          <div className="text-xl font-bold text-[#F59E0B] tabular-nums">
-            <NumberTicker value={availableQuotaNum} decimals={2} suffix=" USDC" />
+          <div className="text-xl font-bold text-[#F59E0B] tabular-nums font-mono">
+            {availableQuotaNum.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
           </div>
           <div className="space-y-1">
             <div className="w-full bg-[#090A0D] rounded-full h-1.5 overflow-hidden flex border border-[#1E222D]">
@@ -346,12 +336,12 @@ export default function BrokerStakingAndYieldPage() {
           <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
             3. Lãi Thực Tế Aave V3 (+5.2%)
           </span>
-          <div className="text-xl font-bold text-[#10B981] tabular-nums">
-            <NumberTicker value={Number(totalLiveYield) || 0} decimals={2} prefix="+" suffix=" USDC" />
+          <div className="text-xl font-bold text-[#10B981] tabular-nums font-mono">
+            +{totalLiveYield.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
           </div>
           <div className="text-[10px] text-[#94A3B8] flex justify-between border-t border-[#1E222D] pt-1">
-            <span>GDTG 80%: <strong className="text-[#10B981]">+{brokerShare80}</strong></span>
-            <span>Kho 20%: <strong className="text-[#64748B]">+{treasuryShare20}</strong></span>
+            <span>GDTG 80%: <strong className="text-[#10B981]">+{brokerShare80.toFixed(2)} USDC</strong></span>
+            <span>Kho 20%: <strong className="text-[#64748B]">+{treasuryShare20.toFixed(2)} USDC</strong></span>
           </div>
         </div>
 
@@ -360,8 +350,8 @@ export default function BrokerStakingAndYieldPage() {
           <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
             4. Hiệu Suất GDTG (Broker)
           </span>
-          <div className="text-xl font-bold text-[#F1F5F9] tabular-nums">
-            <NumberTicker value={successfulDeals} /> / <NumberTicker value={totalDeals} /> Kèo
+          <div className="text-xl font-bold text-[#F1F5F9] tabular-nums font-mono">
+            {successfulDeals} / {totalDeals} Kèo
           </div>
           <div className="flex justify-between text-[10px]">
             <span className="text-[#10B981]">Tỷ lệ: {totalDeals > 0 ? ((successfulDeals / totalDeals) * 100).toFixed(1) : "100"}%</span>
