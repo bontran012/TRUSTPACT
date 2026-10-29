@@ -99,12 +99,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navLinks = [
-    { href: "/", label: t("Tra Cứu Scam & Tín Nhiệm", "Scam Radar & SBT"), icon: Search, exact: true },
+    { href: "/", label: t("Radar Lừa Đảo", "Scam Radar"), icon: Search, exact: true },
     { href: "/pact/create", label: t("Tạo Kèo Ký Quỹ", "Create Escrow"), icon: PlusSquare },
     { href: "/pact", label: t("Sổ Kèo Của Tôi", "My Deals"), icon: Lock, exact: true },
     { href: "/broker/stake", label: t("Cọc GDTG & Lãi Aave", "Stake & Aave Yield"), icon: Landmark },
-    { href: "/compliance", label: t("Minh Bạch & Điều Khoản", "Transparency & Terms"), icon: Scale, exact: true },
-    { href: "/profile", label: t("Mục Tôi", "My Profile"), icon: User, exact: true },
+    { href: "/profile", label: t("Hồ Sơ Của Tôi", "My Profile"), icon: User, exact: true },
   ];
 
   return (

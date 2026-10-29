@@ -153,8 +153,10 @@ export default function EscrowPactRoomPage() {
     args: [pactId],
   });
 
-  // Local storage backup for custom test pacts
+  // Server DB pact data for real multi-device synchronization
+  const [serverPactData, setServerPactData] = useState<any>(null);
   const [localPactData, setLocalPactData] = useState<any>(null);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
@@ -166,9 +168,21 @@ export default function EscrowPactRoomPage() {
     }
   }, [pactId]);
 
-  // Fallback Escrow Struct
+  // Fallback Escrow Struct: On-chain > Server DB (Cross-device) > LocalStorage > Default
   const escrowItem: EscrowStruct = (escrowData && (escrowData as any).amount > 0n)
     ? (escrowData as unknown as EscrowStruct)
+    : serverPactData
+    ? {
+        id: pactId,
+        buyer: (serverPactData.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+        seller: (serverPactData.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+        broker: (serverPactData.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+        amount: parseUsdc(String(serverPactData.amount || "1000")),
+        brokerFeeBps: BigInt(serverPactData.brokerFeeBps || 150),
+        duration: BigInt(serverPactData.duration || 86400),
+        startTime: BigInt(serverPactData.startTime || Math.floor(Date.now() / 1000) - 1800),
+        status: serverPactData.status !== undefined ? Number(serverPactData.status) : 0,
+      }
     : localPactData
     ? {
         id: pactId,
@@ -254,7 +268,8 @@ export default function EscrowPactRoomPage() {
         }
 
         const pactJson = await pactRes.json();
-        if (pactJson.success && pactJson.pact && pactJson.pact.status !== undefined) {
+        if (pactJson.success && pactJson.pact) {
+          setServerPactData(pactJson.pact);
           if (simulatedStatusOverride === null && pactJson.pact.status !== 0) {
             setSimulatedStatusOverride(pactJson.pact.status);
           }
