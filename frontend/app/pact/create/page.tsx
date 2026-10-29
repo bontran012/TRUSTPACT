@@ -38,9 +38,10 @@ import { BorderBeam } from "@/src/components/ui/BorderBeam";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
 import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
-interface BrokerItem {
+export interface BrokerItem {
   id: string;
   name: string;
+  username: string;
   address: `0x${string}`;
   badge: string;
   stakedAmount: number;
@@ -48,30 +49,66 @@ interface BrokerItem {
   successRate: number;
   rating: number;
   deals: number;
+  recommendedFeeBps: number;
+  telegram?: string;
 }
 
-const REGISTERED_BROKERS: BrokerItem[] = [
+export const BROKER_DIRECTORY: BrokerItem[] = [
   {
-    id: "broker-nam",
-    name: "Nguyễn Nam (OTC & Tài Sản Số)",
+    id: "TP-3003",
+    name: "Nguyễn Nam (Giám Định Viên Senior)",
+    username: "nam_broker",
     address: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
-    badge: "Master Auditor",
+    badge: "Master Escrow",
     stakedAmount: 5000,
     availableQuota: 6000,
     successRate: 100,
     rating: 5.0,
     deals: 128,
+    recommendedFeeBps: 150,
+    telegram: "@nam_escrow_official",
   },
   {
-    id: "broker-hoang",
-    name: "Hoàng Minh (Thương Nhân P2P Bảo Lãnh)",
+    id: "TP-3004",
+    name: "Trần Tuấn (Chuyên Viên Ký Quỹ Mã Nguồn)",
+    username: "trantuan_broker",
+    address: "0x44B1492bC78E12a899Ad34De91eF11B12E7a889B",
+    badge: "Tech Auditor",
+    stakedAmount: 10000,
+    availableQuota: 12000,
+    successRate: 100,
+    rating: 5.0,
+    deals: 215,
+    recommendedFeeBps: 120,
+    telegram: "@trantuan_escrow",
+  },
+  {
+    id: "TP-2002",
+    name: "Hoàng Minh (OTC Custodian)",
+    username: "hoangminh_otc",
     address: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-    badge: "Senior Escrow",
+    badge: "Senior Custodian",
     stakedAmount: 2500,
     availableQuota: 3000,
-    successRate: 99.2,
+    successRate: 99.4,
     rating: 4.9,
-    deals: 84,
+    deals: 142,
+    recommendedFeeBps: 150,
+    telegram: "@hoangminh_otc",
+  },
+  {
+    id: "TP-3005",
+    name: "Đặng Anh Thư (Digital Asset Broker)",
+    username: "anhthu_broker",
+    address: "0x77D1492bC78E12a899Ad34De91eF11B12E7a889C",
+    badge: "Acc & Game Specialist",
+    stakedAmount: 1500,
+    availableQuota: 1800,
+    successRate: 98.8,
+    rating: 4.8,
+    deals: 42,
+    recommendedFeeBps: 180,
+    telegram: "@anhthu_pact",
   },
 ];
 
@@ -94,7 +131,9 @@ function CreateEscrowPactContent() {
   const initialSeller = searchParams.get("seller") || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002";
   const [sellerInput, setSellerInput] = useState(initialSeller);
   const [showSellerSuggestions, setShowSellerSuggestions] = useState(false);
-  const [selectedBroker, setSelectedBroker] = useState<BrokerItem>(REGISTERED_BROKERS[0]);
+  const [selectedBroker, setSelectedBroker] = useState<BrokerItem>(BROKER_DIRECTORY[0]);
+  const [brokerSearchQuery, setBrokerSearchQuery] = useState("");
+  const [filterEligibleOnly, setFilterEligibleOnly] = useState(false);
   const [customBrokerAddress, setCustomBrokerAddress] = useState("");
   const [isCustomBroker, setIsCustomBroker] = useState(false);
 
@@ -178,6 +217,37 @@ function CreateEscrowPactContent() {
   const isBrokerSelf = address && activeBrokerAddress.toLowerCase() === address.toLowerCase();
   const isSellerBrokerSame = sellerInput.toLowerCase() === activeBrokerAddress.toLowerCase();
   const hasRoleConflict = isSellerSelf || isBrokerSelf || isSellerBrokerSame;
+
+  // Evaluator Testing Mode: 1-Click Auto-Fill for Judges
+  const handleLoadJudgePreset = () => {
+    setSellerInput("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002"); // Hoàng Minh (Bên Bán mẫu)
+    setSelectedBroker(BROKER_DIRECTORY[0]); // Nguyễn Nam (GDTG mẫu quota 6,000 USDC)
+    setIsCustomBroker(false);
+    setDealAmountInput("1000");
+    setBrokerFeeBps(150);
+    setSelectedDurationSeconds(86400);
+  };
+
+  // Real dynamic broker search & filtering
+  const filteredBrokers = BROKER_DIRECTORY.filter((b) => {
+    if (filterEligibleOnly && b.availableQuota < dealAmountNumber) {
+      return false;
+    }
+    if (!brokerSearchQuery.trim()) return true;
+    const q = brokerSearchQuery.toLowerCase().trim();
+    return (
+      b.name.toLowerCase().includes(q) ||
+      b.username.toLowerCase().includes(q) ||
+      b.id.toLowerCase().includes(q) ||
+      b.address.toLowerCase().includes(q) ||
+      (b.telegram && b.telegram.toLowerCase().includes(q))
+    );
+  });
+
+  // Calculate Best Recommendation based on quota adequacy, rating, and fee
+  const bestRecommendedBroker =
+    BROKER_DIRECTORY.find((b) => b.availableQuota >= dealAmountNumber && b.successRate === 100) ||
+    BROKER_DIRECTORY[0];
 
   // ── Step 1: Approve USDC ──────────────────────────────────────────────
   const handleApprove = async () => {
@@ -402,6 +472,33 @@ function CreateEscrowPactContent() {
         <span className="text-xs font-mono text-[#64748B]">Protocol Fee: 0.30%</span>
       </div>
 
+      {/* ── UNIHACK EVALUATOR TESTING PRESET BANNER ──────────────────────── */}
+      <div className="p-3.5 rounded-lg border border-[#1E222D] bg-[#101217] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2 py-0.5 rounded bg-[#E84142]/15 text-[#E84142] border border-[#E84142]/30 text-[10px] font-bold uppercase tracking-wider">
+              UniHack Evaluator Testing Mode
+            </span>
+            <span className="text-[#F1F5F9] font-bold font-sans">
+              2 Tài Khoản Mẫu Đã Cấu Hình Sẵn:
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-[#94A3B8]">
+            <span>1. Bên Mua: <strong className="text-[#F1F5F9]">Lê Minh Tuấn (@tuan_buyer · 0x1A2b...0001)</strong></span>
+            <span>·</span>
+            <span>2. GDTG Bảo Chứng: <strong className="text-[#10B981]">Nguyễn Nam (@nam_broker · Quota 6,000 USDC)</strong></span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLoadJudgePreset}
+          className="px-3.5 py-2 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] hover:border-[#E84142] text-[#F1F5F9] text-xs font-bold transition-all shrink-0 flex items-center gap-1.5"
+        >
+          <span>⚡ Nạp Kèo Mẫu Giám Khảo (1,000 USDC)</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ── LEFT PANE (7 COLS): CONFIGURATION ──────────────────────────────── */}
         <div className="lg:col-span-7 space-y-5">
@@ -575,12 +672,17 @@ function CreateEscrowPactContent() {
               </div>
             </div>
 
-            {/* 2. Broker Directory / Selector */}
+            {/* 2. Broker Directory / Selector (Dynamic & Scalable) */}
             <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-3 font-mono text-xs">
-              <div className="flex items-center justify-between pb-2 border-b border-[#1E222D]">
-                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                  {t("2. Chỉ Định GDTG Bảo Lãnh (_broker)", "2. Assign Escrow Broker (_broker)")}
-                </span>
+              <div className="flex items-center justify-between pb-2 border-b border-[#1E222D] flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
+                    {t("2. Chỉ Định GDTG Bảo Lãnh (_broker)", "2. Assign Escrow Broker (_broker)")}
+                  </span>
+                  <span className="text-[10px] text-[#64748B] font-mono">
+                    ({t("Tra cứu & Đề xuất theo Hạn Mức Thực Tế", "Search & Dynamic Quota Match")})
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setIsCustomBroker(!isCustomBroker)}
@@ -588,48 +690,114 @@ function CreateEscrowPactContent() {
                 >
                   {isCustomBroker
                     ? t("Chọn Từ Danh Bạ Bảo Chứng", "Select from Directory")
-                    : t("Nhập Ví GDTG Riêng", "Custom Broker Address")}
+                    : t("Nhập Ví GDTG Riêng (0x...)", "Custom Broker Address")}
                 </button>
               </div>
 
               {!isCustomBroker ? (
-                <div className="space-y-2">
-                  {REGISTERED_BROKERS.map((b) => {
-                    const isSelected = selectedBroker.id === b.id;
-                    return (
-                      <div
-                        key={b.id}
-                        onClick={() => setSelectedBroker(b)}
-                        className={`p-3 rounded-md border cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
-                          isSelected
-                            ? "bg-[#161922] border-[#E84142]"
-                            : "bg-[#090A0D] border-[#1E222D] hover:border-[#64748B]"
-                        }`}
-                      >
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <span className="font-sans font-bold text-xs text-[#F1F5F9]">{b.name}</span>
-                            <span className="px-1.5 py-0.2 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30 text-[9px] font-bold">
-                              {b.badge}
-                            </span>
-                          </div>
-                          <span className="text-[11px] text-[#64748B] block">
-                            Ví: {shortenAddress(b.address)} · ⭐ {b.rating} ({b.deals} kèo)
-                          </span>
-                        </div>
-
-                        <div className="text-right sm:border-l sm:border-[#1E222D] sm:pl-3 shrink-0">
-                          <span className="text-[10px] text-[#64748B] block">HẠN MỨC KHẢ DỤNG</span>
-                          <span className="font-bold text-[#F1F5F9] tabular-nums">
-                            {b.availableQuota.toLocaleString()} USDC
-                          </span>
-                        </div>
+                <div className="space-y-3 font-sans">
+                  {/* Dynamic Search & Filter Tools */}
+                  <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
+                        <Search className="w-3.5 h-3.5" />
                       </div>
-                    );
-                  })}
+                      <input
+                        type="text"
+                        value={brokerSearchQuery}
+                        onChange={(e) => setBrokerSearchQuery(e.target.value)}
+                        placeholder={t("Tìm GDTG theo tên, @username, ID hoặc ví 0x...", "Search broker by name, @username, ID or 0x...")}
+                        className="w-full pl-9 pr-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs font-mono text-[#F1F5F9] focus:outline-none"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFilterEligibleOnly(!filterEligibleOnly)}
+                      className={`px-3 py-2 rounded-md border text-xs font-mono transition-colors shrink-0 flex items-center gap-1.5 ${
+                        filterEligibleOnly
+                          ? "bg-[#10B981]/15 border-[#10B981]/40 text-[#10B981] font-bold"
+                          : "bg-[#090A0D] border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9]"
+                      }`}
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>{t("Chỉ Hiện Đủ Hạn Mức", "Eligible Quota Only")}</span>
+                    </button>
+                  </div>
+
+                  {/* List of brokers */}
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    {filteredBrokers.length === 0 ? (
+                      <div className="p-4 text-center text-[#64748B] text-xs font-mono border border-dashed border-[#1E222D] rounded-md">
+                        {t("Không tìm thấy GDTG nào phù hợp với bộ lọc.", "No matching brokers found.")}
+                      </div>
+                    ) : (
+                      filteredBrokers.map((b) => {
+                        const isSelected = selectedBroker.id === b.id;
+                        const isEligible = b.availableQuota >= dealAmountNumber;
+                        const isBest = b.id === bestRecommendedBroker.id;
+
+                        return (
+                          <div
+                            key={b.id}
+                            onClick={() => {
+                              setSelectedBroker(b);
+                              if (b.recommendedFeeBps) setBrokerFeeBps(b.recommendedFeeBps);
+                            }}
+                            className={`p-3 rounded-md border cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-mono ${
+                              isSelected
+                                ? "bg-[#161922] border-[#E84142] ring-1 ring-[#E84142]/40"
+                                : !isEligible
+                                ? "bg-[#090A0D]/60 border-[#1E222D] opacity-60 hover:opacity-100"
+                                : "bg-[#090A0D] border-[#1E222D] hover:border-[#64748B]"
+                            }`}
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-sans font-bold text-xs text-[#F1F5F9]">{b.name}</span>
+                                <span className="text-[10px] text-[#10B981] font-mono font-bold">@{b.username}</span>
+                                <span className="px-1.5 py-0.2 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] text-[9px]">
+                                  {b.badge}
+                                </span>
+                                {isBest && (
+                                  <span className="px-1.5 py-0.2 rounded bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30 text-[9px] font-bold">
+                                    ⭐ Đề Xuất Tối Ưu
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-[11px] text-[#64748B]">
+                                <span>Ví: {shortenAddress(b.address)}</span>
+                                <span>·</span>
+                                <span>⭐ {b.rating} ({b.deals} kèo)</span>
+                                <span>·</span>
+                                <span>Phí mẫu: {(b.recommendedFeeBps / 100).toFixed(2)}%</span>
+                              </div>
+                            </div>
+
+                            <div className="text-right sm:border-l sm:border-[#1E222D] sm:pl-3 shrink-0">
+                              <span className="text-[10px] text-[#64748B] block">HẠN MỨC KHẢ DỤNG</span>
+                              <div className="flex items-center gap-1.5 justify-end">
+                                <span className="font-bold text-[#F1F5F9] tabular-nums text-xs">
+                                  {b.availableQuota.toLocaleString()} USDC
+                                </span>
+                                {isEligible ? (
+                                  <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/15 px-1 py-0.2 rounded border border-[#10B981]/30">
+                                    Đủ Cọc
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-[#EF4444] bg-[#EF4444]/15 px-1 py-0.2 rounded border border-[#EF4444]/30">
+                                    Thiếu Quota
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div>
+                <div className="space-y-2">
                   <input
                     type="text"
                     value={customBrokerAddress}
@@ -637,7 +805,7 @@ function CreateEscrowPactContent() {
                     placeholder="Nhập địa chỉ ví GDTG tùy chỉnh 0x..."
                     className="w-full bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2.5 text-xs font-mono text-[#F1F5F9] focus:outline-none"
                   />
-                  <span className="text-[11px] text-[#64748B] block pt-1">
+                  <span className="text-[11px] text-[#64748B] block">
                     GDTG bắt buộc phải nạp cọc trước trên StakedBrokerRegistry để có hạn mức nhận kèo.
                   </span>
                 </div>
@@ -648,7 +816,7 @@ function CreateEscrowPactContent() {
                 <div className="p-2.5 rounded bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-xs font-sans font-medium flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span>
-                    Hạn mức bảo lãnh khả dụng của GDTG ({liveQuotaNumber.toLocaleString()} USDC) không đủ cho giá trị kèo ({dealAmountNumber.toLocaleString()} USDC).
+                    Hạn mức bảo lãnh khả dụng của GDTG ({liveQuotaNumber.toLocaleString()} USDC) không đủ cho giá trị kèo ({dealAmountNumber.toLocaleString()} USDC). Vui lòng chọn GDTG có vốn cọc lớn hơn.
                   </span>
                 </div>
               )}
