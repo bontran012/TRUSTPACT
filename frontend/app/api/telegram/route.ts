@@ -72,11 +72,11 @@ Bạn chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào khu
         const brokerGuide = `
 🛡️ <b>DANH SÁCH GDTG / TRUNG GIAN UY TÍN BẢO CHỨNG:</b>
 
-1. <b>Nguyễn Nam</b> (<code>@nguyennam_otc</code>) - Cọc 5,000 USDC (Aave V3)
-2. <b>Hoàng Minh</b> (<code>@hoangminh_otc</code>) - Cọc 2,500 USDC (Aave V3)
-3. <b>Trần Tuấn</b> (<code>@trantuan_dev</code>) - Cọc 1,200 USDC (Aave V3)
+1. <b>Nguyễn Nam (Giám Định Viên)</b> (<code>@nam_escrow_official</code>) - Cọc 5,000 USDC (Aave V3)
+2. <b>Hoàng Minh (Merchant OTC)</b> (<code>@hoangminh_otc</code>) - Cọc 2,500 USDC (Aave V3)
+3. <b>Quản Trị Viên (Super Admin)</b> (<code>@TrustPact_Sentinel_bot</code>) - Cọc 50,000 USDC
 
-👉 <i>Gửi tin nhắn <code>@hoangminh_otc</code> để xem chi tiết Hộ Chiếu SBT & Căn Cước Web3!</i>
+👉 <i>Gửi tin nhắn <code>@nam_escrow_official</code> hoặc <code>@hoangminh_otc</code> để tra cứu Hộ Chiếu SBT!</i>
 `;
         await sendTelegramMessage(chatId, brokerGuide, {
           inline_keyboard: [

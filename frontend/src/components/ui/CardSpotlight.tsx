@@ -1,68 +1,27 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React from "react";
 
 interface CardSpotlightProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   spotlightColor?: string;
   className?: string;
+  radius?: number;
+  color?: string;
 }
 
+// Clean minimalist mode: renders children directly without mouse-follow spotlight glow
 export function CardSpotlight({
   children,
-  spotlightColor = "rgba(232, 65, 66, 0.12)",
   className = "",
+  spotlightColor,
+  radius,
+  color,
   ...props
 }: CardSpotlightProps) {
-  const divRef = useRef<HTMLDivElement>(null);
-  const [isFocused, setIsFocused] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!divRef.current) return;
-    const rect = divRef.current.getBoundingClientRect();
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
-
-  const handleFocus = () => {
-    setIsFocused(true);
-    setOpacity(1);
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    setOpacity(0);
-  };
-
-  const handleMouseEnter = () => {
-    setOpacity(1);
-  };
-
-  const handleMouseLeave = () => {
-    setOpacity(0);
-  };
-
   return (
-    <div
-      ref={divRef}
-      onMouseMove={handleMouseMove}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`relative overflow-hidden rounded-xl border border-[#1E222D] bg-[#101217] transition-all duration-300 hover:border-[#1E222D]/90 ${className}`}
-      {...props}
-    >
-      {/* Spotlight Radial Overlay */}
-      <div
-        className="pointer-events-none absolute -inset-px transition-opacity duration-300 z-10"
-        style={{
-          opacity,
-          background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 80%)`,
-        }}
-      />
-      <div className="relative z-20">{children}</div>
+    <div className={className} {...props}>
+      {children}
     </div>
   );
 }

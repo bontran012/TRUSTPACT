@@ -27,8 +27,6 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
 import { AuthModal } from "@/src/components/auth/AuthModal";
 import { OnboardingModal } from "@/src/components/auth/OnboardingModal";
-import { CSKHLiveChat } from "@/src/components/chat/CSKHLiveChat";
-import { LiveMarquee } from "@/src/components/ui/LiveMarquee";
 import {
   CONTRACT_ADDRESSES,
   ERC20_ABI,
@@ -361,9 +359,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Live Avalanche Telemetry & Settlement Marquee */}
-      <LiveMarquee />
-
       {/* ── MAIN WORKSPACE CONTENT ─────────────────────────────────── */}
       <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 sm:p-6">{children}</main>
 
@@ -421,9 +416,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
-
-      {/* Floating CSKH Live Support Chat Widget */}
-      <CSKHLiveChat />
 
       {/* Global Auth & Account Management Modal */}
       <AuthModal />

@@ -35,10 +35,8 @@ import {
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 import { useAuth } from "@/src/context/AuthContext";
-import { BorderBeam } from "@/src/components/ui/BorderBeam";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
 import { NumberTicker } from "@/src/components/ui/NumberTicker";
-import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 type CategoryKey = "phone" | "bank" | "telegram" | "wallet";
 
@@ -297,8 +295,7 @@ export default function ScamRadarAndReputationPage() {
     }
   }, []);
 
-  // Telegram Bot demo & copy state
-  const [teleDemoType, setTeleDemoType] = useState<"scam" | "trusted">("scam");
+  // Telegram Bot copy state
   const [copiedTeleCmd, setCopiedTeleCmd] = useState(false);
   const copyTeleCmd = (cmd: string) => {
     navigator.clipboard.writeText(cmd);
@@ -342,70 +339,38 @@ export default function ScamRadarAndReputationPage() {
 
   return (
     <div className="space-y-6" suppressHydrationWarning>
-      {/* ── TOP PROTOCOL TELEMETRY BAR (Full 12 cols, 4 metric cells) ────────────────── */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 rounded-lg panel-border bg-[#101217] overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-[#1E222D]">
-        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-            Tổng Vốn Cọc GDTG (Aave V3 TVL)
-          </span>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
-            <NumberTicker
-              value={totalPrincipal ? Number(formatUnits(totalPrincipal as bigint, 6)) : 15000}
-              decimals={2}
-              suffix=" USDC"
-            />
+      {/* ── TOP PROTOCOL TELEMETRY BAR (Compact & Clean) ────────────────── */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-3 rounded-lg border border-[#1E222D] bg-[#101217]">
+          <span className="text-[10px] font-mono text-[#64748B] uppercase block">Tổng Vốn Cọc GDTG</span>
+          <div className="text-base font-bold font-mono text-[#F1F5F9] mt-0.5">
+            {totalPrincipal ? Number(formatUnits(totalPrincipal as bigint, 6)).toLocaleString() : "15,000"} USDC
           </div>
-          <span className="text-[11px] font-mono text-[#10B981] flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            Bảo chứng 120% hạn mức
-          </span>
+          <span className="text-[10px] text-[#64748B]">Bảo chứng Aave V3</span>
         </div>
 
-        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-            Lãi Thực Tế Đang Sinh (aUSDC APY)
-          </span>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-[#10B981] tabular-nums">
-            <NumberTicker value={5.2} decimals={2} prefix="+" suffix="% APY" />
+        <div className="p-3 rounded-lg border border-[#1E222D] bg-[#101217]">
+          <span className="text-[10px] font-mono text-[#64748B] uppercase block">Lãi Suất Aave APY</span>
+          <div className="text-base font-bold font-mono text-[#10B981] mt-0.5">
+            +5.20% APY
           </div>
-          <span className="text-[11px] font-mono text-[#94A3B8]">
-            Đã tích lũy:{" "}
-            <NumberTicker
-              value={totalAccruedYield ? Number(formatUnits(totalAccruedYield as bigint, 6)) : 342.5}
-              decimals={2}
-            />{" "}
-            USDC
-          </span>
+          <span className="text-[10px] text-[#64748B]">Sinh lời tự động</span>
         </div>
 
-        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-            Tổng Giao Dịch Đã Bảo Vệ
-          </span>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
-            <NumberTicker
-              value={totalEscrows !== undefined ? Number(totalEscrows) : 101}
-              suffix=" Hợp Đồng"
-            />
+        <div className="p-3 rounded-lg border border-[#1E222D] bg-[#101217]">
+          <span className="text-[10px] font-mono text-[#64748B] uppercase block">Giao Dịch Đã Bảo Vệ</span>
+          <div className="text-base font-bold font-mono text-[#F1F5F9] mt-0.5">
+            {totalEscrows !== undefined ? Number(totalEscrows) : 101} Hợp Đồng
           </div>
-          <span className="text-[11px] font-mono text-[#94A3B8]">
-            0.8s finality trên Fuji C-Chain
-          </span>
+          <span className="text-[10px] text-[#64748B]">Fuji C-Chain</span>
         </div>
 
-        <div className="p-4 sm:p-5 flex flex-col justify-between space-y-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-            Bản Ghi Sổ Đen L1 (Gas 0đ)
-          </span>
-          <div className="text-xl sm:text-2xl font-bold font-mono text-[#F1F5F9] tabular-nums">
-            <NumberTicker
-              value={totalL1Reports !== undefined ? Number(totalL1Reports) : 142}
-              suffix=" Đối Tượng"
-            />
+        <div className="p-3 rounded-lg border border-[#1E222D] bg-[#101217]">
+          <span className="text-[10px] font-mono text-[#64748B] uppercase block">Sổ Đen On-Chain</span>
+          <div className="text-base font-bold font-mono text-[#EF4444] mt-0.5">
+            {totalL1Reports !== undefined ? Number(totalL1Reports) : 142} Đối Tượng
           </div>
-          <span className="text-[11px] font-mono text-[#EF4444]">
-            Bất biến trên Custom L1 Subnet
-          </span>
+          <span className="text-[10px] text-[#64748B]">Subnet 0đ Gas</span>
         </div>
       </section>
 
@@ -418,26 +383,12 @@ export default function ScamRadarAndReputationPage() {
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-[#E84142]" />
                 <h2 className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                  Hệ Thống Rà Quét Lừa Đảo &amp; Tra Cứu Tín Nhiệm (Unified Radar)
+                  Tra Cứu Sổ Đen &amp; Tín Nhiệm On-Chain
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
-                {mounted && (
-                  <a
-                    href="https://t.me/TrustPact_Sentinel_bot"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-all shadow-sm"
-                    title="Tra cứu nhanh qua Bot Telegram"
-                  >
-                    <Send className="w-3 h-3 text-[#229ED9]" />
-                    <span>Bot Telegram: @TrustPact_Sentinel_bot</span>
-                  </a>
-                )}
-                <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-2 py-0.5 rounded">
-                  Gasless 0đ Subnet
-                </span>
-              </div>
+              <span className="text-[10px] font-mono text-[#64748B]">
+                Avalanche Custom Subnet (0đ Gas)
+              </span>
             </div>
 
             {/* Segmented Category Selector */}
@@ -492,8 +443,8 @@ export default function ScamRadarAndReputationPage() {
               </div>
 
               {/* Quick Presets */}
-              <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
-                <span className="text-[#64748B] font-mono">Ví dụ kiểm tra nhanh:</span>
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-mono text-[#64748B]">
+                <span>Gợi ý tra nhanh:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -501,9 +452,9 @@ export default function ScamRadarAndReputationPage() {
                     setQueryInput("1903889922101");
                     setActiveQuery("1903889922101");
                   }}
-                  className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
+                  className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
                 >
-                  STK 1903889922101 (Scam)
+                  STK 1903889922101
                 </button>
                 <button
                   type="button"
@@ -512,9 +463,9 @@ export default function ScamRadarAndReputationPage() {
                     setQueryInput("0982736182");
                     setActiveQuery("0982736182");
                   }}
-                  className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
+                  className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
                 >
-                  SĐT 0982736182 (Scam)
+                  SĐT 0982736182
                 </button>
                 <button
                   type="button"
@@ -523,9 +474,9 @@ export default function ScamRadarAndReputationPage() {
                     setQueryInput("@otc_vn_fake_admin");
                     setActiveQuery("@otc_vn_fake_admin");
                   }}
-                  className="px-2 py-0.5 rounded border border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] font-mono hover:bg-[#EF4444]/20 transition-colors"
+                  className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
                 >
-                  TG @otc_vn_fake_admin (Scam)
+                  @otc_vn_fake_admin
                 </button>
                 <button
                   type="button"
@@ -535,9 +486,9 @@ export default function ScamRadarAndReputationPage() {
                     setActiveQuery("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                     setResolvedSbtAddress("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002");
                   }}
-                  className="px-2 py-0.5 rounded border border-[#10B981]/30 bg-[#10B981]/10 text-[#10B981] font-mono hover:bg-[#10B981]/20 transition-colors"
+                  className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
                 >
-                  Ví @hoangminh_otc (0x89C3...0002 - Uy Tín)
+                  @hoangminh_otc (Uy Tín)
                 </button>
               </div>
             </form>
@@ -794,17 +745,11 @@ export default function ScamRadarAndReputationPage() {
             {!activeQuery && !showReportForm && (
               <div className="pt-2 space-y-2.5 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between pb-2 border-b border-[#1E222D]">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                      Sổ Đen Mới Nhất Trên L1 Subnet
-                    </span>
-                    <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/15 px-1.5 py-0.2 rounded border border-[#10B981]/30">
-                      Live Stream · 0đ Gas
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-[#64748B]">
-                    Cập nhật từng block (0.8s)
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                    Sổ Đen Mới Nhất
+                  </span>
+                  <span className="text-[10px] font-mono text-[#64748B]">
+                    Block 0.8s · 0đ Gas Subnet
                   </span>
                 </div>
 
@@ -990,26 +935,14 @@ export default function ScamRadarAndReputationPage() {
                   Hộ Chiếu Tín Nhiệm (TrustPassportSBT)
                 </h3>
               </div>
-              <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-0.5 rounded flex items-center gap-1 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                Đồng Bộ Tự Động
+              <span className="text-[10px] font-mono text-[#64748B]">
+                Soulbound ERC-721
               </span>
             </div>
 
-            <p className="text-[11px] text-[#94A3B8] leading-relaxed">
-              Tự động liên kết và trích xuất chỉ số tín nhiệm On-Chain (ERC-721 Soulbound) theo đối tượng được tra cứu ở thanh công cụ chính.
-            </p>
-
-            {/* Hardware-Style SBT Credential Card */}
-            <div className="relative rounded-lg border border-[#1E222D] bg-[#090A0D] overflow-hidden shadow-inner font-mono text-xs">
-              <BorderBeam colorFrom="#F59E0B" colorTo="#E84142" duration={10} size={160} borderWidth={1.5} />
-              <CardSpotlight className="p-4 space-y-3" color="rgba(245, 158, 11, 0.08)" radius={240}>
-                {/* Soulbound watermark */}
-                <div className="absolute right-2 top-2 pointer-events-none select-none text-[22px] font-extrabold text-[#1E222D]/60 tracking-wider">
-                  NON-TRANSFERABLE
-                </div>
-
-                <div className="flex items-center justify-between relative z-10 border-b border-[#1E222D] pb-2.5">
+            {/* SBT Credential Card */}
+            <div className="rounded-lg border border-[#1E222D] bg-[#090A0D] p-4 space-y-3 font-mono text-xs">
+              <div className="flex items-center justify-between border-b border-[#1E222D] pb-2.5">
                   <div>
                     <span className="text-[10px] text-[#64748B] block uppercase">Định Danh Hộ Chiếu SBT</span>
                     <span className="font-bold text-[#F1F5F9]">
@@ -1138,159 +1071,57 @@ export default function ScamRadarAndReputationPage() {
                     </span>
                   </div>
                 </div>
-              </CardSpotlight>
             </div>
           </div>
 
-          {/* ── TELEGRAM BOT INTEGRATION & LIVE SIMULATION CARD ────────────────── */}
-          <div className="rounded-lg panel-border bg-[#101217] p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[#229ED9]/15 border border-[#229ED9]/30 flex items-center justify-center text-[#229ED9]">
-                  <Send className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#F1F5F9] flex items-center gap-1.5 font-sans">
-                    <span>TrustPact Sentinel Bot</span>
-                  </h3>
-                  <span className="text-[10px] font-mono text-[#38B6FF]">@TrustPact_Sentinel_bot</span>
-                </div>
+          {/* ── TELEGRAM SENTINEL BOT (Clean & Minimal) ────────────────── */}
+          <div className="rounded-lg border border-[#1E222D] bg-[#101217] p-5 space-y-3 font-sans">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E222D]">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-[#229ED9]" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+                  Telegram Sentinel Bot
+                </h3>
               </div>
-              <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-0.5 rounded flex items-center gap-1 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                Live 24/7
+              <span className="text-[10px] font-mono text-[#64748B]">
+                @TrustPact_Sentinel_bot
               </span>
             </div>
 
-            <p className="text-[11px] text-[#94A3B8] leading-relaxed font-sans">
-              Không cần mở web! Bạn có thể nhắn tin riêng cho Bot hoặc <strong>thêm Bot vào nhóm chat Telegram OTC</strong> để tự động cảnh báo lừa đảo ngay khi có tin nhắn chứa STK đen.
+            <p className="text-xs text-[#94A3B8] leading-relaxed">
+              Tự động quét số tài khoản lừa đảo và kiểm tra tín nhiệm trực tiếp trên nhóm chat Telegram hoặc tin nhắn riêng 24/7.
             </p>
 
-            {/* Quick Demo Switcher Tabs */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-[11px] font-sans">
-                <span className="text-[#64748B]">Bản xem trước phản hồi Bot:</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setTeleDemoType("scam")}
-                    className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
-                      teleDemoType === "scam"
-                        ? "bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 font-bold"
-                        : "text-[#64748B] hover:text-[#94A3B8]"
-                    }`}
-                  >
-                    Gặp STK Lừa Đảo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTeleDemoType("trusted")}
-                    className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
-                      teleDemoType === "trusted"
-                        ? "bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/40 font-bold"
-                        : "text-[#64748B] hover:text-[#94A3B8]"
-                    }`}
-                  >
-                    Gặp User Uy Tín
-                  </button>
-                </div>
-              </div>
-
-              {/* Simulated Telegram Chat Window */}
-              <div className="rounded-lg border border-[#1E222D] bg-[#090A0D] p-3 font-mono text-xs space-y-2.5 shadow-inner">
-                {/* User Message Bubble */}
-                <div className="flex justify-end">
-                  <div className="bg-[#2B5278] text-[#F1F5F9] px-3 py-1.5 rounded-lg rounded-tr-none text-[11px] max-w-[85%] font-sans">
-                    <span className="font-mono">
-                      {teleDemoType === "scam" ? "/check 1903889922101" : "/check @hoangminh_otc"}
-                    </span>
-                    <span className="text-[9px] text-blue-200 block text-right mt-0.5">
-                      19:45 ✓✓
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bot Response Bubble */}
-                <div className="flex justify-start">
-                  <div className="bg-[#182533] border border-[#243547] text-[#E2E8F0] p-3 rounded-lg rounded-tl-none text-[11px] space-y-1.5 max-w-[95%]">
-                    {teleDemoType === "scam" ? (
-                      <>
-                        <div className="flex items-center gap-1.5 text-[#EF4444] font-bold text-xs pb-1 border-b border-[#243547]">
-                          <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
-                          <span>CẢNH BÁO: SỐ TÀI KHOẢN LỪA ĐẢO</span>
-                        </div>
-                        <div className="text-[10px] text-[#CBD5E1] space-y-1 font-sans">
-                          <p>• <b>Đối tượng:</b> <code className="text-[#F1F5F9] bg-[#0E1621] px-1 rounded">1903889922101</code> (Techcombank)</p>
-                          <p>• <b>Sổ đen L1:</b> 2 Báo Cáo On-Chain (Đã xác thực)</p>
-                          <p>• <b>Tội danh:</b> Nhận cọc OTC 500 USDT xong chặn tin nhắn</p>
-                          <p className="text-[#EF4444] font-bold pt-1">
-                            ⛔ KHUYẾN NGHỊ: DỪNG TẤT CẢ GIAO DỊCH!
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-1.5 text-[#10B981] font-bold text-xs pb-1 border-b border-[#243547]">
-                          <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                          <span>BẢO CHỨNG TÍN NHIỆM ON-CHAIN</span>
-                        </div>
-                        <div className="text-[10px] text-[#CBD5E1] space-y-1 font-sans">
-                          <p>• <b>Họ tên:</b> Hoàng Minh OTC</p>
-                          <p>• <b>User:</b> <code className="text-[#10B981] font-mono">@hoangminh_otc</code> · Mã ID: <strong className="text-[#F59E0B]">TP-2002</strong></p>
-                          <p>• <b>SBT Passport:</b> 99.8% Uy tín (128 kèo thành công)</p>
-                          <p>• <b>Cọc Aave V3:</b> 5,000 USDC đang khóa</p>
-                          <p>• <b>Liên hệ:</b> Zalo 0987654321 · FB hoangminh.otc.pact</p>
-                          <p className="text-[#10B981] font-bold pt-1">
-                            ✅ An toàn khi giao dịch qua Két Sắt TrustPact!
-                          </p>
-                        </div>
-                      </>
-                    )}
-                    <span className="text-[9px] text-[#64748B] block text-right font-sans">
-                      TrustPact Bot · 19:45
-                    </span>
-                  </div>
-                </div>
-              </div>
+            <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] font-mono text-xs flex items-center justify-between">
+              <span className="text-[#64748B]">Lệnh tra cứu:</span>
+              <button
+                type="button"
+                onClick={() => copyTeleCmd("/check 1903889922101")}
+                className="text-[#38B6FF] hover:text-white flex items-center gap-1 transition-colors"
+              >
+                <code>/check &lt;STK hoặc @username&gt;</code>
+                {copiedTeleCmd ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+              </button>
             </div>
 
-            {/* Action Buttons to Open Real Bot or Add to Group */}
-            <div className="space-y-2 pt-1 font-sans">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <a
-                  href="https://t.me/TrustPact_Sentinel_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-md bg-[#229ED9] hover:bg-[#1C8CC4] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md text-center"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Mở Bot Telegram</span>
-                  <ExternalLink className="w-3 h-3 opacity-80" />
-                </a>
-
-                <a
-                  href="https://t.me/TrustPact_Sentinel_bot?startgroup=true"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] hover:border-[#229ED9] text-[#F1F5F9] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all text-center"
-                >
-                  <span>+ Thêm Vào Nhóm Chat</span>
-                  <ExternalLink className="w-3 h-3 opacity-60" />
-                </a>
-              </div>
-
-              {/* Quick Copy Command */}
-              <div className="p-2 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between text-[11px] font-mono">
-                <span className="text-[#64748B]">Cú pháp trong chat:</span>
-                <button
-                  type="button"
-                  onClick={() => copyTeleCmd("/check 1903889922101")}
-                  className="text-[#38B6FF] hover:text-white flex items-center gap-1 transition-colors"
-                >
-                  <code>/check &lt;STK hoặc @user&gt;</code>
-                  {copiedTeleCmd ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
-                </button>
-              </div>
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <a
+                href="https://t.me/TrustPact_Sentinel_bot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded bg-[#229ED9] hover:bg-[#1C8CC4] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Mở Chat Bot</span>
+              </a>
+              <a
+                href="https://t.me/TrustPact_Sentinel_bot?startgroup=true"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-2 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#F1F5F9] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center"
+              >
+                <span>+ Thêm Vào Nhóm</span>
+              </a>
             </div>
           </div>
         </div>
