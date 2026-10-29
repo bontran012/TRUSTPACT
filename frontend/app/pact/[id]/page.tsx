@@ -226,45 +226,53 @@ export default function EscrowPactRoomPage() {
   const [refundToBuyerInput, setRefundToBuyerInput] = useState<string>(String(dealAmountNum / 2));
   const [payoutToSellerInput, setPayoutToSellerInput] = useState<string>(String(dealAmountNum / 2));
 
-  // Chat message stream
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "msg-0",
-      sender: CONTRACT_ADDRESSES.universalEscrow,
-      role: "system",
-      senderName: "Hệ Thống UniversalEscrow",
-      text: `Hợp đồng ký quỹ #${pactId.toString()} đã khóa thành công ${formatUsdc(escrowItem.amount)} USDC vào Két Sắt on-chain. GDTG đã phong tỏa hạn mức cọc bảo chứng.`,
-      timestamp: "10:14",
-    },
-    {
-      id: "msg-1",
-      sender: escrowItem.buyer,
-      role: "buyer",
-      senderName: "Lê Minh Tuấn (Bên Mua)",
-      text: "Tôi đã nạp đủ 1,000 USDC vào Két Sắt Smart Contract. Mời Bên Bán tiến hành bàn giao hàng.",
-      timestamp: "10:15",
-    },
-    {
-      id: "msg-2",
-      sender: escrowItem.seller,
-      role: "seller",
-      senderName: "Hoàng Minh (Bên Bán)",
-      text: "Đã chuyển giao tài sản và gửi chứng từ bàn giao lên phòng ký quỹ để Bên Mua và GDTG đối soát.",
-      timestamp: "10:22",
-      isProof: true,
-    },
-    {
-      id: "msg-3",
-      sender: escrowItem.broker,
-      role: "broker",
-      senderName: "Nguyễn Nam (GDTG Broker)",
-      text: "GDTG Nguyễn Nam đã tiếp nhận đối soát. Sẵn sàng phê duyệt giải ngân ngay khi Bên Mua xác nhận hài lòng.",
-      timestamp: "10:25",
-    },
-  ]);
+  // Chat message stream & real-time synchronization
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessageText, setNewMessageText] = useState("");
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // Real-time synchronization from persistent server DB
+  useEffect(() => {
+    let isMounted = true;
+    const fetchChatAndHandover = async () => {
+      try {
+        const [msgRes, handoverRes, pactRes] = await Promise.all([
+          fetch(`/api/pacts/${pactId}/messages`),
+          fetch(`/api/pacts/${pactId}/handover`),
+          fetch(`/api/pacts/${pactId}`),
+        ]);
+
+        if (!isMounted) return;
+
+        const msgData = await msgRes.json();
+        if (msgData.success && Array.isArray(msgData.messages) && msgData.messages.length > 0) {
+          setMessages(msgData.messages);
+        }
+
+        const handoverJson = await handoverRes.json();
+        if (handoverJson.success && handoverJson.handover && handoverJson.handover.isHandedOver) {
+          setHandoverData(handoverJson.handover);
+        }
+
+        const pactJson = await pactRes.json();
+        if (pactJson.success && pactJson.pact && pactJson.pact.status !== undefined) {
+          if (simulatedStatusOverride === null && pactJson.pact.status !== 0) {
+            setSimulatedStatusOverride(pactJson.pact.status);
+          }
+        }
+      } catch (err) {
+        // Fallback silently if offline
+      }
+    };
+
+    fetchChatAndHandover();
+    const interval = setInterval(fetchChatAndHandover, 2500);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [pactId, simulatedStatusOverride]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessageText.trim()) return;
     const role: "buyer" | "seller" | "broker" | "admin" = isAdmin
@@ -282,7 +290,15 @@ export default function EscrowPactRoomPage() {
       ? "Hoàng Minh (Bên Bán)"
       : "Lê Minh Tuấn (Bên Mua)";
 
-    const newMsg: ChatMessage = {
+    const payload = {
+      sender: effectiveAddress || escrowItem.buyer,
+      role,
+      senderName,
+      text: newMessageText.trim(),
+    };
+
+    // Optimistic UI update
+    const optimisticMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: (effectiveAddress || escrowItem.buyer) as `0x${string}`,
       role,
@@ -290,11 +306,25 @@ export default function EscrowPactRoomPage() {
       text: newMessageText.trim(),
       timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
     };
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages((prev) => [...prev, optimisticMsg]);
     setNewMessageText("");
+
+    try {
+      const res = await fetch(`/api/pacts/${pactId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success && data.message) {
+        setMessages((prev) => prev.map((m) => (m.id === optimisticMsg.id ? data.message : m)));
+      }
+    } catch (err) {
+      console.error("Lỗi đồng bộ tin nhắn lên server:", err);
+    }
   };
 
-  const handleQuickReply = (text: string) => {
+  const handleQuickReply = async (text: string) => {
     const role: "buyer" | "seller" | "broker" | "admin" = isAdmin
       ? "admin"
       : isBroker
@@ -310,41 +340,62 @@ export default function EscrowPactRoomPage() {
       ? "Hoàng Minh (Bên Bán)"
       : "Lê Minh Tuấn (Bên Mua)";
 
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: (effectiveAddress || escrowItem.buyer) as `0x${string}`,
-      role,
-      senderName,
-      text,
-      timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setMessages((prev) => [...prev, newMsg]);
+    try {
+      const res = await fetch(`/api/pacts/${pactId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: effectiveAddress || escrowItem.buyer,
+          role,
+          senderName,
+          text,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.message) {
+        setMessages((prev) => [...prev, data.message]);
+      }
+    } catch (err) {
+      console.error("Lỗi gửi phản hồi nhanh:", err);
+    }
   };
 
   // Seller confirms handover
-  const handleSellerConfirmHandover = (e: React.FormEvent) => {
+  const handleSellerConfirmHandover = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = {
+    const proofUrl = sellerProofInput.trim() || "https://testnet.snowtrace.io";
+    const notes = sellerNotesInput.trim() || "Bên Bán xác nhận đã chuyển giao đầy đủ hàng/tài sản cho Bên Mua.";
+    const timeStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+
+    const localHandover = {
       assetTitle: "Bàn giao tài sản số & tài khoản OTC",
-      proofUrl: sellerProofInput.trim() || "https://testnet.snowtrace.io",
-      notes: sellerNotesInput.trim() || "Bên Bán xác nhận đã chuyển giao đầy đủ hàng/tài sản cho Bên Mua.",
+      proofUrl,
+      notes,
       isHandedOver: true,
-      handedOverAt: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+      handedOverAt: timeStr,
     };
-    setHandoverData(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`trustpact_handover_${pactId}`, JSON.stringify(updated));
+    setHandoverData(localHandover);
+
+    try {
+      const res = await fetch(`/api/pacts/${pactId}/handover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assetTitle: "Bàn giao tài sản số & tài khoản OTC",
+          proofUrl,
+          notes,
+          senderName: "Hoàng Minh (Bên Bán)",
+          senderAddress: escrowItem.seller,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.handover) setHandoverData(data.handover);
+        if (data.message) setMessages((prev) => [...prev, data.message]);
+      }
+    } catch (err) {
+      console.error("Lỗi đồng bộ bàn giao lên server:", err);
     }
-    const handoverMsg: ChatMessage = {
-      id: `msg-handover-${Date.now()}`,
-      sender: escrowItem.seller,
-      role: "seller",
-      senderName: "Hoàng Minh (Bên Bán)",
-      text: `✓ Bên Bán đã xác nhận hoàn tất bàn giao hàng! Bằng chứng đối soát: ${updated.proofUrl}. Đề nghị Bên Mua kiểm tra và nghiệm thu giải ngân.`,
-      timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
-      isProof: true,
-    };
-    setMessages((prev) => [...prev, handoverMsg]);
   };
 
   // Open CSKH Live Support
@@ -372,7 +423,7 @@ export default function EscrowPactRoomPage() {
        (functionName === "mutualCancelEscrow" && (addrLower === escrowItem.buyer.toLowerCase() || addrLower === escrowItem.seller.toLowerCase())) ||
        (functionName === "adminSlashCorruptBroker" && addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"));
 
-    // Try real on-chain call if connected wallet is legitimately authorized on-chain
+    // 1. REAL ON-CHAIN TRANSACTION (when user connects eligible Web3 wallet)
     if (isWalletEligibleOnChain && writeContractAsync) {
       try {
         const hash = await writeContractAsync({
@@ -388,6 +439,32 @@ export default function EscrowPactRoomPage() {
         }
 
         setTxStatus({ step: "success", txHash: hash, actionTitle });
+
+        const isRelease = functionName === "brokerRelease" || functionName === "buyerConfirmDelivery" || functionName === "brokerSettle";
+        const isRefund = functionName === "brokerRefundBuyer" || functionName === "buyerClaimExpiredRefund" || functionName === "mutualCancelEscrow" || functionName === "adminSlashCorruptBroker";
+        const newStatus = isRelease ? 1 : isRefund ? 2 : 0;
+
+        // Persist real on-chain transaction result to server DB
+        await fetch(`/api/pacts/${pactId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus, txHash: hash }),
+        });
+
+        // Add real on-chain confirmation message into chat stream
+        await fetch(`/api/pacts/${pactId}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sender: CONTRACT_ADDRESSES.universalEscrow,
+            role: "system",
+            senderName: "UniversalEscrow Protocol",
+            text: `✓ Giao dịch đã xác thực ON-CHAIN thành công trên Avalanche Fuji! Mã Tx: ${hash}`,
+            isProof: true,
+            proofUrl: `https://testnet.snowtrace.io/tx/${hash}`,
+          }),
+        });
+
         await refetchEscrow();
         await refetchExpired();
         await refetchBuyerCancel();
@@ -395,55 +472,61 @@ export default function EscrowPactRoomPage() {
         setTimeout(() => setTxStatus({ step: "idle" }), 2500);
         return;
       } catch (err: any) {
-        console.warn("Real on-chain tx fallback to instant sandbox simulation:", err);
+        console.error("On-chain tx error:", err);
+        setTxStatus({
+          step: "error",
+          actionTitle,
+          errorMessage: parseContractError(err),
+        });
+        return;
       }
     }
 
-    // Instant Sandbox Simulation
-    setTimeout(() => {
-      setTxStatus({ step: "confirming", actionTitle: `${actionTitle} (Đang quyết toán 0.8s Fuji...)` });
-      setTimeout(() => {
-        const simulatedTxHash = "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-        setTxStatus({ step: "success", txHash: simulatedTxHash, actionTitle });
+    // 2. AUDIT SANDBOX MODE (For evaluation when testing accounts without their private keys)
+    setTxStatus({
+      step: "confirming",
+      actionTitle: `${actionTitle} [Chế Độ Kiểm Thử Sandbox]`,
+    });
 
-        const isRelease = functionName === "brokerRelease" || functionName === "buyerConfirmDelivery" || functionName === "brokerSettle";
-        const isRefund = functionName === "brokerRefundBuyer" || functionName === "buyerClaimExpiredRefund" || functionName === "mutualCancelEscrow" || functionName === "adminSlashCorruptBroker";
+    setTimeout(async () => {
+      const isRelease = functionName === "brokerRelease" || functionName === "buyerConfirmDelivery" || functionName === "brokerSettle";
+      const isRefund = functionName === "brokerRefundBuyer" || functionName === "buyerClaimExpiredRefund" || functionName === "mutualCancelEscrow" || functionName === "adminSlashCorruptBroker";
+      const newStatus = isRelease ? 1 : isRefund ? 2 : 0;
 
-        if (isRelease) {
-          setSimulatedStatusOverride(1); // Completed
-        } else if (isRefund) {
-          setSimulatedStatusOverride(2); // Cancelled
-        }
+      setSimulatedStatusOverride(newStatus);
+      setTxStatus({
+        step: "success",
+        actionTitle: `${actionTitle} (Đã ghi nhận trên hệ thống kiểm thử)`,
+      });
 
-        // Update local storage
-        try {
-          const stored = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
-          if (stored[String(pactId)]) {
-            stored[String(pactId)].status = isRelease ? 1 : isRefund ? 2 : 0;
-            localStorage.setItem("trustpact_custom_pacts", JSON.stringify(stored));
-          }
-        } catch {}
+      // Persist status change to server DB so all connected clients sync
+      try {
+        await fetch(`/api/pacts/${pactId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        });
 
-        // Add system message
         const receiptText = isRelease
-          ? `✓ Giao dịch đã giải ngân thành công! Đã chuyển ${netSellerReceives} USDC cho Bên Bán và ${brokerFeeNum} USDC phí cho GDTG. Quota Aave V3 đã được giải phóng.`
+          ? `✓ [Sandbox] Quyết toán thành công: Đã chuyển ${netSellerReceives} USDC cho Bên Bán và ${brokerFeeNum} USDC cho GDTG.`
           : isRefund
-          ? `✓ Giao dịch đã hoàn tất hoàn quỹ! 100% số tiền (${dealAmountNum} USDC) đã hoàn trả về ví Bên Mua. Kèo ký quỹ kết thúc an toàn.`
-          : `✓ Cập nhật trạng thái hợp đồng thành công.`;
+          ? `✓ [Sandbox] Hoàn tiền thành công: 100% số tiền (${dealAmountNum} USDC) đã hoàn trả về ví Bên Mua.`
+          : `✓ [Sandbox] Cập nhật trạng thái hợp đồng thành công.`;
 
-        const systemMsg: ChatMessage = {
-          id: `msg-sys-${Date.now()}`,
-          sender: CONTRACT_ADDRESSES.universalEscrow,
-          role: "system",
-          senderName: "UniversalEscrow Protocol",
-          text: receiptText,
-          timestamp: new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
-        };
-        setMessages((prev) => [...prev, systemMsg]);
+        await fetch(`/api/pacts/${pactId}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sender: CONTRACT_ADDRESSES.universalEscrow,
+            role: "system",
+            senderName: "UniversalEscrow Protocol",
+            text: receiptText,
+          }),
+        });
+      } catch (e) {}
 
-        setTimeout(() => setTxStatus({ step: "idle" }), 2000);
-      }, 700);
-    }, 400);
+      setTimeout(() => setTxStatus({ step: "idle" }), 2000);
+    }, 600);
   };
 
   return (

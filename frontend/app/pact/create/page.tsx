@@ -381,7 +381,7 @@ function CreateEscrowPactContent() {
           } catch {}
         }
 
-        // Save pact locally for instant seamless room view
+        // Save pact locally & sync to server database for real multi-client synchronization
         const newPactData = {
           id: createdId,
           buyer: address || currentUser?.walletAddress || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
@@ -396,11 +396,32 @@ function CreateEscrowPactContent() {
           startTime: Math.floor(Date.now() / 1000),
           status: 0,
         };
+
         try {
           const existing = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
           existing[createdId] = newPactData;
           localStorage.setItem("trustpact_custom_pacts", JSON.stringify(existing));
         } catch {}
+
+        // Persist to server backend database
+        try {
+          await fetch("/api/pacts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: createdId,
+              txHash: hash,
+              buyer: newPactData.buyer,
+              seller: newPactData.seller,
+              broker: newPactData.broker,
+              amount: newPactData.amount,
+              brokerFeeBps: newPactData.brokerFeeBps,
+              duration: newPactData.duration,
+            }),
+          });
+        } catch (e) {
+          console.error("Lỗi đồng bộ hợp đồng lên server:", e);
+        }
 
         setCreatedPactId(createdId);
         setCreatedTxHash(hash);
@@ -416,7 +437,26 @@ function CreateEscrowPactContent() {
           setIsConfirmationModalOpen(true);
         }, 1200);
       } else {
-        setCreatedPactId("101");
+        // Fallback or demo autofill: persist to server DB
+        const fallbackId = `10${Math.floor(Math.random() * 89 + 10)}`;
+        try {
+          await fetch("/api/pacts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: fallbackId,
+              buyer: address || currentUser?.walletAddress || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+              seller: sellerInput,
+              broker: activeBrokerAddress,
+              amount: dealAmountInput,
+              brokerFeeBps: brokerFeeBps,
+              duration: selectedDurationSeconds,
+            }),
+          });
+          setCreatedPactId(fallbackId);
+        } catch {
+          setCreatedPactId("101");
+        }
         setIsConfirmationModalOpen(true);
       }
     } catch (err: any) {
