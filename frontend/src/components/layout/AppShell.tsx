@@ -103,7 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { href: "/pact/create", label: t("Tạo Kèo Ký Quỹ", "Create Escrow"), icon: PlusSquare },
     { href: "/pact", label: t("Sổ Kèo Của Tôi", "My Deals"), icon: Lock, exact: true },
     { href: "/broker/stake", label: t("Cọc GDTG & Lãi Aave", "Stake & Aave Yield"), icon: Landmark },
-    { href: "/compliance", label: t("Pháp Lý & Công Nghệ", "Compliance & Tech"), icon: Scale, exact: true },
+    { href: "/compliance", label: t("Minh Bạch & Điều Khoản", "Transparency & Terms"), icon: Scale, exact: true },
     { href: "/profile", label: t("Mục Tôi", "My Profile"), icon: User, exact: true },
   ];
 
@@ -379,7 +379,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="hover:text-white flex items-center gap-1.5 transition-colors text-[#38BDF8] font-medium"
               >
                 <Scale className="w-3.5 h-3.5" />
-                <span>Khung Pháp Lý (Điều 328 BLDS) & 3 Trụ Cột Avalanche</span>
+                <span>Minh Bạch Kỹ Thuật & Điều Khoản Dịch Vụ</span>
               </Link>
               <a
                 href="https://t.me/TrustPact_Sentinel_bot"
