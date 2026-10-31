@@ -1,14 +1,27 @@
 // TrustPact Telegram Bot Database & Lookup Engine
+const fs = require("fs");
+const path = require("path");
+
 const KNOWN_SCAM_DATABASE = [
   {
     identifier: "1903889922101",
     type: "STK Ngân hàng",
     bankName: "Techcombank",
-    reportsCount: 2,
+    reportsCount: 5,
     isVerified: true,
-    reason: "Nhận tiền cọc OTC 500 USDT xong chặn Telegram nạn nhân",
-    victimLoss: "12,850,000 VNĐ",
+    reason: "Giả mạo GDTG Telegram trung gian chiếm đoạt 1,200 USDC giao dịch P2P",
+    victimLoss: "1,200 USDC (~30.5 Triệu VNĐ)",
     timestamp: "18/10/2026",
+  },
+  {
+    identifier: "0451000399482",
+    type: "STK Ngân hàng",
+    bankName: "Vietcombank",
+    reportsCount: 3,
+    isVerified: true,
+    reason: "Nhận cọc mua USDT rồi cắt đứt liên lạc, chặn Telegram nạn nhân",
+    victimLoss: "500 USDC (~12.7 Triệu VNĐ)",
+    timestamp: "19/10/2026",
   },
   {
     identifier: "0909123456",
@@ -28,7 +41,43 @@ const KNOWN_SCAM_DATABASE = [
     victimLoss: "34,000,000 VNĐ",
     timestamp: "20/10/2026",
   },
+  {
+    identifier: "@hoangminh_otc_fake",
+    type: "Username Telegram",
+    reportsCount: 8,
+    isVerified: true,
+    reason: "Fake nick GDTG Hoàng Minh (thay chữ l bằng chữ I hoa) để lừa nhận cọc",
+    victimLoss: "2,500 USDC (~63.5 Triệu VNĐ)",
+    timestamp: "20/10/2026",
+  },
 ];
+
+function getCombinedScams() {
+  const list = [...KNOWN_SCAM_DATABASE];
+  try {
+    const storePath = path.resolve(__dirname, "../../frontend/data/trustpact_store.json");
+    if (fs.existsSync(storePath)) {
+      const db = JSON.parse(fs.readFileSync(storePath, "utf8"));
+      if (Array.isArray(db.scams)) {
+        for (const s of db.scams) {
+          if (!list.some((x) => x.identifier.toLowerCase() === s.identifier.toLowerCase())) {
+            list.push({
+              identifier: s.identifier,
+              type: s.type || "Tài khoản đáng ngờ",
+              bankName: s.bankName || "",
+              reportsCount: s.reportsCount || 1,
+              isVerified: s.isVerified || false,
+              reason: s.reason,
+              victimLoss: s.victimLoss || "Chưa xác định",
+              timestamp: s.timestamp || "Mới ghi nhận",
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {}
+  return list;
+}
 
 const TRUSTED_USERS_DATABASE = [
   {
@@ -77,11 +126,13 @@ function lookupTarget(query) {
   const clean = query.trim().replace(/^@/, "").toLowerCase();
   if (!clean) return null;
 
+  const allScams = getCombinedScams();
   // 1. Check Scam Blacklist (exact or substring match if message contains the scam identifier)
-  const matchedScam = KNOWN_SCAM_DATABASE.find((s) => {
-    const sId = s.identifier.toLowerCase();
-    const sIdNoSpace = s.identifier.replace(/\s+/g, "");
-    return clean === sId || clean === sIdNoSpace || clean.includes(sId) || clean.includes(sIdNoSpace);
+  const matchedScam = allScams.find((s) => {
+    const sId = s.identifier.toLowerCase().replace(/^@/, "");
+    const sIdNoSpace = sId.replace(/\s+/g, "");
+    const cleanNoSpace = clean.replace(/\s+/g, "");
+    return clean === sId || cleanNoSpace === sIdNoSpace || cleanNoSpace.includes(sIdNoSpace) || sIdNoSpace.includes(cleanNoSpace);
   });
 
   // 2. Check Trusted Registry
