@@ -218,16 +218,6 @@ function CreateEscrowPactContent() {
   const isSellerBrokerSame = sellerInput.toLowerCase() === activeBrokerAddress.toLowerCase();
   const hasRoleConflict = isSellerSelf || isBrokerSelf || isSellerBrokerSame;
 
-  // Evaluator Testing Mode: 1-Click Auto-Fill for Judges
-  const handleLoadJudgePreset = () => {
-    setSellerInput("0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002"); // Hoàng Minh (Bên Bán mẫu)
-    setSelectedBroker(BROKER_DIRECTORY[0]); // Nguyễn Nam (GDTG mẫu quota 6,000 USDC)
-    setIsCustomBroker(false);
-    setDealAmountInput("1000");
-    setBrokerFeeBps(150);
-    setSelectedDurationSeconds(86400);
-  };
-
   // Real dynamic broker search & filtering
   const filteredBrokers = BROKER_DIRECTORY.filter((b) => {
     if (filterEligibleOnly && b.availableQuota < dealAmountNumber) {
@@ -510,33 +500,6 @@ function CreateEscrowPactContent() {
           </p>
         </div>
         <span className="text-xs font-mono text-[#64748B]">Protocol Fee: 0.30%</span>
-      </div>
-
-      {/* ── UNIHACK EVALUATOR TESTING PRESET BANNER ──────────────────────── */}
-      <div className="p-3.5 rounded-lg border border-[#1E222D] bg-[#101217] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2 py-0.5 rounded bg-[#E84142]/15 text-[#E84142] border border-[#E84142]/30 text-[10px] font-bold uppercase tracking-wider">
-              UniHack Evaluator Testing Mode
-            </span>
-            <span className="text-[#F1F5F9] font-bold font-sans">
-              2 Tài Khoản Mẫu Đã Cấu Hình Sẵn:
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-[#94A3B8]">
-            <span>1. Bên Mua: <strong className="text-[#F1F5F9]">Lê Minh Tuấn (@tuan_buyer · 0x1A2b...0001)</strong></span>
-            <span>·</span>
-            <span>2. GDTG Bảo Chứng: <strong className="text-[#10B981]">Nguyễn Nam (@nam_broker · Quota 6,000 USDC)</strong></span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleLoadJudgePreset}
-          className="px-3.5 py-2 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] hover:border-[#E84142] text-[#F1F5F9] text-xs font-bold transition-all shrink-0 flex items-center gap-1.5"
-        >
-          <span>⚡ Nạp Kèo Mẫu Giám Khảo (1,000 USDC)</span>
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

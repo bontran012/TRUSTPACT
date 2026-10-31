@@ -87,31 +87,65 @@ export default function MyEscrowPactsPage() {
     functionName: "counter",
   });
 
-  // Load custom pacts from localStorage and merge with default pacts
+  // Load pacts from server backend database & merge with defaults
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    let isMounted = true;
+    const fetchServerPacts = async () => {
       try {
-        const stored = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
-        const customList: PactSummary[] = Object.values(stored).map((item: any) => ({
-          id: Number(item.id),
-          title: item.terms?.slice(0, 60) || "Kèo Ký Quỹ Bảo Chứng UniversalEscrow 3 Bên",
-          amount: Number(item.amount) || 1000,
-          buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-          seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-          broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
-          brokerName: item.brokerName || "Nguyễn Nam (Giám Định)",
-          status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
-          timeLeft: "23:59:59",
-          isCustom: true,
-        }));
+        const res = await fetch("/api/pacts");
+        const data = await res.json();
+        if (isMounted && data.success && Array.isArray(data.pacts)) {
+          const serverList: PactSummary[] = data.pacts.map((item: any) => ({
+            id: Number(item.id),
+            title: `Kèo Ký Quỹ #${item.id} (${item.amount} USDC)`,
+            amount: Number(item.amount) || 1000,
+            buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+            broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+            brokerName: "Nguyễn Nam (Giám Định)",
+            status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
+            timeLeft: "23:59:59",
+            isCustom: true,
+          }));
 
-        if (customList.length > 0) {
-          const customIds = new Set(customList.map((p) => p.id));
-          const merged = [...customList, ...DEFAULT_PACTS.filter((p) => !customIds.has(p.id))];
+          // Merge: server list takes top precedence
+          const serverIds = new Set(serverList.map((p) => p.id));
+          const merged = [...serverList, ...DEFAULT_PACTS.filter((p) => !serverIds.has(p.id))];
           setAllPacts(merged);
+          return;
         }
-      } catch {}
-    }
+      } catch (err) {}
+
+      // Fallback to localStorage if offline
+      if (typeof window !== "undefined") {
+        try {
+          const stored = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
+          const customList: PactSummary[] = Object.values(stored).map((item: any) => ({
+            id: Number(item.id),
+            title: item.terms?.slice(0, 60) || "Kèo Ký Quỹ Bảo Chứng UniversalEscrow 3 Bên",
+            amount: Number(item.amount) || 1000,
+            buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+            broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+            brokerName: item.brokerName || "Nguyễn Nam (Giám Định)",
+            status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
+            timeLeft: "23:59:59",
+            isCustom: true,
+          }));
+
+          if (customList.length > 0) {
+            const customIds = new Set(customList.map((p) => p.id));
+            const merged = [...customList, ...DEFAULT_PACTS.filter((p) => !customIds.has(p.id))];
+            setAllPacts(merged);
+          }
+        } catch {}
+      }
+    };
+
+    fetchServerPacts();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredPacts = allPacts.filter((p) => {
