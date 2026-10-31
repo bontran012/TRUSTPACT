@@ -23,6 +23,9 @@ import {
   Send,
   MessageCircle,
   ArrowRight,
+  AlertTriangle,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -531,22 +534,23 @@ export default function ScamRadarAndReputationPage() {
             {activeQuery && (
               <div className="pt-2 animate-in fade-in duration-200">
                 {!isFlagged ? (
-                  /* CLEAN DOSSIER */
-                  <div className="p-4 rounded-md border border-[#10B981]/30 bg-[#10B981]/5 space-y-3.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2 text-[#10B981]">
-                        <ShieldCheck className="w-4 h-4 shrink-0" />
-                        <span className="text-xs font-bold font-mono uppercase tracking-wider">
-                          KHÔNG PHÁT HIỆN CẢNH BÁO TRÊN SỔ ĐEN L1
+                  /* CLEAN DOSSIER: Split into Registered Member vs Unregistered Identifier */
+                  matchedScamUser ? (
+                    /* CASE 1: VERIFIED REGISTERED TRUSTPACT MEMBER */
+                    <div className="p-4 rounded-md border border-[#10B981]/30 bg-[#10B981]/5 space-y-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2 text-[#10B981]">
+                          <UserCheck className="w-4 h-4 shrink-0" />
+                          <span className="text-xs font-bold font-mono uppercase tracking-wider">
+                            THÀNH VIÊN ĐÃ ĐĂNG KÝ HỒ SƠ TÍN NHIỆM TRÊN TRUSTPACT
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#64748B]">
+                          0.8s Telemetry Verified
                         </span>
                       </div>
-                      <span className="text-[10px] font-mono text-[#64748B]">
-                        0.8s Telemetry Verified
-                      </span>
-                    </div>
 
-                    {/* Member Identity Profile Card if matched registered user */}
-                    {matchedScamUser ? (
+                      {/* Member Identity Profile Card */}
                       <div className="p-3 rounded-lg bg-[#090A0D] border border-[#10B981]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-sans">
                         <div className="flex items-center gap-3">
                           <img
@@ -566,6 +570,9 @@ export default function ScamRadarAndReputationPage() {
                               </span>
                               <span className="text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 border border-[#F59E0B]/20 px-1.5 py-0.5 rounded font-bold">
                                 {matchedScamUser.id}
+                              </span>
+                              <span className="text-[10px] font-mono text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-1.5 py-0.5 rounded font-bold">
+                                {matchedScamUser.role === "broker" ? "GDTG Có Cọc Bảo Chứng" : "Thành viên giao dịch"}
                               </span>
                             </div>
                             <div className="text-[11px] text-[#94A3B8] font-mono flex items-center gap-2 flex-wrap">
@@ -617,41 +624,95 @@ export default function ScamRadarAndReputationPage() {
                           <span className="text-[10px] text-[#94A3B8] block">{matchedScamUser.completedDeals} kèo uy tín</span>
                         </div>
                       </div>
-                    ) : (
-                      <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between text-xs font-mono">
-                        <span className="text-[#64748B]">User / Định danh tra cứu:</span>
-                        <span className="text-[#F1F5F9] font-bold">{activeQuery}</span>
+
+                      <div className="text-xs text-[#94A3B8] leading-relaxed">
+                        Thành viên <strong className="text-[#10B981] font-mono">@{matchedScamUser.username}</strong> ({matchedScamUser.name} · Mã ID: <strong className="text-[#F59E0B] font-mono">{matchedScamUser.id}</strong>) có hồ sơ đăng ký hợp lệ và chưa từng bị tố cáo trên Sổ Đen On-Chain.
                       </div>
-                    )}
 
-                    <div className="text-xs text-[#94A3B8] leading-relaxed">
-                      {matchedScamUser ? (
-                        <span>
-                          Thành viên <strong className="text-[#10B981] font-mono">@{matchedScamUser.username}</strong> ({matchedScamUser.name} · Mã ID: <strong className="text-[#F59E0B] font-mono">{matchedScamUser.id}</strong> · Ví: <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{shortenAddress(matchedScamUser.walletAddress)}</code>) chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
-                        </span>
-                      ) : (
-                        <span>
-                          Định danh <code className="text-[#F1F5F9] font-mono bg-[#101217] px-1.5 py-0.5 rounded">{activeQuery}</code> {activeQuery.startsWith("@") ? `(User: ${activeQuery})` : ""} chưa từng có lịch sử bị cộng đồng tố cáo trên TrustPact Custom L1.
-                        </span>
-                      )}
-                      {" "}Để đảm bảo an toàn tuyệt đối khi thanh toán, khuyến nghị mở phòng ký quỹ bảo vệ.
+                      <div className="pt-2 border-t border-[#10B981]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#64748B]">Bảo vệ giao dịch bằng Smart Contract:</span>
+                        <Link
+                          href={`/pact/create?seller=${matchedScamUser.walletAddress}`}
+                          className="px-3.5 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#10B981]/40 hover:border-[#10B981] text-xs font-semibold text-[#F1F5F9] inline-flex items-center gap-1.5 transition-all shadow-sm"
+                        >
+                          <Lock className="w-3.5 h-3.5 text-[#10B981]" />
+                          <span>Tạo Kèo Ký Quỹ Với @{matchedScamUser.username}</span>
+                        </Link>
+                      </div>
                     </div>
+                  ) : (
+                    /* CASE 2: UNREGISTERED IDENTIFIER (PHONE / BANK / ARBITRARY QUERY) - ZERO TRADE BUTTON */
+                    <div className="p-4 rounded-md border border-[#F59E0B]/30 bg-[#F59E0B]/5 space-y-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2 text-[#F59E0B]">
+                          <AlertTriangle className="w-4 h-4 shrink-0 text-[#F59E0B]" />
+                          <span className="text-xs font-bold font-mono uppercase tracking-wider">
+                            CHƯA CÓ BÁO CÁO LỪA ĐẢO • CHƯA ĐĂNG KÝ HỆ THỐNG
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#64748B]">
+                          0.8s Telemetry Verified
+                        </span>
+                      </div>
 
-                    <div className="pt-2 border-t border-[#10B981]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="text-[11px] text-[#64748B]">Bảo vệ giao dịch bằng Smart Contract:</span>
-                      <Link
-                        href={`/pact/create?seller=${matchedScamUser ? matchedScamUser.walletAddress : activeQuery.startsWith("0x") ? activeQuery : ""}`}
-                        className="px-3.5 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#10B981]/40 hover:border-[#10B981] text-xs font-semibold text-[#F1F5F9] inline-flex items-center gap-1.5 transition-all shadow-sm"
-                      >
-                        <Lock className="w-3.5 h-3.5 text-[#10B981]" />
-                        <span>
-                          {matchedScamUser
-                            ? `Tạo Kèo Ký Quỹ Với @${matchedScamUser.username} (${matchedScamUser.name})`
-                            : "Tạo Kèo Ký Quỹ Với Đối Tác Này"}
-                        </span>
-                      </Link>
+                      <div className="p-3 rounded-lg bg-[#090A0D] border border-[#F59E0B]/20 space-y-2 text-xs font-mono">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#94A3B8]">Định danh tra cứu:</span>
+                          <span className="text-[#F1F5F9] font-bold">{activeQuery}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#94A3B8]">Trạng thái Sổ Đen On-Chain:</span>
+                          <span className="text-[#10B981] font-semibold flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5" /> 0 báo cáo lừa đảo
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#94A3B8]">Tình trạng thành viên:</span>
+                          <span className="text-[#F59E0B] font-semibold bg-[#F59E0B]/10 px-2 py-0.5 rounded border border-[#F59E0B]/20">
+                            Chưa đăng ký (Không có cọc bảo chứng GDTG)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Prominent Safety Alert Box */}
+                      <div className="p-3 rounded bg-[#16130D] border border-[#F59E0B]/30 text-xs text-[#CBD5E1] space-y-1.5 leading-relaxed">
+                        <div className="flex items-center gap-1.5 text-[#F59E0B] font-bold font-mono text-[11px] uppercase tracking-wide">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span>Lưu Ý An Toàn Quan Trọng</span>
+                        </div>
+                        <p>
+                          Định danh <code className="text-[#F1F5F9] font-mono bg-[#090A0D] px-1.5 py-0.5 rounded border border-[#334155]">{activeQuery}</code> <strong>chưa đăng ký tài khoản</strong> và <strong>không phải là Giao Dịch Trung Gian (GDTG) có cọc bảo chứng</strong> trên TrustPact.
+                        </p>
+                        <p className="text-[#94A3B8]">
+                          Việc số điện thoại, tài khoản ngân hàng hoặc chuỗi này chưa nằm trong Sổ Đen <strong>không đồng nghĩa với việc đối tác uy tín 100%</strong> (có thể là SIM rác hoặc tài khoản ngân hàng mới tạo). Tuyệt đối cảnh giác và không chuyển khoản trực tiếp ngoài luồng nếu chưa có thỏa thuận bảo chứng tin cậy.
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#F59E0B]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span className="text-[11px] text-[#94A3B8]">Phát hiện đối tượng này có dấu hiệu lừa đảo?</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReportTarget(activeQuery);
+                              setShowReportForm(true);
+                            }}
+                            className="px-3.5 py-2 rounded-md bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 hover:border-[#EF4444] text-xs font-semibold text-[#EF4444] inline-flex items-center gap-1.5 transition-all shadow-sm"
+                          >
+                            <AlertOctagon className="w-3.5 h-3.5 text-[#EF4444]" />
+                            <span>Gửi Báo Cáo / Tố Cáo On-Chain</span>
+                          </button>
+                          <Link
+                            href="/broker/stake"
+                            className="px-3 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#334155] text-xs text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1 transition-all"
+                          >
+                            <span>Xem GDTG Có Cọc</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )
                 ) : (
                   /* FLAGGED CRIMSON DOSSIER */
                   <div className="p-4 rounded-md border border-[#EF4444]/40 bg-[#EF4444]/5 space-y-3.5">
