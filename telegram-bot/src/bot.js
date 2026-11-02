@@ -57,9 +57,9 @@ async function sendTelegramMessage(chatId, text, replyMarkup) {
 
 function getStartMessage(firstName = "Bạn") {
   return `
-🛡️ <b>TRUSTPACT SENTINEL — HỆ THỐNG GÁC ĐỀN ON-CHAIN</b>
+🛡️ <b>TRUSTPACT — HỆ THỐNG TRA CỨU & BẢO CHỨNG ON-CHAIN</b>
 
-Chào <b>${firstName}</b>! Bot hỗ trợ bạn tra cứu cảnh báo lừa đảo và kiểm tra độ uy tín của đối tác trước khi giao dịch tiền thật.
+Chào <b>${firstName}</b>! Bot hỗ trợ bạn tra cứu cảnh báo và kiểm tra độ uy tín của đối tác trước khi giao dịch tiền thật.
 
 👉 <b>BẠN KHÔNG CẦN GÕ LỆNH GÌ CẢ!</b>
 Chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào đây:
@@ -90,7 +90,7 @@ function formatLookupResponse(query) {
 🏷️ <b>Phân loại:</b> ${s.type}
 📊 <b>Hồ sơ vi phạm:</b> <b>${s.reportsCount} Báo Cáo On-Chain</b>
 ⚖️ <b>Kiểm duyệt:</b> ${s.isVerified ? "✅ Đã xác thực bằng chứng" : "⏳ Báo cáo cộng đồng"}
-📝 <b>Tội danh ghi nhận:</b> <i>"${s.reason}"</i>
+📝 <b>Lý do ghi nhận vi phạm:</b> <i>"${s.reason}"</i>
 💰 <b>Tổng thiệt hại ước tính:</b> <b>${s.victimLoss}</b>
 📅 <b>Ngày ghi sổ đen L1:</b> ${s.timestamp}
 ━━━━━━━━━━━━━━━━━━━━━
@@ -253,7 +253,7 @@ async function handleUpdate(update) {
   const matchedScam = KNOWN_SCAM_DATABASE.find((s) => rawText.includes(s.identifier));
   if (matchedScam) {
     const alertText = `
-⚠️ <b>CẢNH BÁO AN NINH NHÓM CHAT (TRUSTPACT RADAR):</b>
+⚠️ <b>CẢNH BÁO AN TOÀN GIAO DỊCH (TRUSTPACT SENTINEL):</b>
 Phát hiện số tài khoản <code>${matchedScam.identifier}</code> (${matchedScam.bankName || "Ngân hàng"}) vừa được nhắc tới trong tin nhắn!
 
 🚨 <b>Tài khoản này ĐÃ BỊ TỐ CÁO LỪA ĐẢO</b> trên TrustPact Custom L1!

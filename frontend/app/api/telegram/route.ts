@@ -134,7 +134,7 @@ Bạn chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào khu
       const matchedScam = KNOWN_SCAM_DATABASE.find((s) => rawText.includes(s.identifier));
       if (matchedScam) {
         const alertText = `
-⚠️ <b>CẢNH BÁO AN NINH NHÓM CHAT (TRUSTPACT RADAR):</b>
+⚠️ <b>CẢNH BÁO AN TOÀN GIAO DỊCH (TRUSTPACT SENTINEL):</b>
 Phát hiện số tài khoản <code>${matchedScam.identifier}</code> (${matchedScam.bankName || "Ngân hàng"}) vừa được nhắc tới trong tin nhắn!
 
 🚨 <b>Tài khoản này ĐÃ BỊ TỐ CÁO LỪA ĐẢO</b> trên TrustPact Custom L1!

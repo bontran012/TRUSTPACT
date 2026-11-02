@@ -405,7 +405,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2">
               <span>FUJI C-CHAIN #43113</span>
               <span>·</span>
-              <span>ZERO-GAS L1 RADAR #99943113</span>
+              <span>ON-CHAIN REGISTRY #43113</span>
               <span>·</span>
               <span>AAVE V3 YIELD 80/20</span>
             </div>

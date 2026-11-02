@@ -4,9 +4,9 @@ import { Web3Provider } from "@/src/components/providers/Web3Provider";
 import { AppShell } from "@/src/components/layout/AppShell";
 
 export const metadata: Metadata = {
-  title: "TrustPact — Institutional 3-Party Escrow & Scam Radar on Avalanche",
+  title: "TrustPact — Nền Tảng Ký Quỹ Giao Dịch 3 Bên & Tra Cứu Tín Nhiệm",
   description:
-    "Decentralized 3-Party Protective Escrow, Aave V3 Real-Yield Collateral Management, Non-Transferable Soulbound Reputation, and Gasless Scam Radar on Avalanche.",
+    "Hệ thống ký quỹ bảo chứng giao dịch P2P/OTC bằng Smart Contract trên Avalanche Fuji, cơ chế cọc bảo hiểm Aave V3 và định danh tín nhiệm Soulbound SBT.",
 };
 
 export default function RootLayout({

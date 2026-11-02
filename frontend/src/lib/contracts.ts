@@ -508,8 +508,8 @@ export const VERIFIED_FUJI_CONTRACTS = [
   },
   {
     name: "ScamRegistryL1",
-    title: "Radar Chống Lừa Đảo Avalanche L1 (Zero-Gas)",
-    purpose: "Kho dữ liệu cảnh báo lừa đảo STK/Ví/SĐT cộng đồng với chi phí gas = 0, kết nối bot Telegram & Teleporter.",
+    title: "Sổ Đen Vi Phạm & Tra Cứu Tín Nhiệm On-Chain",
+    purpose: "Kho dữ liệu cảnh báo vi phạm STK/Ví/SĐT cộng đồng minh bạch trên Avalanche, kết nối bot Telegram & Teleporter.",
     address: CONTRACT_ADDRESSES.scamRegistryL1,
     explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.scamRegistryL1}`,
     subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.scamRegistryL1}`,

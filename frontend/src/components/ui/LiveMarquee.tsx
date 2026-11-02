@@ -26,7 +26,7 @@ export function LiveMarquee() {
     {
       icon: ShieldCheck,
       color: "text-[#3B82F6]",
-      text: t("Scam Radar L1: 142 địa chỉ lừa đảo bị cô lập bởi cộng đồng", "Scam Radar L1: 142 malicious addresses flagged by community"),
+      text: t("Sổ Đen Vi Phạm: 142 địa chỉ đối tượng vi phạm đã được ghi nhận on-chain", "Flagged Registry: 142 malicious addresses recorded on-chain"),
     },
   ];
 

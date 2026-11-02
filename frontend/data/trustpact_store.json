@@ -70,6 +70,52 @@
         "timestamp": "11:20",
         "createdAt": 1793247632362
       }
+    ],
+    "819": [
+      {
+        "id": "msg-1793252043380-8zzwj",
+        "pactId": "819",
+        "sender": "0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0",
+        "role": "system",
+        "senderName": "UniversalEscrow Protocol",
+        "text": "✓ [Sandbox] Quyết toán thành công: Đã chuyển 987 USDC cho Bên Bán và 10 USDC cho GDTG.",
+        "isProof": false,
+        "timestamp": "12:34",
+        "createdAt": 1793252043414
+      },
+      {
+        "id": "msg-1793252052259-58brp",
+        "pactId": "819",
+        "sender": "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+        "role": "buyer",
+        "senderName": "Lê Minh Tuấn (Bên Mua)",
+        "text": "Đã kiểm tra và nhận đủ hàng/tài sản, sẵn sàng giải ngân.",
+        "isProof": false,
+        "timestamp": "12:34",
+        "createdAt": 1793252052259
+      },
+      {
+        "id": "msg-1793252053322-fnmvz",
+        "pactId": "819",
+        "sender": "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+        "role": "buyer",
+        "senderName": "Lê Minh Tuấn (Bên Mua)",
+        "text": "Đã chuyển giao xong, mời Bên Mua đối soát nghiệm thu.",
+        "isProof": false,
+        "timestamp": "12:34",
+        "createdAt": 1793252053322
+      },
+      {
+        "id": "msg-1793252054371-q1h4b",
+        "pactId": "819",
+        "sender": "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+        "role": "buyer",
+        "senderName": "Lê Minh Tuấn (Bên Mua)",
+        "text": "GDTG đang đối soát chứng từ, chuẩn bị duyệt lệnh.",
+        "isProof": false,
+        "timestamp": "12:34",
+        "createdAt": 1793252054372
+      }
     ]
   },
   "handovers": {

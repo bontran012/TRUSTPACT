@@ -647,7 +647,7 @@ export default function ScamRadarAndReputationPage() {
                         <div className="flex items-center gap-2 text-[#F59E0B]">
                           <AlertTriangle className="w-4 h-4 shrink-0 text-[#F59E0B]" />
                           <span className="text-xs font-bold font-mono uppercase tracking-wider">
-                            CHƯA CÓ BÁO CÁO LỪA ĐẢO • CHƯA ĐĂNG KÝ HỆ THỐNG
+                            CHƯA CÓ BÁO CÁO VI PHẠM • CHƯA ĐĂNG KÝ HỆ THỐNG
                           </span>
                         </div>
                         <span className="text-[10px] font-mono text-[#64748B]">
@@ -663,7 +663,7 @@ export default function ScamRadarAndReputationPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-[#94A3B8]">Trạng thái Sổ Đen On-Chain:</span>
                           <span className="text-[#10B981] font-semibold flex items-center gap-1">
-                            <ShieldCheck className="w-3.5 h-3.5" /> 0 báo cáo lừa đảo
+                            <ShieldCheck className="w-3.5 h-3.5" /> 0 báo cáo vi phạm
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -934,7 +934,7 @@ export default function ScamRadarAndReputationPage() {
               >
                 <div className="flex items-center justify-between pb-2 border-b border-[#1E222D]">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
-                    Khai Báo Đối Tượng Lừa Đảo On-Chain
+                    Báo Cáo Đối Tượng Vi Phạm On-Chain
                   </span>
                   <span className="text-[10px] font-mono text-[#10B981]">0đ Gas Custom L1</span>
                 </div>
@@ -973,7 +973,7 @@ export default function ScamRadarAndReputationPage() {
 
                 <div>
                   <label className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
-                    Mô Tả Chi Tiết Hành Vi Lừa Đảo
+                    Mô Tả Chi Tiết Hành Vi Vi Phạm
                   </label>
                   <textarea
                     rows={2}

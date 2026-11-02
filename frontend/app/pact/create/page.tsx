@@ -647,7 +647,7 @@ function CreateEscrowPactContent() {
                   {sellerReportCount > 0 ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] text-[11px] font-bold">
                       <ShieldAlert className="w-3.5 h-3.5" />
-                      {t(`CẢNH BÁO: Ví có ${sellerReportCount} lượt tố cáo lừa đảo trên Sổ Đen L1!`, `WARNING: Wallet flagged in ${sellerReportCount} Scam Reports on L1!`)}
+                      {t(`CẢNH BÁO: Ví có ${sellerReportCount} lượt tố cáo vi phạm trên Sổ Đen On-Chain!`, `WARNING: Wallet flagged in ${sellerReportCount} reports on-chain!`)}
                     </span>
                   ) : sellerSuccessRate !== undefined && Number(sellerSuccessRate) > 0 ? (
                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] text-[11px] font-medium">
@@ -656,7 +656,7 @@ function CreateEscrowPactContent() {
                     </span>
                   ) : (
                     <span className="text-[11px] text-[#64748B]">
-                      {t("Chưa ghi nhận vi phạm trên Sổ Đen L1", "No scam reports on L1 Radar")}
+                      {t("Chưa ghi nhận vi phạm trên Sổ Đen On-Chain", "No violation reports on-chain")}
                     </span>
                   )}
                 </div>
