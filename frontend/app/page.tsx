@@ -406,7 +406,7 @@ export default function ScamRadarAndReputationPage() {
             className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2"
           >
             <Search className="w-3.5 h-3.5 text-[#38BDF8]" />
-            <span>Tra Cứu Radar Lừa Đảo</span>
+            <span>Tra Cứu</span>
           </a>
         </div>
       </section>

@@ -61,7 +61,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Tổng Quan", icon: Home },
-    { href: "/radar", label: "Scam Radar", icon: Radar },
+    { href: "/radar", label: "Tra Cứu", icon: Search },
     { href: "/create", label: "Tạo Ký Quỹ", icon: PlusSquare },
     { href: "/room/101", label: "Phòng Giao Dịch", icon: Lock, badge: lockedDealsCount > 0 ? `${lockedDealsCount}` : undefined },
     { href: "/broker", label: "Broker", icon: Landmark },

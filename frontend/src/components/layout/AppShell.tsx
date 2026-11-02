@@ -99,7 +99,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const navLinks = [
-    { href: "/", label: t("Radar Lừa Đảo", "Scam Radar"), icon: Search, exact: true },
+    { href: "/", label: t("Tra Cứu", "Lookup"), icon: Search, exact: true },
     { href: "/pact/create", label: t("Tạo Kèo Ký Quỹ", "Create Escrow"), icon: PlusSquare },
     { href: "/pact", label: t("Sổ Kèo Của Tôi", "My Deals"), icon: Lock, exact: true },
     { href: "/broker/stake", label: t("Cọc GDTG & Lãi Aave", "Stake & Aave Yield"), icon: Landmark },
@@ -369,7 +369,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Shield className="w-4 h-4 text-[#E84142]" />
               <span className="font-bold text-white text-sm">TRUSTPACT</span>
               <span className="text-[#64748B]">·</span>
-              <span className="text-xs text-[#94A3B8]">Institutional 3-Party Escrow & Scam Radar on Avalanche</span>
+              <span className="text-xs text-[#94A3B8]">Institutional 3-Party Escrow & Verification on Avalanche</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-xs">
