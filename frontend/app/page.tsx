@@ -873,7 +873,7 @@ export default function ScamRadarAndReputationPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-8 animate-fade-in" suppressHydrationWarning>
+    <div className="w-full max-w-7xl mx-auto space-y-8 pb-8 animate-fade-in" suppressHydrationWarning>
       {/* ── PART 1: FOCAL OMNIBOX SEARCH TERMINAL (TOP CENTER) ── */}
       <section className="pt-3 sm:pt-6 space-y-6">
         <div className="text-center space-y-2.5 max-w-3xl mx-auto">
@@ -1434,19 +1434,18 @@ export default function ScamRadarAndReputationPage() {
           </div>
         </div>
 
-        {/* 7-Column Flat Banking Data Table */}
+        {/* Streamlined Banking Data Table (Responsive & Auto-fit) */}
         <div className="rounded-xl bg-[#111827] border border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          {/* Desktop & Tablet View (5 Columns: 100% width, zero horizontal overflow) */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-left border-collapse table-auto">
               <thead>
                 <tr className="bg-[#0B0F17] border-b border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  <th className="py-3 px-4 whitespace-nowrap">Định danh</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Phân loại</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Ngân hàng / Nền tảng</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Nội dung vi phạm</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap text-right">Thiệt hại</th>
-                  <th className="py-3 px-3.5 whitespace-nowrap">Trạng thái</th>
-                  <th className="py-3 px-4 whitespace-nowrap text-right">Đối soát</th>
+                  <th className="py-3 px-4 w-[30%] min-w-[210px]">Định danh &amp; Nền tảng</th>
+                  <th className="py-3 px-3.5 w-[36%] min-w-[180px]">Nội dung vi phạm</th>
+                  <th className="py-3 px-3.5 w-[14%] whitespace-nowrap text-right">Thiệt hại</th>
+                  <th className="py-3 px-3.5 w-[10%] whitespace-nowrap text-center">Trạng thái</th>
+                  <th className="py-3 px-4 w-[10%] whitespace-nowrap text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80 text-xs sm:text-[13px]">
@@ -1459,40 +1458,49 @@ export default function ScamRadarAndReputationPage() {
                         key={`${item.target}-${idx}`}
                         className="hover:bg-slate-800/40 transition-colors"
                       >
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <div
-                            className="font-mono font-semibold text-slate-100"
-                            title={item.target}
-                          >
-                            {item.type === "wallet" ? shortenAddress(item.target) : item.target}
+                        {/* 1. Định danh & Kênh (Gộp Định danh, Phân loại, Ngân hàng/Nền tảng, Chủ thể, Thời gian) */}
+                        <td className="py-3 px-4 align-top">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span
+                              className="font-mono font-bold text-slate-100 text-xs sm:text-[13px] break-all"
+                              title={item.target}
+                            >
+                              {item.type === "wallet" ? shortenAddress(item.target) : item.target}
+                            </span>
+                            <span
+                              className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border shrink-0 ${catBadge.className}`}
+                            >
+                              {catBadge.label}
+                            </span>
                           </div>
-                          <div className="text-[11px] text-slate-500 mt-0.5">{item.owner}</div>
+                          <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap leading-tight">
+                            <span className="text-slate-300 font-medium">{item.bankName}</span>
+                            <span className="text-slate-600">·</span>
+                            <span className="text-slate-400">{item.owner}</span>
+                            <span className="text-slate-600">·</span>
+                            <span className="text-slate-500">{item.timeAgo}</span>
+                          </div>
                         </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold border ${catBadge.className}`}
-                          >
-                            {catBadge.label}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3.5 text-slate-300 whitespace-nowrap">
-                          <div>{item.bankName}</div>
-                          <div className="text-[11px] text-slate-500">{item.timeAgo}</div>
-                        </td>
-                        <td className="py-3 px-3.5">
-                          <div
-                            className="text-slate-300 max-w-md truncate"
+
+                        {/* 2. Nội dung vi phạm (Tự co giãn, ngắt dòng line-clamp-2 rõ ràng, không tràn ngang) */}
+                        <td className="py-3 px-3.5 align-top">
+                          <p
+                            className="text-slate-300 text-xs sm:text-[13px] leading-relaxed line-clamp-2"
                             title={item.description}
                           >
                             {item.description}
-                          </div>
+                          </p>
                         </td>
-                        <td className="py-3 px-3.5 font-mono text-red-400 whitespace-nowrap text-right font-medium">
+
+                        {/* 3. Thiệt hại */}
+                        <td className="py-3 px-3.5 align-top font-mono text-red-400 whitespace-nowrap text-right font-medium text-xs sm:text-[13px]">
                           {item.amountLoss}
                         </td>
-                        <td className="py-3 px-3.5 whitespace-nowrap">
+
+                        {/* 4. Trạng thái */}
+                        <td className="py-3 px-3.5 align-top text-center whitespace-nowrap">
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                            className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold border ${
                               isVerified
                                 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
                                 : "bg-amber-500/10 text-amber-400 border-amber-500/25"
@@ -1501,7 +1509,9 @@ export default function ScamRadarAndReputationPage() {
                             {isVerified ? "Đã xác thực" : "Chờ duyệt"}
                           </span>
                         </td>
-                        <td className="py-3 px-4 whitespace-nowrap text-right">
+
+                        {/* 5. Thao tác đối soát */}
+                        <td className="py-3 px-4 align-top whitespace-nowrap text-right">
                           <button
                             type="button"
                             onClick={() => {
@@ -1510,7 +1520,7 @@ export default function ScamRadarAndReputationPage() {
                               executeScan(item.target, item.type);
                               window.scrollTo({ top: 0, behavior: "smooth" });
                             }}
-                            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition-colors"
+                            className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 text-xs font-medium text-slate-200 transition-colors"
                           >
                             Đối soát
                           </button>
@@ -1520,7 +1530,7 @@ export default function ScamRadarAndReputationPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="py-8 px-4 text-center text-xs text-slate-400">
+                    <td colSpan={5} className="py-8 px-4 text-center text-xs text-slate-400">
                       Không có bản ghi vi phạm trong danh mục đã chọn.{" "}
                       <button
                         type="button"
@@ -1534,6 +1544,72 @@ export default function ScamRadarAndReputationPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card Feed View (Màn hình điện thoại < 640px) */}
+          <div className="sm:hidden divide-y divide-slate-800/80">
+            {filteredFeedReports.length > 0 ? (
+              filteredFeedReports.map((item, idx) => {
+                const catBadge = getCategoryBadge(item.type);
+                const isVerified = item.status === "VERIFIED";
+                return (
+                  <div key={`mob-${item.target}-${idx}`} className="p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-slate-100 text-xs break-all">
+                            {item.type === "wallet" ? shortenAddress(item.target) : item.target}
+                          </span>
+                          <span
+                            className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${catBadge.className}`}
+                          >
+                            {catBadge.label}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-0.5 truncate">
+                          {item.bankName} · {item.owner} · {item.timeAgo}
+                        </div>
+                      </div>
+                      <div className="font-mono text-xs font-semibold text-red-400 whitespace-nowrap text-right shrink-0">
+                        {item.amountLoss}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                      {item.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                          isVerified
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
+                            : "bg-amber-500/10 text-amber-400 border-amber-500/25"
+                        }`}
+                      >
+                        {isVerified ? "Đã xác thực" : "Chờ duyệt"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(item.type);
+                          setQueryInput(item.target);
+                          executeScan(item.target, item.type);
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium"
+                      >
+                        Đối soát
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-6 px-4 text-center text-xs text-slate-400">
+                Không có bản ghi vi phạm.
+              </div>
+            )}
           </div>
 
           {/* Table Footer */}
