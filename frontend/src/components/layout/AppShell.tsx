@@ -449,7 +449,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <ExternalLink className="w-3 h-3 text-sky-200/60" />
               </a>
               <a
-                href="https://testnet.snowtrace.io/address/0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0"
+                href={`https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.universalEscrow}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white flex items-center gap-1 transition-colors font-mono"
