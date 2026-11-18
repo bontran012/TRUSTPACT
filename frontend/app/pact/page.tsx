@@ -188,7 +188,7 @@ export default function MyEscrowPactsPage() {
   const completedCount = allPacts.filter((p) => p.status === "COMPLETED").length;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" suppressHydrationWarning>
       {/* ── 1-LINE CLEAN BANKING HEADER ───────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div className="flex items-center gap-3 flex-wrap">

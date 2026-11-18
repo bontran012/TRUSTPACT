@@ -510,7 +510,7 @@ function CreateEscrowPactContent() {
   const sellerReportCount = sellerScamData ? Number(sellerScamData[0]) : 0;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" suppressHydrationWarning>
       {/* ── CLEAN BANKING HEADER ─────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div className="space-y-1">

@@ -25,7 +25,7 @@ export default function SecurityAndTransparencyPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12 text-slate-100 animate-fade-in">
+    <div className="max-w-5xl mx-auto space-y-8 pb-12 text-slate-100 animate-fade-in" suppressHydrationWarning>
       {/* ── CLEAN BANKING EXECUTIVE HEADER ──────────────────────────────── */}
       <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-2.5">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useAccount, useDisconnect } from "wagmi";
 
 export type UserRole = "BUYER" | "SELLER" | "BROKER" | "ADMIN";
@@ -211,46 +211,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
 
-  const [registeredUsers, setRegisteredUsers] = useState<UserProfile[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("trustpact_registered_users");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map(sanitizeStoredUser);
-          }
-        } catch {}
-      }
-    }
-    return PRESET_ACCOUNTS;
-  });
-
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("trustpact_user_session");
-      if (saved) {
-        try {
-          return sanitizeStoredUser(JSON.parse(saved));
-        } catch {
-          return null;
-        }
-      }
-    }
-    return null;
-  });
+  const [registeredUsers, setRegisteredUsers] = useState<UserProfile[]>(PRESET_ACCOUNTS);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const isInitialized = useRef(false);
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isLinkWalletModalOpen, setIsLinkWalletModalOpen] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
 
+  // Restore session from localStorage on client mount (prevents Next.js SSR hydration mismatch)
   useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const savedUsers = localStorage.getItem("trustpact_registered_users");
+        if (savedUsers) {
+          const parsed = JSON.parse(savedUsers);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRegisteredUsers(parsed.map(sanitizeStoredUser));
+          }
+        }
+        const savedSession = localStorage.getItem("trustpact_user_session");
+        if (savedSession) {
+          setCurrentUser(sanitizeStoredUser(JSON.parse(savedSession)));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to restore session from localStorage", e);
+    } finally {
+      isInitialized.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized.current) return;
     if (typeof window !== "undefined") {
       localStorage.setItem("trustpact_registered_users", JSON.stringify(registeredUsers));
     }
   }, [registeredUsers]);
 
   useEffect(() => {
+    if (!isInitialized.current) return;
     if (typeof window !== "undefined") {
       if (currentUser) {
         localStorage.setItem("trustpact_user_session", JSON.stringify(currentUser));

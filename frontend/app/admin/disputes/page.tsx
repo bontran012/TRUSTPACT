@@ -166,7 +166,7 @@ export default function AdminDisputesPage() {
   const statusMap = ["ĐANG KÝ QUỸ", "ĐÃ TẤT TOÁN", "ĐÃ HỦY / HOÀN TIỀN", "ĐANG TRANH CHẤP"];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" suppressHydrationWarning>
       {/* ── CLEAN BANKING PAGE HEADER ───────────────────────────────────── */}
       <div className="bg-[#111827] border border-slate-800 rounded-xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

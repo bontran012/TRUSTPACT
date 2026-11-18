@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount, useDisconnect, useChainId, useSwitchChain, useReadContract } from "wagmi";
@@ -57,8 +57,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { language, setLanguage, t } = useLanguage();
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const isWrongChain = isConnected && chainId !== avalancheFuji.id;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isWrongChain = mounted && isConnected && chainId !== avalancheFuji.id;
 
   const { data: usdcBalance } = useReadContract({
     address: CONTRACT_ADDRESSES.usdc,
@@ -190,7 +195,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* User Account */}
-            {currentUser ? (
+            {!mounted ? (
+              <div className="h-8 w-24 rounded-lg bg-slate-800/40 border border-slate-800 animate-pulse" />
+            ) : currentUser ? (
               <div className="relative">
                 <button
                   onClick={() => setWalletMenuOpen(!walletMenuOpen)}

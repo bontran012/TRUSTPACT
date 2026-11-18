@@ -204,7 +204,7 @@ export default function ProfilePage() {
   const roleBadge = getRoleBadge(currentUser?.role);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" suppressHydrationWarning>
       {/* ── CLEAN BANKING PAGE HEADER ───────────────────────────────────── */}
       <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">

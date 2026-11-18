@@ -604,7 +604,7 @@ export default function EscrowPactRoomPage() {
       : (buyerApprovedRelease ? 1 : 0) + (brokerApprovedRelease ? 1 : 0);
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5 animate-fade-in" suppressHydrationWarning>
       {/* ── COMPACT BANKING HEADER BAR & 4-STEP PROGRESS ──────────────────── */}
       <section className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">

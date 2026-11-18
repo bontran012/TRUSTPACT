@@ -235,7 +235,7 @@ export default function BrokerStakingAndYieldPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" suppressHydrationWarning>
       {/* ── CLEAN BANKING PAGE HEADER ───────────────────────────────────── */}
       <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1.5 max-w-2xl">
