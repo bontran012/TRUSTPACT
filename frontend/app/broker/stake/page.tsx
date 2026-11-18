@@ -135,15 +135,15 @@ export default function BrokerStakingAndYieldPage() {
     if (!address) {
       setTxStatus({
         step: "error",
-        actionTitle: "Yêu Cầu Liên Kết Ví Web3",
-        errorMessage: "Vui lòng liên kết ví Web3 (MetaMask hoặc Core Wallet) trên mạng Avalanche Fuji để ký lệnh cấp quyền USDC on-chain.",
+        actionTitle: "Yêu cầu liên kết ví Web3",
+        errorMessage: "Vui lòng liên kết ví Web3 (MetaMask hoặc Core Wallet) trên mạng Avalanche Fuji để cấp quyền chi tiêu USDC.",
       });
       setIsLinkWalletModalOpen(true);
       return;
     }
     if (stakeAmountBigInt === 0n) return;
     try {
-      setTxStatus({ step: "awaiting_signature", actionTitle: "Approve USDC Cho StakedBrokerRegistry" });
+      setTxStatus({ step: "awaiting_signature", actionTitle: "Cấp quyền USDC cho StakedBrokerRegistry" });
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESSES.usdc,
         abi: ERC20_ABI,
@@ -151,14 +151,14 @@ export default function BrokerStakingAndYieldPage() {
         args: [CONTRACT_ADDRESSES.stakedBrokerRegistry, stakeAmountBigInt],
       });
 
-      setTxStatus({ step: "confirming", txHash: hash, actionTitle: "Approve USDC Cho StakedBrokerRegistry" });
+      setTxStatus({ step: "confirming", txHash: hash, actionTitle: "Đang xác nhận cấp quyền USDC" });
       if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
 
       await refetchAllowance();
-      setTxStatus({ step: "success", txHash: hash, actionTitle: "Approve USDC Hoàn Tất!" });
+      setTxStatus({ step: "success", txHash: hash, actionTitle: "Đã cấp quyền USDC hoàn tất" });
       setTimeout(() => setTxStatus({ step: "idle" }), 2000);
     } catch (err: any) {
-      setTxStatus({ step: "error", errorMessage: parseContractError(err), actionTitle: "Approve USDC" });
+      setTxStatus({ step: "error", errorMessage: parseContractError(err), actionTitle: "Cấp quyền USDC" });
     }
   };
 
@@ -167,15 +167,15 @@ export default function BrokerStakingAndYieldPage() {
     if (!address) {
       setTxStatus({
         step: "error",
-        actionTitle: "Yêu Cầu Liên Kết Ví Web3",
-        errorMessage: "Vui lòng liên kết ví Web3 (MetaMask hoặc Core Wallet) trên mạng Avalanche Fuji để nạp cọc bảo hiểm và ủy thác Aave V3.",
+        actionTitle: "Yêu cầu liên kết ví Web3",
+        errorMessage: "Vui lòng liên kết ví Web3 (MetaMask hoặc Core Wallet) trên mạng Avalanche Fuji để nạp thế chấp và ủy thác Aave V3.",
       });
       setIsLinkWalletModalOpen(true);
       return;
     }
     if (!isStakeApproved) return;
     try {
-      setTxStatus({ step: "awaiting_signature", actionTitle: "Nạp Cọc Bảo Hiểm Aave V3 (stakeInsurance)" });
+      setTxStatus({ step: "awaiting_signature", actionTitle: "Nạp thế chấp GDTG vào Aave V3 (stakeInsurance)" });
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
         abi: STAKED_BROKER_REGISTRY_ABI,
@@ -183,7 +183,7 @@ export default function BrokerStakingAndYieldPage() {
         args: [stakeAmountBigInt],
       });
 
-      setTxStatus({ step: "confirming", txHash: hash, actionTitle: "Nạp Cọc Bảo Hiểm Aave V3" });
+      setTxStatus({ step: "confirming", txHash: hash, actionTitle: "Đang ghi nhận vốn thế chấp Aave V3" });
       if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
 
       await refetchProfile();
@@ -191,10 +191,10 @@ export default function BrokerStakingAndYieldPage() {
       await refetchUsdc();
       await refetchAllowance();
 
-      setTxStatus({ step: "success", txHash: hash, actionTitle: "Nạp Cọc & Mint aUSDC Hoàn Tất!" });
+      setTxStatus({ step: "success", txHash: hash, actionTitle: "Nạp thế chấp & kích hoạt aUSDC hoàn tất" });
       setTimeout(() => setTxStatus({ step: "idle" }), 2500);
     } catch (err: any) {
-      setTxStatus({ step: "error", errorMessage: parseContractError(err), actionTitle: "stakeInsurance" });
+      setTxStatus({ step: "error", errorMessage: parseContractError(err), actionTitle: "Nạp thế chấp GDTG" });
     }
   };
 
@@ -203,8 +203,8 @@ export default function BrokerStakingAndYieldPage() {
     if (!address) {
       setTxStatus({
         step: "error",
-        actionTitle: "Yêu Cầu Kết Nối Ví Web3 Thật",
-        errorMessage: "Vui lòng kết nối ví Web3 thật (MetaMask hoặc Core Wallet) để rút tiền cọc gốc và chốt lãi Aave V3 về ví của bạn.",
+        actionTitle: "Yêu cầu kết nối ví Web3",
+        errorMessage: "Vui lòng kết nối ví Web3 (MetaMask hoặc Core Wallet) để rút vốn thế chấp gốc và nhận lãi thực Aave V3.",
       });
       setIsAuthModalOpen(true);
       return;
@@ -212,7 +212,7 @@ export default function BrokerStakingAndYieldPage() {
     if (!isUnstakeValid) return;
     try {
       const unstakeBig = parseUsdc(unstakeInput);
-      setTxStatus({ step: "awaiting_signature", actionTitle: "Rút Vốn & Nhận 80% Lãi (unstakeInsurance)" });
+      setTxStatus({ step: "awaiting_signature", actionTitle: "Rút vốn thế chấp & nhận 80% lãi Aave V3" });
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
         abi: STAKED_BROKER_REGISTRY_ABI,
@@ -220,170 +220,189 @@ export default function BrokerStakingAndYieldPage() {
         args: [unstakeBig],
       });
 
-      setTxStatus({ step: "confirming", txHash: hash, actionTitle: "Rút Vốn & Nhận Lãi Aave V3" });
+      setTxStatus({ step: "confirming", txHash: hash, actionTitle: "Đang tất toán vốn & lợi tức Aave V3" });
       if (publicClient) await publicClient.waitForTransactionReceipt({ hash });
 
       await refetchProfile();
       await refetchQuota();
       await refetchUsdc();
 
-      setTxStatus({ step: "success", txHash: hash, actionTitle: "Rút Vốn & Nhận Lãi Hoàn Tất!" });
+      setTxStatus({ step: "success", txHash: hash, actionTitle: "Rút vốn thế chấp & nhận lãi hoàn tất" });
       setTimeout(() => setTxStatus({ step: "idle" }), 2500);
     } catch (err: any) {
-      setTxStatus({ step: "error", errorMessage: parseContractError(err), actionTitle: "unstakeInsurance" });
+      setTxStatus({ step: "error", errorMessage: parseContractError(err), actionTitle: "Rút vốn thế chấp" });
     }
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* ── SCENIC 3D AAVE YIELD HERO BANNER ────────────────────────────── */}
-      <div className="card overflow-hidden p-0 relative">
-        <img
-          src="/images/aave-yield-3d.png"
-          alt="Aave V3 Real Yield"
-          className="absolute right-0 top-0 h-full w-3/5 object-cover opacity-65 hidden sm:block"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B1E47]/95 via-[#0E2454]/85 to-[#0E2454]/25" />
-
-        <div className="relative p-7 sm:p-9 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
-            <span className="badge-pill bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 text-xs">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-300" />
-              <span>StakedBrokerRegistry · Aave V3 Lending Pool</span>
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Cọc Bảo Hiểm GDTG &amp; Lãi Thực Aave V3
-            </h1>
-            <p className="text-sm text-sky-100/85">
-              Vốn thế chấp của Trung Gian tự động sinh lời thực trên Aave V3 (chia sẻ 80% cho GDTG / 20% Quỹ dự phòng)
-            </p>
+    <div className="space-y-6 animate-fade-in">
+      {/* ── CLEAN BANKING PAGE HEADER ───────────────────────────────────── */}
+      <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="space-y-1.5 max-w-2xl">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+            <Landmark className="w-3.5 h-3.5 text-blue-400" />
+            <span className="font-mono">StakedBrokerRegistry · Aave V3 Fuji</span>
           </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
+            Quản lý thế chấp GDTG &amp; Lãi suất Aave V3
+          </h1>
+          <p className="text-sm text-slate-400">
+            Vốn thế chấp bảo chứng của GDTG tự động ủy thác sinh lời trên Aave V3 (phân bổ 80% cho GDTG / 20% Quỹ dự phòng).
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3 flex-wrap shrink-0">
-            <span className="badge-pill bg-sky-400/20 border border-sky-300/40 text-sky-100 text-xs">
-              {currentUser?.role === "BROKER" ? "Tài khoản GDTG Bảo Chứng" : "Ký Quỹ Trở Thành GDTG"}
-            </span>
-            <span className="badge-pill bg-emerald-400/20 border border-emerald-300/40 text-emerald-100 text-xs">
-              Bảo chứng 1:1 (100% Quota)
-            </span>
-          </div>
+        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold">
+            {isBrokerProfile ? "Tài khoản GDTG bảo chứng" : "Đăng ký hạn mức GDTG"}
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Tỷ lệ bảo chứng 1:1 (100% Quota)</span>
+          </span>
         </div>
       </div>
 
-      {/* ── 4 FROSTED KPI CAPSULES ──────────────────────────────────────── */}
+      {/* ── 4 FLAT BANKING KPI CARDS ────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-5 space-y-3">
+        {/* Card 1: Vốn thế chấp gốc */}
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Vốn gốc đang cọc</span>
-            <div className="w-9 h-9 rounded-full bg-sky-400/20 border border-sky-300/30 flex items-center justify-center text-sky-200">
+            <span className="text-xs text-slate-400 font-medium">Vốn thế chấp gốc</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
               <Landmark className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-white tabular-nums font-mono">
+          <div className="text-2xl font-bold text-slate-100 font-mono tabular-nums">
             {stakedNum.toLocaleString("en-US", { minimumFractionDigits: 0 })}
-            <span className="text-xs text-sky-200/80 font-normal ml-1.5">USDC</span>
+            <span className="text-xs text-slate-400 font-normal ml-1.5">USDC</span>
           </div>
-          <div>
+          <div className="pt-1 border-t border-slate-800/80">
             {isBlacklisted ? (
-              <span className="badge-pill bg-rose-500/25 text-rose-200 border border-rose-300/35 text-[11px]">Bị Cấm</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/30 text-[11px] font-semibold">
+                Đình chỉ hoạt động
+              </span>
             ) : isVerified ? (
-              <span className="badge-pill bg-emerald-400/20 text-emerald-200 border border-emerald-300/35 text-[11px]">
-                <Check className="w-3 h-3" /> Đã Cấp Tick Xanh
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold">
+                <Check className="w-3 h-3" />
+                <span>Đã xác thực</span>
               </span>
             ) : (
-              <span className="badge-pill bg-white/[0.1] text-sky-100/75 border border-white/[0.18] text-[11px]">Chưa kích hoạt</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-medium">
+                Chưa kích hoạt
+              </span>
             )}
           </div>
         </div>
 
-        <div className="card p-5 space-y-3">
+        {/* Card 2: Hạn mức khả dụng */}
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Hạn mức bảo lãnh rảnh</span>
-            <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-300/30 flex items-center justify-center text-amber-200">
+            <span className="text-xs text-slate-400 font-medium">Hạn mức khả dụng</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-amber-300 tabular-nums font-mono">
+          <div className="text-2xl font-bold text-slate-100 font-mono tabular-nums">
             {availableQuotaNum.toLocaleString("en-US", { minimumFractionDigits: 0 })}
-            <span className="text-xs text-sky-200/80 font-normal ml-1.5">USDC</span>
+            <span className="text-xs text-slate-400 font-normal ml-1.5">USDC</span>
           </div>
-          <div className="space-y-1.5">
-            <div className="w-full bg-white/[0.12] rounded-full h-2 overflow-hidden flex">
-              <div className="bg-sky-400 h-full" style={{ width: `${Math.min(100, (activeAllocatedNum / (stakedNum || 1)) * 100)}%` }} />
-              <div className="bg-emerald-400 h-full" style={{ width: `${Math.min(100, (availableQuotaNum / (stakedNum || 1)) * 100)}%` }} />
+          <div className="space-y-1.5 pt-1 border-t border-slate-800/80">
+            <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden flex">
+              <div
+                className="bg-blue-500 h-full"
+                style={{ width: `${Math.min(100, (activeAllocatedNum / (stakedNum || 1)) * 100)}%` }}
+              />
+              <div
+                className="bg-emerald-500 h-full"
+                style={{ width: `${Math.min(100, (availableQuotaNum / (stakedNum || 1)) * 100)}%` }}
+              />
             </div>
-            <div className="flex justify-between text-[11px] text-sky-100/80">
-              <span>Đang bảo lãnh: <strong className="font-mono text-white">{activeAllocatedNum.toLocaleString()}</strong></span>
-              <span>Khả dụng: <strong className="font-mono text-emerald-300">{availableQuotaNum.toLocaleString()}</strong></span>
+            <div className="flex justify-between text-[11px] text-slate-400">
+              <span>
+                Đang bảo lãnh: <strong className="font-mono tabular-nums text-slate-200">{activeAllocatedNum.toLocaleString()}</strong>
+              </span>
+              <span>
+                Khả dụng: <strong className="font-mono tabular-nums text-emerald-400">{availableQuotaNum.toLocaleString()}</strong>
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="card p-5 space-y-3">
+        {/* Card 3: Lãi thực Aave V3 */}
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Lãi thực Aave V3 (+5.2%)</span>
-            <div className="w-9 h-9 rounded-full bg-emerald-400/20 border border-emerald-300/30 flex items-center justify-center text-emerald-200">
+            <span className="text-xs text-slate-400 font-medium">Lãi thực Aave V3</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-emerald-300 tabular-nums font-mono">
+          <div className="text-2xl font-bold text-emerald-400 font-mono tabular-nums">
             +{totalLiveYield.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            <span className="text-xs text-sky-200/80 font-normal ml-1.5">USDC</span>
+            <span className="text-xs text-slate-400 font-normal ml-1.5">USDC</span>
           </div>
-          <div className="text-[11px] text-sky-100/80 flex justify-between pt-1 border-t border-white/[0.12]">
-            <span>Bạn nhận (80%): <strong className="text-emerald-300 font-mono">+{brokerShare80.toFixed(2)}</strong></span>
-            <span>Quỹ sàn (20%): <strong className="text-white font-mono">+{treasuryShare20.toFixed(2)}</strong></span>
+          <div className="text-[11px] text-slate-400 flex justify-between pt-1 border-t border-slate-800/80">
+            <span>
+              GDTG nhận (80%): <strong className="text-emerald-400 font-mono tabular-nums">+{brokerShare80.toFixed(2)}</strong>
+            </span>
+            <span>
+              Dự phòng (20%): <strong className="text-slate-200 font-mono tabular-nums">+{treasuryShare20.toFixed(2)}</strong>
+            </span>
           </div>
         </div>
 
-        <div className="card p-5 space-y-3">
+        {/* Card 4: Hiệu suất giao dịch */}
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Hiệu suất phân xử</span>
-            <div className="w-9 h-9 rounded-full bg-violet-400/20 border border-violet-300/30 flex items-center justify-center text-violet-200">
+            <span className="text-xs text-slate-400 font-medium">Hiệu suất giao dịch</span>
+            <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
               <Award className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-white tabular-nums font-mono">
+          <div className="text-2xl font-bold text-slate-100 font-mono tabular-nums">
             {successfulDeals}/{totalDeals}
-            <span className="text-xs font-sans text-sky-200/80 font-normal ml-1.5">kèo</span>
+            <span className="text-xs font-sans text-slate-400 font-normal ml-1.5">hợp đồng</span>
           </div>
-          <div className="flex justify-between text-[11px] pt-1 border-t border-white/[0.12]">
-            <span className="text-emerald-300 font-semibold">Hoàn thành {totalDeals > 0 ? ((successfulDeals / totalDeals) * 100).toFixed(1) : "100"}%</span>
-            <span className="text-sky-100/80">Phạt cọc: <strong className="font-mono text-white">{slashedCount}</strong></span>
+          <div className="flex justify-between text-[11px] pt-1 border-t border-slate-800/80">
+            <span className="text-emerald-400 font-semibold font-mono tabular-nums">
+              Hoàn thành {totalDeals > 0 ? ((successfulDeals / totalDeals) * 100).toFixed(1) : "100"}%
+            </span>
+            <span className="text-slate-400">
+              Khấu trừ: <strong className="font-mono tabular-nums text-slate-200">{slashedCount}</strong>
+            </span>
           </div>
         </div>
       </div>
 
-      {/* ── MAIN 2-COLUMN WORKSPACE ─────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
+      {/* ── MAIN 2-COLUMN CONSOLE & ON-CHAIN ACCOUNTING PROOF ───────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT (7 COLS): STAKE / UNSTAKE CONSOLE */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="card p-6 sm:p-7 space-y-6">
-            {/* Pill Tab Switcher */}
-            <div className="grid grid-cols-2 gap-1.5 p-1.5 rounded-full bg-[#081635]/45 border border-white/[0.16]">
+        <div className="lg:col-span-7">
+          <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-5">
+            {/* Segmented Tab Switcher */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-[#0B0F17] border border-slate-800">
               <button
                 type="button"
                 onClick={() => setActiveTab("stake")}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                   activeTab === "stake"
-                    ? "bg-gradient-to-r from-sky-400/35 to-indigo-500/40 text-white border border-sky-300/45 shadow-sm"
-                    : "text-sky-100/70 hover:text-white border border-transparent"
+                    ? "bg-slate-800 text-slate-100 border border-slate-700 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 border border-transparent"
                 }`}
               >
-                <ArrowUpRight className="w-4 h-4 text-emerald-300" />
-                <span>Nạp Cọc Bảo Hiểm</span>
+                <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                <span>Nạp vốn thế chấp</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("unstake")}
-                className={`flex items-center justify-center gap-2 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                   activeTab === "unstake"
-                    ? "bg-gradient-to-r from-sky-400/35 to-indigo-500/40 text-white border border-sky-300/45 shadow-sm"
-                    : "text-sky-100/70 hover:text-white border border-transparent"
+                    ? "bg-slate-800 text-slate-100 border border-slate-700 shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 border border-transparent"
                 }`}
               >
-                <ArrowDownLeft className="w-4 h-4 text-amber-300" />
-                <span>Rút Vốn &amp; Chốt Lãi</span>
+                <ArrowDownLeft className="w-4 h-4 text-amber-400" />
+                <span>Rút vốn &amp; Nhận lãi</span>
               </button>
             </div>
 
@@ -392,11 +411,14 @@ export default function BrokerStakingAndYieldPage() {
               <form onSubmit={handleStakeInsurance} className="space-y-5">
                 <div className="space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <label className="font-semibold text-sky-100">
-                      Số lượng USDC nạp làm cọc bảo hiểm
+                    <label className="font-semibold text-slate-300">
+                      Số lượng USDC nạp thế chấp bảo chứng
                     </label>
-                    <span className="text-sky-100/80">
-                      Số dư ví: <strong className="font-mono text-white">{formatUsdc(userUsdcBalance as bigint)} USDC</strong>
+                    <span className="text-slate-400">
+                      Số dư ví:{" "}
+                      <strong className="font-mono tabular-nums text-slate-100">
+                        {formatUsdc(userUsdcBalance as bigint)} USDC
+                      </strong>
                     </span>
                   </div>
 
@@ -408,24 +430,24 @@ export default function BrokerStakingAndYieldPage() {
                       value={stakeInput}
                       onChange={(e) => setStakeInput(e.target.value)}
                       placeholder="Nhập số lượng USDC..."
-                      className="input-field rounded-2xl pl-4 pr-20 py-3.5 text-xl font-mono font-bold tabular-nums"
+                      className="w-full bg-[#0B0F17] border border-slate-700 focus:border-blue-500 focus:outline-none rounded-lg pl-4 pr-20 py-3 text-lg font-mono font-bold text-slate-100 tabular-nums transition-colors"
                       required
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-sky-200">
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-slate-400">
                       USDC
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {[500, 1000, 2500, 5000].map((val) => (
                       <button
                         key={val}
                         type="button"
                         onClick={() => setStakeInput(String(val))}
-                        className={`px-3.5 py-1 rounded-full text-xs font-mono border transition-all ${
+                        className={`px-3 py-1 rounded-lg text-xs font-mono tabular-nums border transition-colors ${
                           Number(stakeInput) === val
-                            ? "bg-sky-400/25 border-sky-300/50 text-white font-bold"
-                            : "bg-white/[0.08] border-white/[0.16] text-sky-100/80 hover:text-white"
+                            ? "bg-blue-600/20 border-blue-500/50 text-blue-300 font-semibold"
+                            : "bg-[#0B0F17] border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
                         }`}
                       >
                         +{val.toLocaleString()} USDC
@@ -435,40 +457,46 @@ export default function BrokerStakingAndYieldPage() {
                 </div>
 
                 {/* Routing Flow */}
-                <div className="card-inner p-4 space-y-3">
-                  <span className="text-xs text-sky-100/80 font-semibold uppercase tracking-wider block">
-                    Chu trình ủy thác sinh lời tự động
+                <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-3">
+                  <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">
+                    Luồng lưu ký &amp; sinh lời tự động
                   </span>
-                  <div className="flex items-center justify-between text-center gap-1.5 text-xs font-mono">
-                    <div className="p-2.5 rounded-full bg-white/[0.08] border border-white/[0.15] flex-1 text-white">Ví GDTG</div>
-                    <ArrowRight className="w-3.5 h-3.5 text-sky-300 shrink-0" />
-                    <div className="p-2.5 rounded-full bg-sky-400/20 border border-sky-300/35 flex-1 text-sky-100">Registry</div>
-                    <ArrowRight className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
-                    <div className="p-2.5 rounded-full bg-emerald-400/20 border border-emerald-300/35 flex-1 text-emerald-200 font-semibold">Aave Pool</div>
+                  <div className="flex items-center justify-between text-center gap-2 text-xs font-mono">
+                    <div className="py-2 px-2.5 rounded-lg bg-slate-900 border border-slate-800 flex-1 text-slate-200">
+                      Ví GDTG
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <div className="py-2 px-2.5 rounded-lg bg-slate-900 border border-slate-800 flex-1 text-blue-400">
+                      StakedBrokerRegistry
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <div className="py-2 px-2.5 rounded-lg bg-slate-900 border border-slate-800 flex-1 text-emerald-400 font-semibold">
+                      Aave V3 Pool
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-white/[0.12] text-xs text-sky-100">
-                    <span>Hạn mức nhận kèo mở thêm (100% 1:1):</span>
-                    <strong className="text-emerald-300 font-mono font-bold">
+                  <div className="flex justify-between items-center pt-2.5 border-t border-slate-800 text-xs text-slate-400">
+                    <span>Hạn mức bảo chứng mở thêm (100% 1:1):</span>
+                    <strong className="text-emerald-400 font-mono font-bold tabular-nums">
                       +{(parseFloat(stakeInput || "0") * 1.0).toLocaleString()} USDC
                     </strong>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <ShimmerButton
                     type="button"
                     onClick={handleApproveStake}
                     disabled={isStakeApproved || stakeAmountBigInt === 0n}
                     variant={isStakeApproved ? "success" : "primary"}
-                    className="py-3.5"
+                    className="py-3 rounded-lg"
                   >
                     {isStakeApproved ? (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>1. Đã Cấp Quyền USDC</span>
+                        <span>1. Đã cấp quyền USDC</span>
                       </>
                     ) : (
-                      <span>1. Cấp Quyền (Approve)</span>
+                      <span>1. Cấp quyền USDC (Approve)</span>
                     )}
                   </ShimmerButton>
 
@@ -476,10 +504,10 @@ export default function BrokerStakingAndYieldPage() {
                     type="submit"
                     disabled={!isStakeApproved}
                     variant={isStakeApproved ? "primary" : "secondary"}
-                    className="py-3.5"
+                    className="py-3 rounded-lg"
                   >
                     <ArrowUpRight className="w-4 h-4" />
-                    <span>2. Nạp Cọc &amp; Kích Hoạt Lãi</span>
+                    <span>2. Nạp thế chấp &amp; Kích hoạt lãi</span>
                   </ShimmerButton>
                 </div>
               </form>
@@ -488,13 +516,16 @@ export default function BrokerStakingAndYieldPage() {
             {/* TAB 2: UNSTAKE */}
             {activeTab === "unstake" && (
               <form onSubmit={handleUnstakeInsurance} className="space-y-5">
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <label className="font-semibold text-sky-100">
-                      Số tiền cọc muốn rút về ví
+                    <label className="font-semibold text-slate-300">
+                      Số lượng vốn thế chấp muốn rút về ví
                     </label>
-                    <span className="text-sky-100/80">
-                      Tối đa khả dụng: <strong className="font-mono text-white">{maxFreeStakeToUnstake.toLocaleString()} USDC</strong>
+                    <span className="text-slate-400">
+                      Tối đa khả dụng:{" "}
+                      <strong className="font-mono tabular-nums text-slate-100">
+                        {maxFreeStakeToUnstake.toLocaleString()} USDC
+                      </strong>
                     </span>
                   </div>
 
@@ -506,40 +537,46 @@ export default function BrokerStakingAndYieldPage() {
                       value={unstakeInput}
                       onChange={(e) => setUnstakeInput(e.target.value)}
                       placeholder={`Tối đa ${maxFreeStakeToUnstake} USDC`}
-                      className="input-field rounded-2xl pl-4 pr-24 py-3.5 text-xl font-mono font-bold tabular-nums"
+                      className="w-full bg-[#0B0F17] border border-slate-700 focus:border-blue-500 focus:outline-none rounded-lg pl-4 pr-24 py-3 text-lg font-mono font-bold text-slate-100 tabular-nums transition-colors"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setUnstakeInput(String(maxFreeStakeToUnstake))}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-sky-400/20 hover:bg-sky-400/30 border border-sky-300/35 text-xs font-mono text-sky-200 font-bold transition-colors"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-200 font-semibold transition-colors"
                     >
-                      MAX
+                      TỐI ĐA
                     </button>
                   </div>
                 </div>
 
-                <div className="card-inner p-4 space-y-2.5 text-xs">
-                  <span className="text-sky-100/80 font-semibold uppercase tracking-wider block">
-                    Dự tính quyết toán rút vốn
+                <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-2.5 text-xs">
+                  <span className="text-slate-400 font-semibold uppercase tracking-wider block">
+                    Bảng kê tất toán rút vốn
                   </span>
-                  <div className="flex justify-between text-sky-100">
-                    <span>Tiền cọc gốc rút về</span>
-                    <span className="text-white font-mono font-semibold tabular-nums">{unstakeAmountNum.toFixed(2)} USDC</span>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Vốn thế chấp gốc rút về</span>
+                    <span className="text-slate-100 font-mono font-semibold tabular-nums">
+                      {unstakeAmountNum.toFixed(2)} USDC
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sky-100">
-                    <span>80% Lợi tức Aave V3 cộng dồn</span>
-                    <span className="text-emerald-300 font-mono font-semibold tabular-nums">+{brokerShare80.toFixed(2)} USDC</span>
+                  <div className="flex justify-between text-slate-400">
+                    <span>80% lợi tức Aave V3 tích lũy</span>
+                    <span className="text-emerald-400 font-mono font-semibold tabular-nums">
+                      +{brokerShare80.toFixed(2)} USDC
+                    </span>
                   </div>
-                  <div className="pt-2.5 border-t border-white/[0.12] flex justify-between font-bold text-sm text-white">
+                  <div className="pt-2.5 border-t border-slate-800 flex justify-between font-bold text-sm text-slate-100">
                     <span>Tổng thực nhận về ví</span>
-                    <span className="text-emerald-300 font-mono tabular-nums">{(unstakeAmountNum + Number(brokerShare80)).toFixed(2)} USDC</span>
+                    <span className="text-emerald-400 font-mono tabular-nums">
+                      {(unstakeAmountNum + Number(brokerShare80)).toFixed(2)} USDC
+                    </span>
                   </div>
                 </div>
 
                 {!isUnstakeValid && unstakeAmountNum > maxFreeStakeToUnstake && (
-                  <div className="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-300/35 text-rose-100 text-xs">
-                    Số tiền rút vượt quá hạn mức rảnh ({maxFreeStakeToUnstake.toLocaleString()} USDC). Phần còn lại đang bảo chứng cho kèo đang mở.
+                  <div className="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
+                    Số tiền rút vượt quá hạn mức khả dụng ({maxFreeStakeToUnstake.toLocaleString()} USDC). Phần vốn còn lại đang bảo chứng cho các hợp đồng đang mở.
                   </div>
                 )}
 
@@ -547,10 +584,10 @@ export default function BrokerStakingAndYieldPage() {
                   type="submit"
                   disabled={!isUnstakeValid}
                   variant="primary"
-                  className="w-full py-3.5"
+                  className="w-full py-3 rounded-lg"
                 >
                   <ArrowDownLeft className="w-4 h-4" />
-                  <span>Rút Vốn Gốc &amp; Chốt Lãi Về Ví</span>
+                  <span>Rút vốn gốc &amp; Nhận lãi về ví</span>
                 </ShimmerButton>
               </form>
             )}
@@ -558,61 +595,69 @@ export default function BrokerStakingAndYieldPage() {
         </div>
 
         {/* RIGHT (5 COLS): ON-CHAIN ACCOUNTING PROOF */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="card-elevated p-6 sm:p-7 space-y-5">
-            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.14]">
-              <h3 className="text-base font-bold text-white">
-                Kiểm Toán Lợi Tức On-Chain
+        <div className="lg:col-span-5">
+          <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-slate-100">
+                Đối soát kế toán On-Chain
               </h3>
-              <span className="badge-pill bg-emerald-400/20 text-emerald-200 border border-emerald-300/35 text-[11px]">
+              <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold">
                 Real-Yield Proof
               </span>
             </div>
 
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center text-sky-100">
-                <span>Tổng vốn gốc toàn sàn</span>
-                <span className="font-bold font-mono text-white tabular-nums">{principalTotalNum.toLocaleString("en-US")} USDC</span>
+            <div className="space-y-3 text-xs sm:text-sm">
+              <div className="flex justify-between items-center text-slate-400">
+                <span>Tổng vốn thế chấp hệ thống</span>
+                <span className="font-bold font-mono text-slate-100 tabular-nums">
+                  {principalTotalNum.toLocaleString("en-US")} USDC
+                </span>
               </div>
-              <div className="flex justify-between items-center text-sky-100">
-                <span>Số dư aUSDC trong Registry</span>
-                <span className="font-bold font-mono text-emerald-300 tabular-nums">{aaveBalanceNum.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 6 })} aUSDC</span>
+              <div className="flex justify-between items-center text-slate-400">
+                <span>Số dư aUSDC tại Registry</span>
+                <span className="font-bold font-mono text-emerald-400 tabular-nums">
+                  {aaveBalanceNum.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 6 })} aUSDC
+                </span>
               </div>
-              <div className="flex justify-between items-center text-sky-100">
-                <span>Lãi thực Aave đã tích lũy</span>
-                <span className="font-bold font-mono text-emerald-300 tabular-nums">+{totalAccruedYieldNum.toFixed(6)} USDC</span>
+              <div className="flex justify-between items-center text-slate-400">
+                <span>Lợi tức Aave V3 tích lũy</span>
+                <span className="font-bold font-mono text-emerald-400 tabular-nums">
+                  +{totalAccruedYieldNum.toFixed(6)} USDC
+                </span>
               </div>
             </div>
 
-            <div className="card-inner p-4 space-y-2.5">
-              <span className="text-xs text-sky-100/80 font-semibold uppercase tracking-wider block">
-                Công thức chia lãi bất biến
+            <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-2.5">
+              <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">
+                Công thức phân bổ lợi tức bất biến
               </span>
-              <code className="text-xs font-mono text-sky-200 block bg-[#081635]/60 p-3 rounded-xl border border-white/[0.12]">
+              <code className="text-xs font-mono text-slate-200 block bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                 Yield_GDTG = (aUSDC_Bal - Principal) × Share × 80%
               </code>
-              <p className="text-xs text-sky-100/80 leading-relaxed">
-                20% lợi tức còn lại chuyển về Quỹ Dự Phòng Bảo Hiểm để bảo vệ người dùng trong các sự cố thanh khoản.
+              <p className="text-xs text-slate-400 leading-relaxed">
+                20% lợi tức còn lại chuyển vào Quỹ dự phòng bảo hiểm nhằm bảo vệ an toàn thanh khoản cho hệ thống.
               </p>
             </div>
 
-            <div className="pt-3 border-t border-white/[0.14] space-y-2 text-xs">
-              <span className="text-sky-100/80 block font-semibold">Xác thực trực tiếp trên Snowtrace:</span>
+            <div className="pt-3 border-t border-slate-800 space-y-2.5 text-xs">
+              <span className="text-slate-400 block font-semibold">
+                Hợp đồng kiểm chứng trên Snowtrace:
+              </span>
               <div className="space-y-2">
                 {[
-                  { label: "StakedBrokerRegistry.sol", addr: CONTRACT_ADDRESSES.stakedBrokerRegistry },
-                  { label: "Aave V3 Lending Pool (Fuji)", addr: CONTRACT_ADDRESSES.aaveV3Pool },
-                  { label: "aUSDC Interest-Bearing Token", addr: CONTRACT_ADDRESSES.aUsdc },
+                  { label: "StakedBrokerRegistry", addr: CONTRACT_ADDRESSES.stakedBrokerRegistry },
+                  { label: "Aave V3 Pool", addr: CONTRACT_ADDRESSES.aaveV3Pool },
+                  { label: "aUSDC", addr: CONTRACT_ADDRESSES.aUsdc },
                 ].map((item) => (
                   <a
                     key={item.label}
                     href={`https://testnet.snowtrace.io/address/${item.addr}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-3 rounded-full bg-white/[0.08] hover:bg-white/[0.15] border border-white/[0.15] text-white flex items-center justify-between px-4 transition-colors"
+                    className="p-2.5 rounded-lg bg-[#0B0F17] hover:bg-slate-800/70 border border-slate-800/80 text-slate-200 flex items-center justify-between px-3.5 transition-colors"
                   >
                     <span className="font-mono text-xs">{item.label}</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-sky-200" />
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
                   </a>
                 ))}
               </div>

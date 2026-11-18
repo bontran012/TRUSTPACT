@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,10 +7,11 @@
 @layer base {
   :root {
     color-scheme: dark;
-    --background: #0B1933;
+    --background: #0B0F17;
     --foreground: #F8FAFC;
-    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-inter: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
   html {
@@ -21,173 +22,144 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-inter);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: var(--font-sans);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4 {
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-weight: 700;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 
   select option {
-    background-color: #102042;
+    background-color: #111827;
     color: #F8FAFC;
   }
 }
 
 @layer components {
-  /* ── Frosted Liquid Glass Surfaces (VisionOS / Stripe Inspired) ── */
+  /* ── Clean Banking Dark/Slate Surfaces ── */
   .card {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(186, 214, 255, 0.04) 55%,
-      rgba(15, 32, 68, 0.35) 100%
-    );
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    box-shadow: 0 16px 40px -12px rgba(4, 12, 32, 0.35);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    background-color: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
   .card-elevated {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(129, 140, 248, 0.06) 50%,
-      rgba(16, 34, 74, 0.45) 100%
-    );
-    border: 1px solid rgba(199, 210, 254, 0.18);
-    border-radius: 28px;
-    box-shadow: 0 20px 48px -12px rgba(5, 12, 34, 0.45);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    background-color: #151E2E;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
   }
 
   .card-inner {
-    background: rgba(12, 26, 58, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-    backdrop-filter: blur(14px);
+    background-color: #0B0F17;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
   }
 
-  /* ── Smooth Glass Inputs ── */
+  /* ── Clean Banking Inputs ── */
   .input-field {
     width: 100%;
-    background: rgba(9, 21, 48, 0.48);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 16px;
-    padding: 0.7rem 1rem;
+    background-color: #0B0F17;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
     line-height: 1.35rem;
     color: #F8FAFC;
-    backdrop-filter: blur(12px);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .input-field:hover {
-    border-color: rgba(255, 255, 255, 0.28);
-    background: rgba(12, 27, 60, 0.58);
+    border-color: #475569;
   }
 
   .input-field::placeholder {
-    color: rgba(203, 213, 225, 0.6);
+    color: #64748B;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
   }
 
   .section-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #FFFFFF;
-    letter-spacing: -0.015em;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #F8FAFC;
+    letter-spacing: -0.01em;
   }
 
   .badge-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: 9999px;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
-    backdrop-filter: blur(10px);
   }
 
   .divider {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   .status-safe {
-    color: #6EE7B7;
-    background: rgba(16, 185, 129, 0.16);
+    color: #34D399;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.25);
   }
 
   .status-warning {
-    color: #FDE68A;
-    background: rgba(245, 158, 11, 0.16);
+    color: #FBBF24;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
   }
 
   .status-danger {
-    color: #FCA5A5;
-    background: rgba(239, 68, 68, 0.16);
+    color: #F87171;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
   }
 }
 
-/* ── Fluid Animations ── */
-@keyframes shimmer {
-  0% { transform: translateX(-100%) skewX(-20deg); }
-  100% { transform: translateX(200%) skewX(-20deg); }
-}
-
-@keyframes float-slow {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.06); }
-}
-
+/* ── Subtle Banking Transitions ── */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.animate-float {
-  animation: float-slow 6s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 7s ease-in-out infinite;
-}
-
-/* ── Custom Range Input ── */
+/* ── Range Input ── */
 input[type="range"] {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
+  background: #1E293B;
   appearance: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #38BDF8 0%, #6366F1 100%);
-  border: 2px solid #FFFFFF;
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.55);
+  background: #2563EB;
+  border: 2px solid #F8FAFC;
   cursor: pointer;
 }
 
@@ -200,22 +172,20 @@ input[type="range"]::-webkit-slider-thumb {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(148, 163, 184, 0.24);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.38);
+  background: rgba(148, 163, 184, 0.4);
 }
 
-/* ── Focus Styles ── */
+/* ── Base Focus Reset ── */
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: rgba(56, 189, 248, 0.75) !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
 }
 
 /* ── Selection ── */
 ::selection {
-  background: rgba(56, 189, 248, 0.35);
-  color: white;
+  background: rgba(59, 130, 246, 0.3);
+  color: #F8FAFC;
 }

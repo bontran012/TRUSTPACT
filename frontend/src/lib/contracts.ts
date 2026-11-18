@@ -515,28 +515,28 @@ export function shortenAddress(addr?: string): string {
 export function parseContractError(err: any): string {
   const msg = err?.message || err?.shortMessage || String(err);
   if (msg.includes("Broker insufficient quota")) {
-    return "Hạn mức bảo lãnh khả dụng của GDTG không đủ cho giá trị giao dịch này.";
+    return "Hạn mức bảo chứng khả dụng của GDTG không đủ cho giá trị giao dịch này.";
   }
   if (msg.includes("Stake is backing active deals")) {
-    return "Tiền cọc đang bảo chứng cho các kèo mở, không thể rút vượt quá hạn mức rảnh.";
+    return "Vốn thế chấp đang bảo chứng cho các giao dịch đang mở, không thể rút vượt quá hạn mức khả dụng.";
   }
   if (msg.includes("Roles must differ")) {
-    return "Bên Mua, Bên Bán và GDTG (Broker) phải là 3 địa chỉ ví khác nhau.";
+    return "Bên mua, Bên bán và GDTG bảo chứng phải là 3 địa chỉ ví độc lập.";
   }
   if (msg.includes("Not expired")) {
-    return "Hợp đồng chưa hết hạn bàn giao, tính năng tự động rút tiền chưa được mở khóa.";
+    return "Hợp đồng chưa đến hạn bàn giao, tính năng tự động hoàn tiền chưa được mở khóa.";
   }
   if (msg.includes("Only broker")) {
-    return "Chỉ có GDTG (Broker) được chỉ định mới có quyền thực hiện thao tác này.";
+    return "Chỉ GDTG bảo chứng được chỉ định trong hợp đồng mới có quyền thực hiện thao tác này.";
   }
   if (msg.includes("Only buyer")) {
-    return "Chỉ có Bên Mua (người nạp tiền) mới có quyền thực hiện lệnh này.";
+    return "Chỉ Bên mua của hợp đồng mới có quyền thực hiện thao tác này.";
   }
   if (msg.includes("User rejected")) {
-    return "Giao dịch đã bị hủy bởi người dùng trên ví.";
+    return "Giao dịch đã bị từ chối ký trên ví Web3.";
   }
   if (msg.includes("insufficient funds")) {
-    return "Số dư AVAX trong ví không đủ để thanh toán phí mạng.";
+    return "Số dư AVAX trong ví không đủ để thanh toán phí mạng lưới.";
   }
   return msg.length > 100 ? `${msg.slice(0, 100)}...` : msg;
 }
@@ -552,32 +552,32 @@ export function getSnowtraceTxUrl(txHash: string): string {
 export const VERIFIED_FUJI_CONTRACTS = [
   {
     name: "UniversalEscrow",
-    title: "Két Sắt Ký Quỹ 3 Bên (Tri-Party Escrow)",
-    purpose: "Bảo đảm thực hiện nghĩa vụ dân sự theo Điều 292 & Điều 328 Bộ luật Dân sự 2015. Tự động thanh toán/hoàn tiền.",
+    title: "Hợp đồng ký quỹ 3 bên (UniversalEscrow)",
+    purpose: "Bảo đảm thực hiện nghĩa vụ dân sự theo Điều 292 & Điều 328 Bộ luật Dân sự 2015. Giải ngân đồng thuận 2/2 hoặc hoàn tiền tự động.",
     address: CONTRACT_ADDRESSES.universalEscrow,
     explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.universalEscrow}`,
     subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.universalEscrow}`,
   },
   {
     name: "StakedBrokerRegistry",
-    title: "Sổ Ký Cược Broker & Sinh Lãi Aave V3",
-    purpose: "Broker nạp bảo chứng ký cược nhận hạn mức; tự động gửi Aave V3 sinh lãi thực tế 80% cho Broker, 20% quỹ bảo hiểm.",
+    title: "Sổ đăng ký thế chấp GDTG & Lãi suất Aave V3",
+    purpose: "Quản lý vốn thế chấp bảo chứng của GDTG theo tỷ lệ 1:1; tự động ủy thác vào Aave V3 phân bổ 80% lợi tức cho GDTG, 20% quỹ dự phòng.",
     address: CONTRACT_ADDRESSES.stakedBrokerRegistry,
     explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.stakedBrokerRegistry}`,
     subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.stakedBrokerRegistry}`,
   },
   {
     name: "TrustPassportSBT",
-    title: "Hộ Chiếu Tín Nhiệm Linh Hồn (ERC-721 SBT)",
-    purpose: "Chứng chỉ uy tín bất biến gắn chặt ví Broker (Non-transferable), ngăn chặn mua bán nick hay ngụy tạo đánh giá.",
+    title: "Chứng thư tín nhiệm định danh (ERC-721 SBT)",
+    purpose: "Chứng thư uy tín định danh gắn cố định với địa chỉ ví (Soulbound, không thể chuyển nhượng), ghi nhận lịch sử hoàn thành hợp đồng.",
     address: CONTRACT_ADDRESSES.trustPassportSBT,
     explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.trustPassportSBT}`,
     subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.trustPassportSBT}`,
   },
   {
     name: "ScamRegistryL1",
-    title: "Sổ Đen Vi Phạm & Tra Cứu Tín Nhiệm On-Chain",
-    purpose: "Kho dữ liệu cảnh báo vi phạm STK/Ví/SĐT cộng đồng minh bạch trên Avalanche, kết nối bot Telegram & Teleporter.",
+    title: "Cơ sở dữ liệu cảnh báo rủi ro On-Chain (ScamRegistryL1)",
+    purpose: "Lưu trữ cảnh báo tài khoản ngân hàng, số điện thoại, Telegram và địa chỉ ví vi phạm trên Avalanche, đồng bộ qua Teleporter ICM.",
     address: CONTRACT_ADDRESSES.scamRegistryL1,
     explorer: `https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.scamRegistryL1}`,
     subnetsExplorer: `https://subnets-test.avax.network/c-chain/address/${CONTRACT_ADDRESSES.scamRegistryL1}`,

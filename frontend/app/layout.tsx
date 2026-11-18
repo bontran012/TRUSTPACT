@@ -4,9 +4,9 @@ import { Web3Provider } from "@/src/components/providers/Web3Provider";
 import { AppShell } from "@/src/components/layout/AppShell";
 
 export const metadata: Metadata = {
-  title: "TrustPact — Nền Tảng Ký Quỹ Giao Dịch 3 Bên & Tra Cứu Tín Nhiệm",
+  title: "TrustPact — Hệ thống Tra cứu Rủi ro & Giao dịch Ký quỹ",
   description:
-    "Hệ thống ký quỹ bảo chứng giao dịch P2P/OTC bằng Smart Contract trên Avalanche Fuji, cơ chế cọc bảo hiểm Aave V3 và định danh tín nhiệm Soulbound SBT.",
+    "Hạ tầng đối soát rủi ro giao dịch, hợp đồng ký quỹ 3 bên trên Avalanche Fuji, thế chấp GDTG Aave V3 và định danh tín nhiệm Soulbound SBT.",
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className="dark font-sans">
-      <body className="min-h-screen bg-[#0B1933] text-slate-50 font-sans antialiased">
+      <body className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] font-sans antialiased">
         <Web3Provider>
           <AppShell>{children}</AppShell>
         </Web3Provider>

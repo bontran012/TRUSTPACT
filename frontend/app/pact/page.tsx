@@ -4,14 +4,14 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAccount, useReadContract } from "wagmi";
 import {
-  Lock,
-  PlusCircle,
+  Plus,
   ArrowRight,
   Clock,
   CheckCircle2,
   Search,
-  TrendingUp,
-  Layers,
+  Wallet,
+  FileText,
+  AlertTriangle,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
@@ -28,57 +28,72 @@ interface PactSummary {
   seller: `0x${string}`;
   broker: `0x${string}`;
   brokerName: string;
-  status: "ACTIVE" | "COMPLETED" | "CANCELLED";
+  status: "ACTIVE" | "COMPLETED" | "CANCELLED" | "DISPUTED";
   timeLeft: string;
   isCustom?: boolean;
+}
+
+function getInitials(name: string): string {
+  const clean = name.split("(")[0].trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "GD";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 const DEFAULT_PACTS: PactSummary[] = [
   {
     id: 4,
-    title: "Chuyển nhượng tài khoản số & Full Skin VIP (On-Chain Fuji #4)",
+    title: "Chuyển nhượng tài khoản số & bản quyền phần mềm (Fuji #4)",
     amount: 6,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
     broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
-    brokerName: "Nguyễn Nam (Giám Định)",
+    brokerName: "Nguyễn Nam",
     status: "ACTIVE",
     timeLeft: "47:58:10",
   },
   {
     id: 1,
-    title: "Bàn giao mã nguồn Smart Contract DeFi Vault (On-Chain Fuji #1)",
+    title: "Bàn giao mã nguồn Smart Contract DeFi Vault (Fuji #1)",
     amount: 5,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
     broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
-    brokerName: "Nguyễn Nam (Giám Định)",
+    brokerName: "Nguyễn Nam",
     status: "COMPLETED",
     timeLeft: "00:00:00",
   },
   {
     id: 3,
-    title: "Thương vụ trao đổi tên miền Web3 cao cấp (On-Chain Fuji #3 · Hòa giải)",
+    title: "Chuyển nhượng tên miền Web3 doanh nghiệp (Fuji #3 · Hòa giải)",
     amount: 4,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
     broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
-    brokerName: "Nguyễn Nam (Giám Định)",
+    brokerName: "Nguyễn Nam",
     status: "COMPLETED",
     timeLeft: "00:00:00",
   },
   {
     id: 2,
-    title: "Giao dịch Acc Game VIP lỗi thông tin (On-Chain Fuji #2 · Hoàn 100%)",
+    title: "Giao dịch tài sản số sai thông tin cam kết (Fuji #2 · Hoàn 100%)",
     amount: 3,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
     broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
-    brokerName: "Nguyễn Nam (Giám Định)",
+    brokerName: "Nguyễn Nam",
     status: "CANCELLED",
     timeLeft: "00:00:00",
   },
 ];
+
+function mapNumericStatus(status?: number): PactSummary["status"] {
+  if (status === 1) return "COMPLETED";
+  if (status === 2) return "CANCELLED";
+  if (status === 3) return "DISPUTED";
+  return "ACTIVE";
+}
 
 export default function MyEscrowPactsPage() {
   const { address } = useAccount();
@@ -101,13 +116,15 @@ export default function MyEscrowPactsPage() {
         if (isMounted && data.success && Array.isArray(data.pacts)) {
           const serverList: PactSummary[] = data.pacts.map((item: any) => ({
             id: Number(item.id),
-            title: `Kèo Ký Quỹ #${item.id} (${item.amount} USDC)`,
+            title: item.terms
+              ? String(item.terms).slice(0, 68)
+              : `Hợp đồng ký quỹ #${item.id} (${item.amount} USDC)`,
             amount: Number(item.amount) || 1000,
-            buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002",
-            broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
-            brokerName: "Nguyễn Nam (Giám Định)",
-            status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
+            buyer: (item.buyer as `0x${string}`) || "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+            seller: (item.seller as `0x${string}`) || "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+            broker: (item.broker as `0x${string}`) || "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+            brokerName: "Nguyễn Nam",
+            status: mapNumericStatus(Number(item.status)),
             timeLeft: "23:59:59",
             isCustom: true,
           }));
@@ -117,20 +134,20 @@ export default function MyEscrowPactsPage() {
           setAllPacts(merged);
           return;
         }
-      } catch (err) {}
+      } catch {}
 
       if (typeof window !== "undefined") {
         try {
           const stored = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
           const customList: PactSummary[] = Object.values(stored).map((item: any) => ({
             id: Number(item.id),
-            title: item.terms?.slice(0, 60) || "Kèo Ký Quỹ Bảo Chứng UniversalEscrow 3 Bên",
+            title: item.terms?.slice(0, 68) || "Hợp đồng ký quỹ 3 bên UniversalEscrow",
             amount: Number(item.amount) || 1000,
-            buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002",
-            broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
-            brokerName: item.brokerName || "Nguyễn Nam (Giám Định)",
-            status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
+            buyer: (item.buyer as `0x${string}`) || "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+            seller: (item.seller as `0x${string}`) || "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+            broker: (item.broker as `0x${string}`) || "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+            brokerName: (item.brokerName || "Nguyễn Nam").split("(")[0].trim(),
+            status: mapNumericStatus(Number(item.status)),
             timeLeft: "23:59:59",
             isCustom: true,
           }));
@@ -151,7 +168,9 @@ export default function MyEscrowPactsPage() {
   }, [address]);
 
   const filteredPacts = allPacts.filter((p) => {
-    if (filter !== "ALL" && p.status !== filter) return false;
+    if (filter === "ACTIVE" && p.status !== "ACTIVE" && p.status !== "DISPUTED") return false;
+    if (filter === "COMPLETED" && p.status !== "COMPLETED") return false;
+    if (filter === "CANCELLED" && p.status !== "CANCELLED") return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase().trim();
     return (
@@ -165,108 +184,98 @@ export default function MyEscrowPactsPage() {
   });
 
   const totalValue = allPacts.reduce((sum, p) => sum + p.amount, 0);
-  const activeCount = allPacts.filter((p) => p.status === "ACTIVE").length;
+  const activeCount = allPacts.filter((p) => p.status === "ACTIVE" || p.status === "DISPUTED").length;
   const completedCount = allPacts.filter((p) => p.status === "COMPLETED").length;
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* ── SCENIC 3D VAULT BANNER HEADER ───────────────────────────────── */}
-      <div className="card overflow-hidden p-0 relative">
-        <img
-          src="/images/hero-3d-escrow.png"
-          alt=""
-          className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-55 hidden sm:block"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0B1E47]/95 via-[#0E2454]/85 to-[#0E2454]/30" />
-
-        <div className="relative p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
-            <span className="badge-pill bg-sky-400/20 border border-sky-300/35 text-sky-200 text-xs">
-              <Layers className="w-3.5 h-3.5 text-sky-300" />
-              <span>Escrow Ledger · Avalanche Fuji</span>
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Sổ Kèo Giao Dịch Của Tôi
-            </h1>
-            <p className="text-sm text-sky-100/85">
-              Theo dõi trạng thái dòng tiền và truy cập trực tiếp phòng đối soát 3 bên phi tập trung
-            </p>
-          </div>
-
-          <Link href="/pact/create" className="self-start sm:self-auto shrink-0">
-            <ShimmerButton variant="primary" className="px-6 py-3.5 font-bold">
-              <PlusCircle className="w-4 h-4" />
-              <span>Tạo Kèo Mới</span>
-            </ShimmerButton>
-          </Link>
+    <div className="space-y-6 animate-fade-in">
+      {/* ── 1-LINE CLEAN BANKING HEADER ───────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
+            Danh sách giao dịch ký quỹ
+          </h1>
+          <span className="px-2.5 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
+            UniversalEscrow · Fuji
+          </span>
         </div>
+
+        <Link href="/pact/create" className="self-start sm:self-auto shrink-0">
+          <ShimmerButton variant="primary" className="px-4 py-2 text-sm font-medium">
+            <Plus className="w-4 h-4" />
+            <span>Tạo giao dịch</span>
+          </ShimmerButton>
+        </Link>
       </div>
 
-      {/* ── SUMMARY FROSTED CAPSULES ────────────────────────────────────── */}
+      {/* ── COMPACT 4-CARD KPI ROW ────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-5 space-y-2.5">
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Tổng số hợp đồng</span>
-            <div className="w-9 h-9 rounded-full bg-sky-400/20 border border-sky-300/30 flex items-center justify-center text-sky-200">
-              <Layers className="w-4 h-4" />
+            <span className="text-xs font-medium text-slate-400">Tổng số hợp đồng</span>
+            <div className="w-8 h-8 rounded-lg bg-[#0B0F17] border border-slate-800 flex items-center justify-center text-slate-400">
+              <FileText className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold font-mono text-white tabular-nums">{allPacts.length}</div>
-          <span className="text-xs text-sky-200/70 block">Sổ cái UniversalEscrow</span>
+          <div className="text-2xl font-bold font-mono text-slate-100 tabular-nums">
+            {allPacts.length}
+          </div>
         </div>
 
-        <div className="card p-5 space-y-2.5">
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Đang khóa trong két</span>
-            <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-300/30 flex items-center justify-center text-amber-200">
+            <span className="text-xs font-medium text-slate-400">Đang ký quỹ</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Clock className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold font-mono text-amber-300 tabular-nums">{activeCount}</div>
-          <span className="text-xs text-amber-200/80 block">Đang được bảo chứng</span>
+          <div className="text-2xl font-bold font-mono text-amber-400 tabular-nums">
+            {activeCount}
+          </div>
         </div>
 
-        <div className="card p-5 space-y-2.5">
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Đã tất toán</span>
-            <div className="w-9 h-9 rounded-full bg-emerald-400/20 border border-emerald-300/30 flex items-center justify-center text-emerald-200">
+            <span className="text-xs font-medium text-slate-400">Đã tất toán</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold font-mono text-emerald-300 tabular-nums">{completedCount}</div>
-          <span className="text-xs text-emerald-200/80 block">Giải ngân hoàn tất</span>
+          <div className="text-2xl font-bold font-mono text-emerald-400 tabular-nums">
+            {completedCount}
+          </div>
         </div>
 
-        <div className="card p-5 space-y-2.5">
+        <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-sky-100/80 font-medium">Tổng giá trị bảo vệ</span>
-            <div className="w-9 h-9 rounded-full bg-emerald-400/20 border border-emerald-300/30 flex items-center justify-center text-emerald-200">
-              <TrendingUp className="w-4 h-4" />
+            <span className="text-xs font-medium text-slate-400">Tổng giá trị (USDC)</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Wallet className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold font-mono text-white tabular-nums whitespace-nowrap">
-            {totalValue.toLocaleString()} <span className="text-xs font-normal text-sky-200/80">USDC</span>
+          <div className="text-2xl font-bold font-mono text-slate-100 tabular-nums whitespace-nowrap">
+            {totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <span className="text-xs text-sky-200/70 block">An toàn 100% On-Chain</span>
         </div>
       </div>
 
-      {/* ── PILL FILTER TABS & SEARCH BAR ───────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/[0.09] backdrop-blur-xl border border-white/[0.18] w-fit overflow-x-auto">
+      {/* ── FILTER BAR & SEARCH INPUT ─────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[#111827] border border-slate-800 w-fit overflow-x-auto">
           {[
-            { id: "ALL", label: "Tất Cả" },
-            { id: "ACTIVE", label: "Đang Khóa Tiền" },
-            { id: "COMPLETED", label: "Đã Tất Toán" },
-            { id: "CANCELLED", label: "Đã Hoàn Tiền" },
+            { id: "ALL", label: "Tất cả" },
+            { id: "ACTIVE", label: "Đang ký quỹ" },
+            { id: "COMPLETED", label: "Đã tất toán" },
+            { id: "CANCELLED", label: "Đã hoàn tiền" },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setFilter(tab.id as any)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              type="button"
+              onClick={() => setFilter(tab.id as "ALL" | "ACTIVE" | "COMPLETED" | "CANCELLED")}
+              className={`px-3.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
                 filter === tab.id
-                  ? "bg-gradient-to-r from-sky-400/35 to-indigo-500/40 text-white border border-sky-300/45 shadow-sm"
-                  : "text-sky-100/75 hover:text-white border border-transparent"
+                  ? "bg-slate-800 text-slate-100 border border-slate-700 shadow-sm"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               {tab.label}
@@ -275,116 +284,162 @@ export default function MyEscrowPactsPage() {
         </div>
 
         <div className="relative max-w-sm w-full">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-sky-200/60">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
             <Search className="w-4 h-4" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo mã kèo, tiêu đề, ví hoặc GDTG..."
-            className="input-field rounded-full pl-11 py-2.5 text-sm"
+            placeholder="Tìm theo mã HĐ, nội dung, địa chỉ ví, GDTG..."
+            className="w-full rounded-lg bg-[#0B0F17] border border-slate-800 focus:border-blue-500 focus:outline-none pl-10 pr-3.5 py-2 text-sm text-slate-100 placeholder:text-slate-500 transition-colors"
           />
         </div>
       </div>
 
-      {/* ── FLOATING FROSTED DEAL CARDS (Zero Rigid Spreadsheet Grid!) ──── */}
-      {filteredPacts.length > 0 ? (
-        <div className="space-y-3.5">
-          {filteredPacts.map((p) => (
-            <Link
-              key={p.id}
-              href={`/pact/${p.id}`}
-              className="group card p-5 sm:px-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-sky-300/45 hover:-translate-y-0.5 transition-all duration-200"
-            >
-              {/* Left: Vault Icon + Deal Title & Counterparties */}
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400/25 to-indigo-500/30 border border-sky-300/35 flex flex-col items-center justify-center shrink-0 shadow-sm">
-                  <span className="text-[10px] font-mono text-sky-200 leading-none">KÈO</span>
-                  <span className="text-sm font-extrabold font-mono text-white leading-tight">#{p.id}</span>
-                </div>
+      {/* ── CLEAN FLAT BANKING LEDGER TABLE ───────────────────────────────── */}
+      <div className="bg-[#111827] border border-slate-800 rounded-xl overflow-hidden">
+        {filteredPacts.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 bg-[#0B0F17]/70 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3.5 px-4 whitespace-nowrap">Mã HĐ</th>
+                  <th className="py-3.5 px-4 min-w-[240px]">Nội dung giao dịch</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Bên bán</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">GDTG bảo chứng</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap text-right">Giá trị (USDC)</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80 text-sm">
+                {filteredPacts.map((p) => (
+                  <tr
+                    key={p.id}
+                    className="hover:bg-slate-800/35 transition-colors group"
+                  >
+                    {/* Mã HĐ */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-slate-100 tabular-nums">
+                          #{p.id}
+                        </span>
+                        {p.isCustom && (
+                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/25 text-[10px] font-semibold text-blue-400">
+                            MỚI
+                          </span>
+                        )}
+                      </div>
+                    </td>
 
-                <div className="min-w-0 space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-base text-white group-hover:text-sky-200 transition-colors truncate max-w-md">
-                      {p.title}
-                    </span>
-                    {p.isCustom && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-400/25 text-sky-100 border border-sky-300/40">
-                        MỚI TẠO
+                    {/* Nội dung giao dịch */}
+                    <td className="py-3.5 px-4 max-w-md">
+                      <Link
+                        href={`/pact/${p.id}`}
+                        className="font-medium text-slate-100 group-hover:text-blue-400 transition-colors line-clamp-1"
+                      >
+                        {p.title}
+                      </Link>
+                      <span className="text-xs font-mono text-slate-500 block mt-0.5">
+                        Bên mua: {shortenAddress(p.buyer)}
                       </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-sky-100/75 flex-wrap">
-                    <span>
-                      Bên Bán: <strong className="font-mono text-white">{shortenAddress(p.seller)}</strong>
-                    </span>
-                    <span className="text-white/30">·</span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <img
-                        src="/images/avatar-nam.jpg"
-                        alt={p.brokerName}
-                        className="w-4 h-4 rounded-full object-cover"
-                      />
-                      <span>GDTG: <strong className="text-sky-200">{p.brokerName}</strong></span>
-                    </span>
-                  </div>
-                </div>
-              </div>
+                    </td>
 
-              {/* Right: Amount + Status Pill + CTA */}
-              <div className="flex items-center justify-between lg:justify-end gap-5 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/[0.1] shrink-0">
-                <div className="text-left lg:text-right">
-                  <span className="text-[11px] text-sky-100/70 block">Giá trị ký quỹ</span>
-                  <span className="text-lg font-extrabold font-mono text-white tabular-nums whitespace-nowrap">
-                    {p.amount.toLocaleString("en-US")} <span className="text-xs font-normal text-sky-200">USDC</span>
-                  </span>
-                </div>
+                    {/* Bên bán */}
+                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs text-slate-300">
+                      {shortenAddress(p.seller)}
+                    </td>
 
-                <div>
-                  {p.status === "ACTIVE" ? (
-                    <span className="badge-pill bg-amber-400/20 border border-amber-300/40 text-amber-200">
-                      <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" />
-                      <span>Đang Khóa</span>
-                    </span>
-                  ) : p.status === "COMPLETED" ? (
-                    <span className="badge-pill bg-emerald-400/20 border border-emerald-300/40 text-emerald-200">
-                      <span className="w-2 h-2 rounded-full bg-emerald-300" />
-                      <span>Hoàn Tất</span>
-                    </span>
-                  ) : (
-                    <span className="badge-pill bg-white/[0.1] border border-white/[0.2] text-sky-100/80">
-                      <span>Đã Hoàn Tiền</span>
-                    </span>
-                  )}
-                </div>
+                    {/* GDTG bảo chứng */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-200 shrink-0">
+                          {getInitials(p.brokerName)}
+                        </div>
+                        <div>
+                          <span className="text-xs font-semibold text-slate-200 block">
+                            {p.brokerName}
+                          </span>
+                          <span className="text-[11px] font-mono text-slate-500 block">
+                            {shortenAddress(p.broker)}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
 
-                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/[0.12] group-hover:bg-sky-400/30 border border-white/[0.22] group-hover:border-sky-300/50 text-xs font-bold text-white transition-all whitespace-nowrap">
-                  <span>Mở Phòng</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-sky-200 group-hover:translate-x-0.5 transition-transform" />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="card p-14 text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-sky-400/20 border border-sky-300/35 flex items-center justify-center mx-auto text-sky-200">
-            <Lock className="w-6 h-6" />
+                    {/* Giá trị (USDC) */}
+                    <td className="py-3.5 px-4 whitespace-nowrap text-right font-mono font-semibold text-slate-100 tabular-nums">
+                      {p.amount.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+
+                    {/* Trạng thái */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {p.status === "ACTIVE" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-400 text-xs font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                          <span>Đang ký quỹ</span>
+                        </span>
+                      ) : p.status === "DISPUTED" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/25 text-red-400 text-xs font-semibold">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Đang tranh chấp</span>
+                        </span>
+                      ) : p.status === "COMPLETED" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span>Đã tất toán</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-400 text-xs font-semibold">
+                          <span>Đã hoàn tiền</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Thao tác */}
+                    <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                      <Link
+                        href={`/pact/${p.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-100 transition-colors"
+                      >
+                        <span>Chi tiết</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-colors" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="space-y-1">
-            <p className="text-base font-bold text-white">Không tìm thấy hợp đồng phù hợp</p>
-            <p className="text-xs text-sky-100/80">Hãy thử từ khóa khác hoặc tạo một két sắt ký quỹ mới.</p>
+        ) : (
+          <div className="p-12 text-center space-y-3">
+            <div className="w-10 h-10 rounded-lg bg-[#0B0F17] border border-slate-800 flex items-center justify-center mx-auto text-slate-400">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-200">
+                Không tìm thấy giao dịch phù hợp
+              </p>
+              <p className="text-xs text-slate-400">
+                Thử thay đổi bộ lọc tìm kiếm hoặc khởi tạo giao dịch ký quỹ mới.
+              </p>
+            </div>
+            <div className="pt-1">
+              <Link
+                href="/pact/create"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500/30 text-white text-xs font-semibold transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tạo giao dịch</span>
+              </Link>
+            </div>
           </div>
-          <Link
-            href="/pact/create"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 text-white text-xs font-bold transition-all shadow-lg"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Tạo Kèo Ký Quỹ Đầu Tiên</span>
-          </Link>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
