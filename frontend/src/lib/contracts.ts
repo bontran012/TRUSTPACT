@@ -1,12 +1,13 @@
 import { formatUnits, parseUnits } from "viem";
 
 export const CONTRACT_ADDRESSES = {
-  universalEscrow: (process.env.NEXT_PUBLIC_UNIVERSAL_ESCROW || "0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0") as `0x${string}`,
-  stakedBrokerRegistry: (process.env.NEXT_PUBLIC_BROKER_REGISTRY || "0x7eB341096Ca95BB4F227A10daEd9c413F2F60Ca2") as `0x${string}`,
-  trustPassportSBT: (process.env.NEXT_PUBLIC_TRUST_PASSPORT_SBT || "0x84d9F79A513D5CBFe6dC1E5B971cc811e64d3296") as `0x${string}`,
-  scamRegistryL1: (process.env.NEXT_PUBLIC_SCAM_REGISTRY_L1 || "0x3f8C012cee1412170386a6a8C8968F903C8f3362") as `0x${string}`,
+  universalEscrow: (process.env.NEXT_PUBLIC_UNIVERSAL_ESCROW || "0xEe86802fA1e1098797c2980D9E1D73175f35Dd22") as `0x${string}`,
+  stakedBrokerRegistry: (process.env.NEXT_PUBLIC_BROKER_REGISTRY || "0x736Df3F64F50D3E0Bc72c5Cbf1487333607E2dcC") as `0x${string}`,
+  trustPassportSBT: (process.env.NEXT_PUBLIC_TRUST_PASSPORT_SBT || "0xbF63C18E67B50AFB790024Ef60434F7CF4A24A7f") as `0x${string}`,
+  scamRegistryL1: (process.env.NEXT_PUBLIC_SCAM_REGISTRY_L1 || "0x980D61B9455Ba4E76EB1118676e48E09c6D3eDC9") as `0x${string}`,
+  teleporterMessenger: "0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf" as `0x${string}`,
   usdc: (process.env.NEXT_PUBLIC_USDC_ADDRESS || "0x5425890298aed601595a70AB815c96711a31Bc65") as `0x${string}`,
-  aUsdc: (process.env.NEXT_PUBLIC_A_USDC_ADDRESS || "0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40") as `0x${string}`,
+  aUsdc: (process.env.NEXT_PUBLIC_A_USDC_ADDRESS || "0x9CFcc1B289E59FBe1E769f020C77315DF8473760") as `0x${string}`,
   aaveV3Pool: (process.env.NEXT_PUBLIC_FUJI_AAVE_V3_POOL || "0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40") as `0x${string}`,
 };
 
@@ -72,6 +73,33 @@ export const UNIVERSAL_ESCROW_ABI = [
   },
   {
     type: "function",
+    name: "raiseDispute",
+    inputs: [
+      { name: "_id", type: "uint256" },
+      { name: "_reason", type: "string" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "submitDeliveryProof",
+    inputs: [
+      { name: "_id", type: "uint256" },
+      { name: "_proofURI", type: "string" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "deliveryProofs",
+    inputs: [{ name: "", type: "uint256" }],
+    outputs: [{ name: "", type: "string" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "adminSlashCorruptBroker",
     inputs: [
       { name: "_id", type: "uint256" },
@@ -131,6 +159,20 @@ export const UNIVERSAL_ESCROW_ABI = [
   {
     type: "function",
     name: "buyerCancelApproved",
+    inputs: [{ name: "", type: "uint256" }],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "buyerApprovedRelease",
+    inputs: [{ name: "", type: "uint256" }],
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "brokerApprovedRelease",
     inputs: [{ name: "", type: "uint256" }],
     outputs: [{ name: "", type: "bool" }],
     stateMutability: "view",
@@ -331,6 +373,32 @@ export const SCAM_REGISTRY_L1_ABI = [
     inputs: [],
     outputs: [{ name: "", type: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "totalCrossChainSyncs",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "lastTeleporterMessageId",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "syncVerifiedScamViaTeleporter",
+    inputs: [
+      { name: "_destinationBlockchainID", type: "bytes32" },
+      { name: "_destinationReceiver", type: "address" },
+      { name: "_identifier", type: "string" },
+      { name: "_reportIndex", type: "uint256" },
+    ],
+    outputs: [{ name: "messageId", type: "bytes32" }],
+    stateMutability: "nonpayable",
   },
 ] as const;
 

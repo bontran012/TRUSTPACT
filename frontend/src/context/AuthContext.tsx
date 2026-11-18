@@ -10,7 +10,7 @@ export interface UserProfile {
   username: string; // Unique username e.g. "tuan_buyer"
   name: string; // Display name e.g. "Lê Minh Tuấn"
   role: UserRole;
-  walletAddress: `0x${string}`;
+  walletAddress?: `0x${string}`;
   email?: string;
   telegram?: string;
   zalo?: string;
@@ -22,6 +22,8 @@ export interface UserProfile {
   balanceUsdc: number;
   registeredAt?: string;
   hasCustomUsername?: boolean;
+  isWalletLinked?: boolean;
+  authProvider?: "wallet" | "gmail" | "preset";
 }
 
 export const PRESET_ACCOUNTS: UserProfile[] = [
@@ -30,12 +32,12 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     username: "tuan_buyer",
     name: "Lê Minh Tuấn",
     role: "BUYER",
-    walletAddress: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+    walletAddress: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     email: "tuan.le@gmail.com",
     telegram: "@tuan_buyer",
     zalo: "0909112233",
     facebook: "facebook.com/tuan.le.crypto",
-    avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
+    avatarUrl: "/images/avatar-tuan.jpg",
     sbtId: "#TP-1001",
     successRate: 100,
     completedDeals: 18,
@@ -48,7 +50,7 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     username: "hoangminh_otc",
     name: "Hoàng Minh (OTC Custodian)",
     role: "SELLER",
-    walletAddress: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+    walletAddress: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
     email: "hoangminh.otc@gmail.com",
     telegram: "@hoangminh_otc",
     zalo: "0988776655",
@@ -66,15 +68,15 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     username: "nam_broker",
     name: "Nguyễn Nam (Giám Định Viên)",
     role: "BROKER",
-    walletAddress: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+    walletAddress: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
     email: "nam.escrow@trustpact.io",
     telegram: "@nam_escrow_official",
     zalo: "0912345678",
     facebook: "facebook.com/nam.escrow.official",
     avatarUrl: "/images/avatar-nam.jpg",
-    sbtId: "#TP-30F1",
+    sbtId: "#TP-1",
     successRate: 100,
-    completedDeals: 128,
+    completedDeals: 130,
     balanceUsdc: 5000,
     registeredAt: "2023-08-04",
     hasCustomUsername: true,
@@ -120,7 +122,7 @@ export const PRESET_ACCOUNTS: UserProfile[] = [
     username: "super_admin",
     name: "Quản Trị Viên Tối Cao (Admin TrustPact)",
     role: "ADMIN",
-    walletAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    walletAddress: "0xe85eE178537fa93392d82114A33f6B204Ea7c6aE",
     email: "admin@trustpact.io",
     telegram: "@TrustPact_Sentinel_bot",
     zalo: "0900009999",
@@ -153,6 +155,8 @@ interface AuthContextType {
   registeredUsers: UserProfile[];
   loginWithPreset: (presetId: string) => void;
   loginWithWallet: (address: `0x${string}`, name?: string, role?: UserRole) => void;
+  loginWithGmail: (email: string, displayName?: string) => { success: boolean; error?: string; user?: UserProfile };
+  linkWalletToUser: (walletAddress: `0x${string}`) => { success: boolean; error?: string; user?: UserProfile };
   registerOrUpdateUser: (profile: Partial<UserProfile> & { username: string }) => {
     success: boolean;
     error?: string;
@@ -167,6 +171,8 @@ interface AuthContextType {
   logout: () => void;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
+  isLinkWalletModalOpen: boolean;
+  setIsLinkWalletModalOpen: (open: boolean) => void;
   isOnboardingModalOpen: boolean;
   setIsOnboardingModalOpen: (open: boolean) => void;
 }
@@ -177,6 +183,8 @@ const AuthContext = createContext<AuthContextType>({
   registeredUsers: [],
   loginWithPreset: () => {},
   loginWithWallet: () => {},
+  loginWithGmail: () => ({ success: false }),
+  linkWalletToUser: () => ({ success: false }),
   registerOrUpdateUser: () => ({ success: false }),
   checkUsernameAvailability: () => ({ available: false }),
   searchUsers: () => [],
@@ -185,6 +193,8 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   isAuthModalOpen: false,
   setIsAuthModalOpen: () => {},
+  isLinkWalletModalOpen: false,
+  setIsLinkWalletModalOpen: () => {},
   isOnboardingModalOpen: false,
   setIsOnboardingModalOpen: () => {},
 });
@@ -209,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return PRESET_ACCOUNTS;
   });
 
-  // Current logged in user
+  // Current logged in user (null by default for clean unauthenticated visitors)
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("trustpact_user_session");
@@ -221,11 +231,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     }
-    // Default preset for demo if not logged in
-    return PRESET_ACCOUNTS[0];
+    return null;
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLinkWalletModalOpen, setIsLinkWalletModalOpen] = useState(false);
   const [isOnboardingModalOpen, setIsOnboardingModalOpen] = useState(false);
 
   // Sync registered users to localStorage
@@ -245,39 +255,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [currentUser]);
-
-  // When real Web3 wallet connects:
-  // If registered before, log in as that user.
-  // If new, prompt onboarding modal so they can choose a unique username and get an auto-generated ID.
-  useEffect(() => {
-    if (isConnected && address) {
-      const existing = registeredUsers.find(
-        (u) => u.walletAddress.toLowerCase() === address.toLowerCase()
-      );
-
-      if (existing) {
-        setCurrentUser(existing);
-      } else {
-        // Create pending profile without custom username yet
-        const existingIds = registeredUsers.map((u) => u.id);
-        const autoGeneratedId = generateUniqueUserId(existingIds);
-        const tempUser: UserProfile = {
-          id: autoGeneratedId,
-          username: `user_${address.slice(2, 8).toLowerCase()}`,
-          name: `Thành viên ${address.slice(0, 6)}...${address.slice(-4)}`,
-          role: "BUYER",
-          walletAddress: address as `0x${string}`,
-          avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
-          balanceUsdc: 2500,
-          registeredAt: new Date().toISOString().split("T")[0],
-          hasCustomUsername: false,
-        };
-        setCurrentUser(tempUser);
-        // Prompt them to set their unique username & finish profile
-        setIsOnboardingModalOpen(true);
-      }
-    }
-  }, [isConnected, address]);
 
   // Check username availability
   const checkUsernameAvailability = useCallback(
@@ -347,7 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const index = prev.findIndex(
           (u) =>
             u.id === finalProfile.id ||
-            u.walletAddress.toLowerCase() === finalProfile.walletAddress.toLowerCase()
+            Boolean(u.walletAddress && finalProfile.walletAddress && u.walletAddress.toLowerCase() === finalProfile.walletAddress.toLowerCase())
         );
         if (index >= 0) {
           const next = [...prev];
@@ -374,7 +351,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           u.username.toLowerCase().includes(q) ||
           u.id.toLowerCase().includes(q) ||
           u.name.toLowerCase().includes(q) ||
-          u.walletAddress.toLowerCase().includes(q) ||
+          Boolean(u.walletAddress && u.walletAddress.toLowerCase().includes(q)) ||
           (u.zalo && u.zalo.toLowerCase().includes(q)) ||
           (u.facebook && u.facebook.toLowerCase().includes(q)) ||
           (u.telegram && u.telegram.toLowerCase().includes(q))
@@ -393,7 +370,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           (u) =>
             u.username.toLowerCase() === q ||
             u.id.toLowerCase() === q ||
-            u.walletAddress.toLowerCase() === q ||
+            Boolean(u.walletAddress && u.walletAddress.toLowerCase() === q) ||
             (u.zalo && u.zalo.replace(/\s+/g, "").toLowerCase() === q.replace(/\s+/g, "")) ||
             (u.facebook && u.facebook.toLowerCase().includes(q)) ||
             (u.telegram && u.telegram.toLowerCase().replace(/^@/, "") === q)
@@ -414,7 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithWallet = (walletAddr: `0x${string}`, name?: string, role: UserRole = "BUYER") => {
     const existing = registeredUsers.find(
-      (u) => u.walletAddress.toLowerCase() === walletAddr.toLowerCase()
+      (u) => Boolean(u.walletAddress && u.walletAddress.toLowerCase() === walletAddr.toLowerCase())
     );
     if (existing) {
       setCurrentUser(existing);
@@ -439,6 +416,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(false);
     setIsOnboardingModalOpen(true);
   };
+
+  const loginWithGmail = useCallback(
+    (emailInput: string, customDisplayName?: string) => {
+      const cleanEmail = emailInput.trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes("@")) {
+        return { success: false, error: "Vui lòng nhập địa chỉ Gmail hợp lệ" };
+      }
+
+      const existing = registeredUsers.find(
+        (u) => u.email && u.email.toLowerCase() === cleanEmail
+      );
+
+      if (existing) {
+        setCurrentUser(existing);
+        setIsAuthModalOpen(false);
+        return { success: true, user: existing };
+      }
+
+      const rawHandle = cleanEmail.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
+      let uniqueUsername = rawHandle;
+      let counter = 1;
+      while (registeredUsers.some((u) => u.username.toLowerCase() === uniqueUsername.toLowerCase())) {
+        uniqueUsername = `${rawHandle}_${counter}`;
+        counter++;
+      }
+
+      const existingIds = registeredUsers.map((u) => u.id);
+      const newId = generateUniqueUserId(existingIds);
+      const derivedName =
+        customDisplayName ||
+        cleanEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+      // Gmail chính: Tài khoản người dùng phổ thông, chưa cần ví crypto ngay
+      const newUser: UserProfile = {
+        id: newId,
+        username: uniqueUsername,
+        name: derivedName,
+        role: "BUYER",
+        email: cleanEmail,
+        telegram: `@${uniqueUsername}`,
+        avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(uniqueUsername)}`,
+        balanceUsdc: 2500,
+        registeredAt: new Date().toISOString().split("T")[0],
+        hasCustomUsername: true,
+        isWalletLinked: false,
+        authProvider: "gmail",
+      };
+
+      setRegisteredUsers((prev) => [...prev, newUser]);
+      setCurrentUser(newUser);
+      setIsAuthModalOpen(false);
+      return { success: true, user: newUser };
+    },
+    [registeredUsers, address]
+  );
+
+  const linkWalletToUser = useCallback(
+    (newWalletAddress: `0x${string}`) => {
+      if (!currentUser) return { success: false, error: "Chưa đăng nhập" };
+
+      const updatedUser: UserProfile = {
+        ...currentUser,
+        walletAddress: newWalletAddress,
+        isWalletLinked: true,
+      };
+
+      setCurrentUser(updatedUser);
+
+      setRegisteredUsers((prev) => {
+        const idx = prev.findIndex((u) => u.id === updatedUser.id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = updatedUser;
+          return next;
+        }
+        return [...prev, updatedUser];
+      });
+
+      return { success: true, user: updatedUser };
+    },
+    [currentUser]
+  );
 
   const updateProfile = (updated: Partial<UserProfile>) => {
     setCurrentUser((prev) => {
@@ -473,6 +532,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         registeredUsers,
         loginWithPreset,
         loginWithWallet,
+        loginWithGmail,
+        linkWalletToUser,
         registerOrUpdateUser,
         checkUsernameAvailability,
         searchUsers,
@@ -481,6 +542,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         isAuthModalOpen,
         setIsAuthModalOpen,
+        isLinkWalletModalOpen,
+        setIsLinkWalletModalOpen,
         isOnboardingModalOpen,
         setIsOnboardingModalOpen,
       }}

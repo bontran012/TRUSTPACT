@@ -19,30 +19,38 @@ export function TransactionFeedback({ status, onClose }: TransactionFeedbackProp
   if (status.step === "idle") return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 max-w-md w-full animate-in fade-in slide-in-from-bottom-3 duration-200">
-      <div className="panel-bg panel-border rounded-lg p-4 shadow-2xl flex flex-col gap-2.5 bg-[#101217]">
+    <div className="fixed bottom-6 left-6 z-50 max-w-md w-full animate-fade-in">
+      <div className="rounded-2xl p-5 shadow-2xl flex flex-col gap-3 bg-[#0F1523]/95 backdrop-blur-xl border border-white/[0.1]">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             {status.step === "awaiting_signature" && (
-              <Loader2 className="w-4 h-4 text-[#F59E0B] animate-spin shrink-0" />
+              <div className="w-8 h-8 rounded-xl bg-amber-400/10 flex items-center justify-center shrink-0">
+                <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+              </div>
             )}
             {status.step === "confirming" && (
-              <Loader2 className="w-4 h-4 text-[#E84142] animate-spin shrink-0" />
+              <div className="w-8 h-8 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+                <Loader2 className="w-4 h-4 text-brand animate-spin" />
+              </div>
             )}
             {status.step === "success" && (
-              <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
             )}
             {status.step === "error" && (
-              <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0" />
+              <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+              </div>
             )}
 
             <div className="flex flex-col">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8]">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 {status.actionTitle || "Giao Dịch Smart Contract"}
               </span>
-              <span className="text-sm font-medium text-[#F1F5F9]">
-                {status.step === "awaiting_signature" && "Đang chờ ký trên ví (Awaiting Wallet Signature)..."}
-                {status.step === "confirming" && "Đang xác thực trên Avalanche (~0.8s Finality)..."}
+              <span className="text-sm font-medium text-white">
+                {status.step === "awaiting_signature" && "Đang chờ ký xác nhận trên ví..."}
+                {status.step === "confirming" && "Đang xác thực trên Avalanche Fuji..."}
                 {status.step === "success" && "Hoàn tất On-Chain thành công!"}
                 {status.step === "error" && "Giao dịch không thành công"}
               </span>
@@ -52,21 +60,21 @@ export function TransactionFeedback({ status, onClose }: TransactionFeedbackProp
           {onClose && (
             <button
               onClick={onClose}
-              className="text-[#64748B] hover:text-[#F1F5F9] transition-colors p-1"
+              className="text-slate-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/[0.06]"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
         {status.txHash && (
-          <div className="pt-2 border-t border-[#1E222D] flex items-center justify-between text-xs font-mono">
-            <span className="text-[#64748B]">Mã Tx Hash:</span>
+          <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
+            <span className="text-slate-500">Mã Tx Hash:</span>
             <a
               href={`https://testnet.snowtrace.io/tx/${status.txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#E84142] hover:underline inline-flex items-center gap-1"
+              className="text-brand hover:underline inline-flex items-center gap-1 font-semibold"
             >
               <span>{status.txHash.slice(0, 10)}...{status.txHash.slice(-8)}</span>
               <ExternalLink className="w-3 h-3" />
@@ -75,32 +83,32 @@ export function TransactionFeedback({ status, onClose }: TransactionFeedbackProp
         )}
 
         {status.errorMessage && (
-          <div className="text-xs text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-md p-2 font-mono">
+          <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl p-2.5 font-mono">
             {status.errorMessage}
           </div>
         )}
 
-        {/* Deterministic 3-Stage Progress Bar */}
-        <div className="grid grid-cols-3 gap-1 pt-1">
+        {/* 3-Stage Progress Bar */}
+        <div className="grid grid-cols-3 gap-1.5 pt-1">
           <div
             className={`h-1 rounded-full transition-colors ${
               status.step === "awaiting_signature" || status.step === "confirming" || status.step === "success"
-                ? "bg-[#E84142]"
+                ? "bg-brand"
                 : status.step === "error"
-                ? "bg-[#EF4444]"
-                : "bg-[#1E222D]"
+                ? "bg-red-500"
+                : "bg-white/[0.08]"
             }`}
           />
           <div
             className={`h-1 rounded-full transition-colors ${
               status.step === "confirming" || status.step === "success"
-                ? "bg-[#E84142]"
-                : "bg-[#1E222D]"
+                ? "bg-brand"
+                : "bg-white/[0.08]"
             }`}
           />
           <div
             className={`h-1 rounded-full transition-colors ${
-              status.step === "success" ? "bg-[#10B981]" : "bg-[#1E222D]"
+              status.step === "success" ? "bg-emerald-400" : "bg-white/[0.08]"
             }`}
           />
         </div>

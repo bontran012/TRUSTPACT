@@ -4,7 +4,7 @@
 
 [![Live Web](https://img.shields.io/badge/Live%20Demo-trustpact--mocha.vercel.app-E84142?style=for-the-badge&logo=vercel&logoColor=white)](https://trustpact-mocha.vercel.app/)
 [![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-@TrustPact__Sentinel__bot-229ED9?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/TrustPact_Sentinel_bot)
-[![Network](https://img.shields.io/badge/Avalanche%20Fuji-C--Chain%20%2343113-E84142?style=for-the-badge&logo=avalanche&logoColor=white)](https://testnet.snowtrace.io/address/0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0)
+[![Network](https://img.shields.io/badge/Avalanche%20Fuji-C--Chain%20%2343113-E84142?style=for-the-badge&logo=avalanche&logoColor=white)](https://testnet.snowtrace.io/address/0xEe86802fA1e1098797c2980D9E1D73175f35Dd22)
 [![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.24-363636?style=for-the-badge&logo=solidity)](https://soliditylang.org/)
 [![Foundry](https://img.shields.io/badge/Foundry-100%25%20Tests%20Passing-FFDB1C?style=for-the-badge)](https://getfoundry.sh/)
 
@@ -24,10 +24,10 @@ Tất cả 4 hợp đồng cốt lõi đã được biên dịch bằng **Foundr
 
 | Tên Hợp Đồng | Địa Chỉ Ví Smart Contract (Fuji C-Chain) | Trình Khám Phá (Snowtrace Explorer) |
 | :--- | :--- | :--- |
-| **`UniversalEscrow.sol`** | `0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0) |
-| **`StakedBrokerRegistry.sol`** | `0x7eB341096Ca95BB4F227A10daEd9c413F2F60Ca2` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x7eB341096Ca95BB4F227A10daEd9c413F2F60Ca2) |
-| **`TrustPassportSBT.sol`** | `0x84d9F79A513D5CBFe6dC1E5B971cc811e64d3296` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x84d9F79A513D5CBFe6dC1E5B971cc811e64d3296) |
-| **`ScamRegistryL1.sol`** | `0x3f8C012cee1412170386a6a8C8968F903C8f3362` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x3f8C012cee1412170386a6a8C8968F903C8f3362) |
+| **`UniversalEscrow.sol`** | `0xEe86802fA1e1098797c2980D9E1D73175f35Dd22` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xEe86802fA1e1098797c2980D9E1D73175f35Dd22) |
+| **`StakedBrokerRegistry.sol`** | `0x736Df3F64F50D3E0Bc72c5Cbf1487333607E2dcC` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x736Df3F64F50D3E0Bc72c5Cbf1487333607E2dcC) |
+| **`TrustPassportSBT.sol`** | `0xbF63C18E67B50AFB790024Ef60434F7CF4A24A7f` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xbF63C18E67B50AFB790024Ef60434F7CF4A24A7f) |
+| **`ScamRegistryL1.sol`** | `0x980D61B9455Ba4E76EB1118676e48E09c6D3eDC9` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x980D61B9455Ba4E76EB1118676e48E09c6D3eDC9) |
 
 > **Wiring Liên Kết Bảo Mật On-Chain:**
 > - `StakedBrokerRegistry.setEscrowContract(UniversalEscrow)` đã kích hoạt thành công.

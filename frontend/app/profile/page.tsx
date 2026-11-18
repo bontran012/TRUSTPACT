@@ -2,51 +2,74 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
+import { formatUnits } from "viem";
 import {
-  User,
+  CONTRACT_ADDRESSES,
+  ERC20_ABI,
+  TRUST_PASSPORT_SBT_ABI,
+} from "@/src/lib/contracts";
+import {
   Fingerprint,
   AtSign,
   Copy,
+  Check,
   CheckCircle2,
   AlertCircle,
-  ShieldCheck,
-  ShieldAlert,
+  AlertTriangle,
   Wallet,
+  ShieldCheck,
   ExternalLink,
-  Coins,
   Lock,
-  ArrowRight,
   Search,
   Users,
   Settings,
-  Activity,
-  Layers,
-  Sparkles,
-  Edit3,
 } from "lucide-react";
-import { useAuth, UserRole, UserProfile } from "@/src/context/AuthContext";
+import { useAuth, UserRole } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
-import { shortenAddress, CONTRACT_ADDRESSES } from "@/src/lib/contracts";
-import { BorderBeam } from "@/src/components/ui/BorderBeam";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
 import { NumberTicker } from "@/src/components/ui/NumberTicker";
-import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 export default function ProfilePage() {
   const {
     currentUser,
-    updateProfile,
     registerOrUpdateUser,
     checkUsernameAvailability,
     registeredUsers,
     searchUsers,
     setIsAuthModalOpen,
+    setIsLinkWalletModalOpen,
   } = useAuth();
   const { t } = useLanguage();
   const { address } = useAccount();
+  const activeWallet = (address || currentUser?.walletAddress) as `0x${string}` | undefined;
 
-  // Local form state
+  const { data: onChainUsdcBal } = useReadContract({
+    address: CONTRACT_ADDRESSES.usdc,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: activeWallet ? [activeWallet] : undefined,
+    query: { enabled: Boolean(activeWallet && activeWallet.startsWith("0x") && activeWallet.length === 42) },
+  });
+
+  const { data: onChainSuccessRate } = useReadContract({
+    address: CONTRACT_ADDRESSES.trustPassportSBT,
+    abi: TRUST_PASSPORT_SBT_ABI,
+    functionName: "getSuccessRate",
+    args: activeWallet ? [activeWallet] : undefined,
+    query: { enabled: Boolean(activeWallet && activeWallet.startsWith("0x") && activeWallet.length === 42) },
+  });
+
+  const realUsdcDisplay =
+    onChainUsdcBal !== undefined
+      ? Number(formatUnits(onChainUsdcBal as bigint, 6))
+      : currentUser?.balanceUsdc || 0;
+
+  const realSuccessRateDisplay =
+    onChainSuccessRate !== undefined && Number(onChainSuccessRate) > 0
+      ? Number(onChainSuccessRate) / 100
+      : currentUser?.successRate ?? 100;
+
   const [usernameInput, setUsernameInput] = useState(currentUser?.username || "");
   const [displayNameInput, setDisplayNameInput] = useState(currentUser?.name || "");
   const [roleInput, setRoleInput] = useState<UserRole>(currentUser?.role || "BUYER");
@@ -55,7 +78,6 @@ export default function ProfilePage() {
   const [facebookInput, setFacebookInput] = useState(currentUser?.facebook || "");
   const [avatarUrlInput, setAvatarUrlInput] = useState(currentUser?.avatarUrl || "");
 
-  // Status & notifications
   const [copiedId, setCopiedId] = useState(false);
   const [copiedWallet, setCopiedWallet] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -64,7 +86,6 @@ export default function ProfilePage() {
     msg: string;
   }>({ type: "idle", msg: "" });
 
-  // Partner search input in Profile
   const [partnerSearchQuery, setPartnerSearchQuery] = useState("");
   const searchResults = searchUsers(partnerSearchQuery);
 
@@ -80,7 +101,6 @@ export default function ProfilePage() {
     }
   }, [currentUser]);
 
-  // Username validation handler
   const handleUsernameChange = (val: string) => {
     const clean = val.replace(/\s+/g, "").toLowerCase();
     setUsernameInput(clean);
@@ -94,12 +114,12 @@ export default function ProfilePage() {
     if (check.available) {
       setUsernameStatus({
         type: "valid",
-        msg: t("✓ User hợp lệ và sẵn sàng sử dụng", "✓ Username is available"),
+        msg: t("Username khả dụng", "Username is available"),
       });
     } else {
       setUsernameStatus({
         type: "invalid",
-        msg: check.error || t("User không hợp lệ", "Invalid username"),
+        msg: check.error || t("Username không hợp lệ", "Invalid username"),
       });
     }
   };
@@ -146,278 +166,303 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* ── TOP HEADER ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1E222D]">
+    <div className="space-y-8 animate-fade-in">
+      {/* ── TOP HEADER ──────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-white/[0.07]">
         <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-base sm:text-lg font-bold text-[#F1F5F9] uppercase tracking-wide">
-              {t("Mục Tôi — Hồ Sơ Cá Nhân & Định Danh Web3", "My Profile — Identity & Web3 Passport")}
+          <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400 block mb-1">
+            Web3 Identity &amp; Soulbound SBT
+          </span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              {t("Hồ Sơ Cá Nhân & Hộ Chiếu Số", "Profile & Digital Passport")}
             </h1>
-            <span className="font-mono text-xs font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-0.5 rounded">
+            <span className="font-mono text-xs font-bold text-indigo-200 bg-indigo-500/15 border border-indigo-400/30 px-2.5 py-1 rounded-full">
               {currentUser?.id || "TP-1001"}
             </span>
           </div>
-          <p className="text-xs text-[#94A3B8] mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             {t(
-              "Quản lý User độc nhất, Mã ID Hệ Thống tự sinh, Hạn mức ký quỹ & SBT Tín Nhiệm.",
-              "Manage your unique username, auto-generated System ID, escrow limit & SBT trust passport."
+              "Quản lý định danh giao dịch, thông tin liên hệ đối soát và điểm tín nhiệm Soulbound SBT",
+              "Manage your trading handle, verified contact channels, and Soulbound SBT reputation"
             )}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={() => setIsAuthModalOpen(true)}
-            className="px-3 py-1.5 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#F1F5F9] flex items-center gap-1.5 transition-colors"
+            className="px-5 py-2.5 rounded-full bg-white/[0.12] hover:bg-white/[0.18] backdrop-blur-xl border border-white/[0.22] text-xs font-semibold text-white flex items-center gap-2 transition-colors whitespace-nowrap"
           >
-            <Users className="w-3.5 h-3.5 text-[#E84142]" />
-            <span>{t("Đổi Tài Khoản / Vai Trò", "Switch Persona")}</span>
+            <Users className="w-4 h-4 text-sky-300" />
+            <span>{t("Chuyển Đổi Tài Khoản", "Switch Account")}</span>
           </button>
 
-          <Link
-            href="/pact"
-            className="px-3 py-1.5 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-          >
-            <Lock className="w-3.5 h-3.5" />
-            <span>{t("Sổ Kèo Của Tôi", "My Deals")}</span>
+          <Link href="/pact">
+            <ShimmerButton variant="primary" className="px-5 py-2.5 text-xs font-bold">
+              <Lock className="w-3.5 h-3.5" />
+              <span>{t("Sổ Kèo Của Tôi", "My Deals")}</span>
+            </ShimmerButton>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ── LEFT PANE: PASSPORT CARD & STATS (5 COLS) ────────────────────── */}
-        <div className="lg:col-span-5 space-y-5">
-          {/* Identity Passport Card */}
-          <div className="relative rounded-xl panel-border bg-[#101217] overflow-hidden shadow-2xl">
-            <BorderBeam colorFrom="#10B981" colorTo="#E84142" duration={10} borderWidth={1.5} size={220} />
-            <CardSpotlight className="p-5 space-y-4 font-mono text-xs relative z-10" color="rgba(16, 185, 129, 0.08)" radius={280}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#E84142]/5 rounded-bl-full pointer-events-none" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── LEFT PANE: HOLOGRAPHIC DIPLOMATIC PASSPORT CARD (5 COLS) ───── */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="relative overflow-hidden rounded-[32px] border border-white/[0.28] shadow-[0_28px_70px_-14px_rgba(4,12,34,0.65)]">
+            <img
+              src="/images/sbt-passport-bg.png"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover opacity-55"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#13295E]/65 via-[#0E204B]/82 to-[#091636]/92 backdrop-blur-xl" />
 
-              <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-                <div className="flex items-center gap-2">
-                  <Fingerprint className="w-4 h-4 text-[#E84142]" />
-                  <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                    {t("Thẻ Căn Cước Số TrustPact", "TrustPact Digital Passport")}
-                  </span>
-                </div>
-                <span className="text-[10px] text-[#10B981] font-bold bg-[#10B981]/15 px-2 py-0.5 rounded border border-[#10B981]/30">
-                  ACTIVE
+            {/* Cover Banner Strip */}
+            <div className="relative h-28 overflow-hidden border-b border-white/[0.18]">
+              <img
+                src="/images/sbt-passport-bg.png"
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0D1E47]/80 to-transparent" />
+              <div className="absolute top-4 left-5 right-5 flex items-center justify-between">
+                <span className="badge-pill bg-[#0A1838]/60 border border-white/[0.25] text-white text-[11px]">
+                  <Fingerprint className="w-3.5 h-3.5 text-sky-300" />
+                  <span>{t("Căn Cước Số TrustPact", "TrustPact Digital ID")}</span>
+                </span>
+                <span className="badge-pill bg-emerald-400/25 text-emerald-100 border border-emerald-300/40 text-[11px]">
+                  Đang Hoạt Động
                 </span>
               </div>
+            </div>
 
-              {/* Avatar & Display Name */}
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[#1E222D] bg-[#090A0D] shrink-0 relative group">
+            <div className="relative p-6 pt-0 space-y-5">
+              {/* Overlapping Circular Portrait */}
+              <div className="-mt-9 flex items-end justify-between gap-3">
+                <div className="w-20 h-20 rounded-full overflow-hidden ring-4 ring-[#0E204B] border border-sky-300/60 bg-slate-900 shrink-0 shadow-xl">
                   <img
-                    src={currentUser?.avatarUrl}
+                    src={currentUser?.avatarUrl || "/images/avatar-tuan.jpg"}
                     alt={currentUser?.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      (e.target as any).src =
-                        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                      (e.target as any).src = "/images/avatar-tuan.jpg";
                     }}
                   />
                 </div>
+                <img
+                  src="/images/passport-badge.jpg"
+                  alt="SBT Emblem"
+                  className="w-11 h-11 rounded-2xl object-cover ring-1 ring-amber-300/50 shadow-md mb-1"
+                />
+              </div>
 
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-sans font-bold text-sm text-[#F1F5F9]">{currentUser?.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[#10B981] font-bold">User: @{currentUser?.username}</span>
-                    <span className="text-[#64748B]">·</span>
-                    <span
-                      className={`px-1.5 py-0.2 rounded text-[10px] font-bold uppercase ${
-                        currentUser?.role === "BROKER"
-                          ? "bg-[#10B981]/15 text-[#10B981]"
-                          : currentUser?.role === "SELLER"
-                          ? "bg-[#F59E0B]/15 text-[#F59E0B]"
-                          : "bg-[#3B82F6]/15 text-[#3B82F6]"
-                      }`}
-                    >
-                      {currentUser?.role === "BROKER"
-                        ? t("GDTG Bảo Chứng", "Broker")
+              <div className="space-y-1.5">
+                <span className="font-extrabold text-xl text-white block truncate">{currentUser?.name}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sky-200 font-mono font-semibold text-xs">@{currentUser?.username}</span>
+                  <span
+                    className={`badge-pill text-[10px] uppercase py-0.5 px-2.5 ${
+                      currentUser?.role === "BROKER"
+                        ? "bg-emerald-400/20 text-emerald-200 border border-emerald-300/40"
                         : currentUser?.role === "SELLER"
-                        ? t("Bên Bán (OTC)", "Seller")
-                        : t("Bên Mua", "Buyer")}
-                    </span>
-                  </div>
-
-                  {/* Social & Contact Channels */}
-                  <div className="flex items-center gap-1.5 pt-1 flex-wrap">
-                    {currentUser?.telegram && (
-                      <a
-                        href={`https://t.me/${currentUser.telegram.replace(/^@/, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#229ED9]/15 text-[#38B6FF] border border-[#229ED9]/30 text-[10px] font-semibold hover:bg-[#229ED9]/25 transition-colors"
-                      >
-                        <span>TG: {currentUser.telegram}</span>
-                      </a>
-                    )}
-                    {currentUser?.zalo && (
-                      <a
-                        href={`https://zalo.me/${currentUser.zalo.replace(/[^0-9]/g, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#0068FF]/15 text-[#388BFF] border border-[#0068FF]/30 text-[10px] font-semibold hover:bg-[#0068FF]/25 transition-colors"
-                      >
-                        <span>Zalo: {currentUser.zalo}</span>
-                      </a>
-                    )}
-                    {currentUser?.facebook && (
-                      <a
-                        href={currentUser.facebook.startsWith("http") ? currentUser.facebook : `https://${currentUser.facebook}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#1877F2]/15 text-[#4599FF] border border-[#1877F2]/30 text-[10px] font-semibold hover:bg-[#1877F2]/25 transition-colors"
-                      >
-                        <span>FB: {currentUser.facebook.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, "") || "Link FB"}</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Auto-Generated System ID Strip */}
-              <div className="p-3 rounded-lg bg-[#090A0D] border border-[#1E222D] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#64748B] uppercase font-sans">
-                    {t("Mã ID Hệ Thống (Duy Nhất & Tự Sinh):", "Auto-Generated System ID:")}
-                  </span>
-                  <button
-                    onClick={handleCopyId}
-                    className="text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1 transition-colors"
+                        ? "bg-amber-400/20 text-amber-200 border border-amber-300/40"
+                        : "bg-sky-400/20 text-sky-100 border border-sky-300/40"
+                    }`}
                   >
-                    <Copy className="w-3 h-3" />
-                    <span>{copiedId ? t("Đã chép ✓", "Copied ✓") : t("Sao chép", "Copy")}</span>
-                  </button>
-                </div>
-                <div className="text-sm font-bold text-[#F1F5F9] tracking-wider flex items-center justify-between">
-                  <span>{currentUser?.id || "TP-1001"}</span>
-                  <span className="text-[10px] text-[#10B981] font-sans font-normal">
-                    {t("Dùng để nhận diện & tìm kiếm", "Used for partner lookup")}
+                    {currentUser?.role === "BROKER"
+                      ? t("GDTG Bảo Chứng", "Broker")
+                      : currentUser?.role === "SELLER"
+                      ? t("Bên Bán (OTC)", "Seller")
+                      : t("Bên Mua", "Buyer")}
                   </span>
                 </div>
-              </div>
 
-              {/* Linked Wallet Address */}
-              <div className="p-3 rounded-lg bg-[#090A0D] border border-[#1E222D] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#64748B] uppercase font-sans">
-                    {t("Địa Chỉ Ví Web3:", "Linked Web3 Wallet:")}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleCopyWallet}
-                      className="text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] inline-flex items-center gap-1 transition-colors"
-                    >
-                      <Copy className="w-3 h-3" />
-                      <span>{copiedWallet ? t("Đã chép ✓", "Copied ✓") : t("Sao chép", "Copy")}</span>
-                    </button>
+                <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                  {currentUser?.telegram && (
                     <a
-                      href={`https://testnet.snowtrace.io/address/${currentUser?.walletAddress}`}
+                      href={`https://t.me/${currentUser.telegram.replace(/^@/, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#94A3B8] hover:text-[#F1F5F9]"
+                      className="text-[11px] px-3 py-0.5 rounded-full bg-white/[0.1] hover:bg-white/[0.18] text-sky-100 border border-white/[0.18] transition-colors"
                     >
-                      <ExternalLink className="w-3 h-3" />
+                      TG: {currentUser.telegram}
                     </a>
-                  </div>
+                  )}
+                  {currentUser?.zalo && (
+                    <a
+                      href={`https://zalo.me/${currentUser.zalo.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] px-3 py-0.5 rounded-full bg-white/[0.1] hover:bg-white/[0.18] text-sky-100 border border-white/[0.18] transition-colors"
+                    >
+                      Zalo: {currentUser.zalo}
+                    </a>
+                  )}
                 </div>
-                <span className="text-xs text-[#94A3B8] break-all block">
-                  {currentUser?.walletAddress}
-                </span>
               </div>
 
-              {/* Financial & Trust Telemetry */}
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
-                <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] space-y-1">
-                  <span className="text-[10px] text-[#64748B] block font-sans">
-                    {t("Số Dư Ví Ký Quỹ", "Escrow Wallet Balance")}
-                  </span>
-                  <div className="text-sm font-bold text-[#F1F5F9] tabular-nums">
+              {/* System ID & Wallet */}
+              <div className="space-y-2.5">
+                <div className="p-3.5 rounded-2xl bg-white/[0.09] border border-white/[0.16] flex items-center justify-between">
+                  <div>
+                    <span className="text-[11px] text-sky-100/80 block">Mã định danh hệ thống</span>
+                    <span className="text-sm font-bold font-mono text-white">{currentUser?.id || "TP-1001"}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopyId}
+                    className="px-3 py-1.5 rounded-full bg-white/[0.12] hover:bg-white/[0.2] text-xs text-white inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    {copiedId ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedId ? "Đã chép" : "Sao chép"}</span>
+                  </button>
+                </div>
+
+                {currentUser?.isWalletLinked &&
+                currentUser.walletAddress &&
+                currentUser.walletAddress !== "0x0000000000000000000000000000000000000000" ? (
+                  <div className="p-3.5 rounded-2xl bg-white/[0.09] border border-white/[0.16] space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-sky-100/80">
+                      <span className="flex items-center gap-1.5 font-semibold text-emerald-300">
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Ví Web3 đã liên kết</span>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsLinkWalletModalOpen(true)}
+                          className="text-[11px] text-sky-300 hover:text-white underline"
+                        >
+                          Đổi ví khác
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCopyWallet}
+                          className="text-sky-100 hover:text-white inline-flex items-center gap-1 transition-colors"
+                        >
+                          {copiedWallet ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
+                          <span>{copiedWallet ? "Đã chép" : "Chép ví"}</span>
+                        </button>
+                        <a
+                          href={`https://testnet.snowtrace.io/address/${currentUser?.walletAddress}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sky-200 hover:text-white"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono text-white break-all block bg-black/30 p-2 rounded-xl border border-white/10">
+                      {currentUser?.walletAddress}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-400/25 space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-amber-200 font-semibold flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Địa chỉ ví Web3</span>
+                      </span>
+                      <span className="text-[10px] text-amber-200/80 bg-amber-400/20 px-2 py-0.5 rounded-full font-medium">
+                        Chưa liên kết ví
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-sky-100/70">
+                      Tài khoản đang đăng nhập bằng Gmail ({currentUser?.email}). Bạn chỉ cần liên kết ví Web3 khi phát sinh giao dịch ký quỹ on-chain hoặc nạp cọc.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setIsLinkWalletModalOpen(true)}
+                      className="w-full py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors"
+                    >
+                      <Wallet className="w-3.5 h-3.5" />
+                      <span>Liên Kết Ví Web3 Ngay</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Balance & Trust Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-2xl bg-white/[0.09] border border-white/[0.16] space-y-1">
+                  <span className="text-[11px] text-sky-100/80 block">Số dư USDC (Fuji On-Chain)</span>
+                  <div className="text-base font-extrabold font-mono text-white tabular-nums">
                     <NumberTicker
-                      value={currentUser?.balanceUsdc || 10000}
+                      value={realUsdcDisplay}
                       decimals={2}
                       suffix=" USDC"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] space-y-1">
-                  <span className="text-[10px] text-[#64748B] block font-sans">
-                    {t("Uy Tín SBT", "TrustPassport SBT")}
-                  </span>
-                  <div className="text-sm font-bold text-[#10B981] flex items-center gap-1 tabular-nums">
-                    <ShieldCheck className="w-4 h-4" />
+                <div className="p-3.5 rounded-2xl bg-white/[0.09] border border-white/[0.16] space-y-1">
+                  <span className="text-[11px] text-sky-100/80 block">Điểm uy tín SBT</span>
+                  <div className="text-base font-extrabold font-mono text-emerald-300 flex items-center gap-1.5 tabular-nums">
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
                     <NumberTicker
-                      value={currentUser?.successRate ?? 100}
+                      value={realSuccessRateDisplay}
                       decimals={1}
                       suffix="%"
                     />
                   </div>
                 </div>
               </div>
-
-              {/* SBT Token Info */}
-              <div className="p-2.5 rounded bg-[#161922] border border-[#1E222D] flex items-center justify-between text-[11px]">
-                <span className="text-[#64748B]">{t("Soulbound Token:", "Soulbound Token:")}</span>
-                <span className="text-[#F1F5F9] font-bold">{currentUser?.sbtId || "#TP-1001"} (Non-Transferable)</span>
-              </div>
-            </CardSpotlight>
+            </div>
           </div>
 
-          {/* Quick Partner Lookup Tool */}
-          <div className="rounded-xl panel-border bg-[#101217] p-5 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-[#1E222D]">
+          {/* Partner Directory Quick Search */}
+          <div className="card p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.14]">
               <div className="flex items-center gap-2">
-                <Search className="w-4 h-4 text-[#F59E0B]" />
-                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                  {t("Tra Cứu Đối Tác / GDTG Bằng Tên", "Partner & Broker Lookup")}
+                <Search className="w-4 h-4 text-sky-300" />
+                <span className="section-title text-sm">
+                  {t("Danh Bạ Đối Tác Đã Xác Thực", "Verified Directory")}
                 </span>
               </div>
-              <span className="text-[10px] text-[#64748B]">{registeredUsers.length} thành viên</span>
+              <span className="text-xs text-sky-100/75">{registeredUsers.length} thành viên</span>
             </div>
 
-            <div className="relative font-sans">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-sky-200/60">
+                <Search className="w-4 h-4" />
+              </div>
               <input
                 type="text"
                 value={partnerSearchQuery}
                 onChange={(e) => setPartnerSearchQuery(e.target.value)}
-                placeholder={t("Tìm theo @username, ID (TP-...), hoặc tên...", "Search by @username, ID, or name...")}
-                className="w-full bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3 py-2 text-xs text-[#F1F5F9] focus:outline-none"
+                placeholder={t("Tìm @username, mã TP-... hoặc tên...", "Search @username, ID, or name...")}
+                className="input-field rounded-full pl-11 py-2.5 text-xs"
               />
             </div>
 
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
               {searchResults.slice(0, 4).map((user) => (
                 <div
                   key={user.id}
-                  className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between gap-2"
+                  className="card-inner p-3 flex items-center justify-between gap-3"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={user.avatarUrl}
                       alt={user.name}
-                      className="w-7 h-7 rounded-full object-cover shrink-0 border border-[#1E222D]"
+                      className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-white/25"
                       onError={(e) => {
-                        (e.target as any).src =
-                          "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
+                        (e.target as any).src = "/images/avatar-tuan.jpg";
                       }}
                     />
-                    <div className="min-w-0 font-sans">
-                      <span className="font-bold text-xs text-[#F1F5F9] truncate block">{user.name}</span>
-                      <span className="text-[10px] text-[#10B981] font-mono block">@{user.username} · {user.id}</span>
+                    <div className="min-w-0">
+                      <span className="font-semibold text-xs text-white truncate block">{user.name}</span>
+                      <span className="text-[11px] text-sky-200 font-mono block">@{user.username} · {user.id}</span>
                     </div>
                   </div>
 
                   <Link
-                    href={`/pact/create`}
-                    className="px-2 py-1 rounded bg-[#161922] hover:bg-[#1E222D] text-[10px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] shrink-0 font-sans transition-colors"
+                    href={`/pact/create?seller=${user.walletAddress}`}
+                    className="px-3.5 py-1.5 rounded-full bg-sky-400/20 hover:bg-sky-400/35 border border-sky-300/35 text-xs font-semibold text-white transition-colors shrink-0 whitespace-nowrap"
                   >
-                    {t("Giao dịch", "Transact")}
+                    {t("Tạo kèo", "Transact")}
                   </Link>
                 </div>
               ))}
@@ -426,213 +471,189 @@ export default function ProfilePage() {
         </div>
 
         {/* ── RIGHT PANE: EDIT PROFILE SETTINGS FORM (7 COLS) ──────────────── */}
-        <div className="lg:col-span-7 space-y-5">
-          <div className="rounded-xl panel-border bg-[#101217] p-5 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4 text-[#E84142]" />
-                <span className="font-semibold uppercase tracking-wide text-[#F1F5F9] text-xs font-sans">
-                  {t("Thiết Lập & Cập Nhật Hồ Sơ Thành Viên", "Profile & Identity Settings")}
-                </span>
+        <div className="lg:col-span-7 space-y-6">
+          <div className="card p-6 sm:p-7 space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.12]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-sky-400/15 border border-sky-300/30 flex items-center justify-center text-sky-200">
+                  <Settings className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="section-title">
+                    {t("Cập Nhật Thông Tin Định Danh", "Identity & Contact Settings")}
+                  </h2>
+                  <p className="text-xs text-sky-100/80">Đồng bộ hiển thị trong Phòng Ký Quỹ và Radar Tín Nhiệm</p>
+                </div>
               </div>
-              <span className="text-[10px] font-mono text-[#64748B]">TrustPact Identity Engine</span>
             </div>
 
-            {/* Save Success Alert */}
             {saveSuccess && (
-              <div className="p-3 rounded-md bg-[#10B981]/15 border border-[#10B981]/40 text-[#10B981] text-xs font-medium flex items-center gap-2 animate-in fade-in">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 text-xs font-medium flex items-center gap-2 animate-fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
                 <span>
                   {t(
-                    "Đã lưu thành công! Thông tin User của bạn đã được cập nhật toàn hệ thống.",
-                    "Changes saved successfully! Your user identity has been updated."
+                    "Đã lưu cập nhật hồ sơ thành công!",
+                    "Profile changes saved successfully!"
                   )}
                 </span>
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-4 text-xs font-sans">
-              {/* Field 1: Unique User Handle */}
-              <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("User (Tên tài khoản độc nhất trên hệ thống) *", "User (Unique handle, no spaces) *")}
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
-                    <AtSign className="w-3.5 h-3.5" />
+            <form onSubmit={handleSaveProfile} className="space-y-5 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-sky-100 block mb-1.5">
+                    {t("Username (Không dấu) *", "Unique Handle *")}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-sky-200/75">
+                      <AtSign className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      value={usernameInput}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      placeholder="tuan_crypto"
+                      className={`input-field pl-10 py-2.5 font-mono text-sm ${
+                        usernameStatus.type === "valid"
+                          ? "border-emerald-500/60"
+                          : usernameStatus.type === "invalid"
+                          ? "border-red-500/60"
+                          : ""
+                      }`}
+                      required
+                    />
                   </div>
+
+                  {usernameStatus.msg && (
+                    <div
+                      className={`mt-1.5 flex items-center gap-1.5 text-xs ${
+                        usernameStatus.type === "valid" ? "text-emerald-400" : "text-red-400"
+                      }`}
+                    >
+                      {usernameStatus.type === "valid" ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      )}
+                      <span>{usernameStatus.msg}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    {t("Họ Tên Hiển Thị", "Display Name")}
+                  </label>
                   <input
                     type="text"
-                    value={usernameInput}
-                    onChange={(e) => handleUsernameChange(e.target.value)}
-                    placeholder="tuan_crypto"
-                    className={`w-full pl-9 pr-3 py-2.5 rounded-md bg-[#090A0D] border font-mono text-xs text-[#F1F5F9] focus:outline-none transition-colors ${
-                      usernameStatus.type === "valid"
-                        ? "border-[#10B981]"
-                        : usernameStatus.type === "invalid"
-                        ? "border-[#EF4444]"
-                        : "border-[#1E222D] focus:border-[#E84142]"
-                    }`}
+                    value={displayNameInput}
+                    onChange={(e) => setDisplayNameInput(e.target.value)}
+                    placeholder="VD: Lê Minh Tuấn"
+                    className="input-field py-2.5 text-sm"
                     required
                   />
                 </div>
+              </div>
 
-                {usernameStatus.msg && (
-                  <div
-                    className={`mt-1.5 flex items-center gap-1.5 text-[11px] ${
-                      usernameStatus.type === "valid" ? "text-[#10B981]" : "text-[#EF4444]"
-                    }`}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    {t("Vai Trò Giao Dịch Chính", "Default Operating Role")}
+                  </label>
+                  <select
+                    value={roleInput}
+                    onChange={(e) => setRoleInput(e.target.value as UserRole)}
+                    className="input-field py-2.5 text-sm"
                   >
-                    {usernameStatus.type === "valid" ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    )}
-                    <span>{usernameStatus.msg}</span>
-                  </div>
-                )}
-                <span className="text-[10px] text-[#64748B] block mt-1">
-                  {t(
-                    "User không được trùng với bất kỳ ai. Người mua, người bán hoặc GDTG khác có thể nhập User để tìm bạn nhanh chóng.",
-                    "Must be unique. Trading partners and brokers can search for you by this user handle."
-                  )}
-                </span>
+                    <option value="BUYER">{t("Bên Mua (Buyer)", "Buyer — Safe Escrow")}</option>
+                    <option value="SELLER">{t("Bên Bán (Seller)", "Seller — OTC Merchant")}</option>
+                    <option value="BROKER">{t("GDTG Bảo Chứng (Broker)", "Broker — Staked Custodian")}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    {t("Telegram Liên Hệ", "Contact Telegram")}
+                  </label>
+                  <input
+                    type="text"
+                    value={telegramInput}
+                    onChange={(e) => setTelegramInput(e.target.value)}
+                    placeholder="@telegram_handle"
+                    className="input-field py-2.5 text-sm font-mono"
+                  />
+                </div>
               </div>
 
-              {/* Field 2: Display Name */}
-              <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Họ Tên Hiển Thị (Display Name)", "Display Name")}
-                </label>
-                <input
-                  type="text"
-                  value={displayNameInput}
-                  onChange={(e) => setDisplayNameInput(e.target.value)}
-                  placeholder="VD: Lê Minh Tuấn"
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none"
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    {t("Số Điện Thoại / Zalo", "Zalo Contact")}
+                  </label>
+                  <input
+                    type="text"
+                    value={zaloInput}
+                    onChange={(e) => setZaloInput(e.target.value)}
+                    placeholder="0912345678"
+                    className="input-field py-2.5 text-sm font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                    {t("Liên Kết Facebook", "Facebook Profile")}
+                  </label>
+                  <input
+                    type="text"
+                    value={facebookInput}
+                    onChange={(e) => setFacebookInput(e.target.value)}
+                    placeholder="facebook.com/username"
+                    className="input-field py-2.5 text-sm font-mono"
+                  />
+                </div>
               </div>
 
-              {/* Field 3: System Role */}
               <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Vai Trò Hoạt Động Mặc Định", "Default Operating Role")}
-                </label>
-                <select
-                  value={roleInput}
-                  onChange={(e) => setRoleInput(e.target.value as UserRole)}
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none"
-                >
-                  <option value="BUYER">{t("Bên Mua (Buyer) — Mua tài sản & Ký quỹ bảo chứng", "Buyer — Safe Escrow & Purchase")}</option>
-                  <option value="SELLER">{t("Bên Bán (Seller) — OTC Merchant & Cung cấp tài sản", "Seller — OTC Merchant & Vendor")}</option>
-                  <option value="BROKER">{t("Trung Gian Bảo Chứng (Broker) — Ký cọc Aave & Phân xử", "Broker — Staked Custodian & Settlement")}</option>
-                </select>
-                <span className="text-[10px] text-[#64748B] block mt-1">
-                  {t(
-                    "Bạn có thể chuyển đổi linh hoạt vai trò bất cứ lúc nào trong thanh điều khiển tài khoản.",
-                    "You can switch roles anytime from the account switcher."
-                  )}
-                </span>
-              </div>
-
-              {/* Field 4: Contact Telegram */}
-              <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Telegram Liên Hệ (Nhận thông báo khi có kèo mới)", "Contact Telegram")}
-                </label>
-                <input
-                  type="text"
-                  value={telegramInput}
-                  onChange={(e) => setTelegramInput(e.target.value)}
-                  placeholder="@telegram_handle"
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none font-mono"
-                />
-              </div>
-
-              {/* Field 5: Contact Zalo */}
-              <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Số Zalo (Liên hệ trực tiếp khi giao dịch)", "Zalo Contact")}
-                </label>
-                <input
-                  type="text"
-                  value={zaloInput}
-                  onChange={(e) => setZaloInput(e.target.value)}
-                  placeholder="VD: 0912345678 hoặc link zalo.me/..."
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#0068FF] text-xs text-[#F1F5F9] focus:outline-none font-mono"
-                />
-                <span className="text-[10px] text-[#64748B] block mt-1">
-                  {t("Số điện thoại đăng ký Zalo để đối tác nhắn tin xác nhận nhanh chóng.", "Zalo phone number for fast verification.")}
-                </span>
-              </div>
-
-              {/* Field 6: Contact Facebook */}
-              <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Liên Kết Facebook (Trang cá nhân / Fanpage uy tín)", "Facebook Profile Link")}
-                </label>
-                <input
-                  type="text"
-                  value={facebookInput}
-                  onChange={(e) => setFacebookInput(e.target.value)}
-                  placeholder="https://facebook.com/username..."
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#1877F2] text-xs text-[#F1F5F9] focus:outline-none font-mono"
-                />
-                <span className="text-[10px] text-[#64748B] block mt-1">
-                  {t("Link trang cá nhân Facebook để đối tác kiểm tra danh tính và uy tín xã hội.", "Facebook profile link for social verification.")}
-                </span>
-              </div>
-
-              {/* Field 7: Avatar URL */}
-              <div>
-                <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-                  {t("Đường Dẫn Ảnh Đại Diện (Avatar URL)", "Avatar Image URL")}
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  {t("Ảnh Đại Diện (Avatar URL)", "Avatar Image URL")}
                 </label>
                 <input
                   type="text"
                   value={avatarUrlInput}
                   onChange={(e) => setAvatarUrlInput(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-3 py-2.5 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none font-mono"
+                  className="input-field py-2.5 text-xs font-mono"
                 />
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] text-[#64748B]">Ảnh mẫu nhanh:</span>
-                  <button
-                    type="button"
-                    onClick={() => setAvatarUrlInput("/images/avatar-nam.jpg")}
-                    className="px-2 py-0.5 rounded bg-[#161922] border border-[#1E222D] text-[10px] text-[#94A3B8] hover:text-[#F1F5F9]"
-                  >
-                    Fintech Pro
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAvatarUrlInput("/images/avatar-hoang.jpg")}
-                    className="px-2 py-0.5 rounded bg-[#161922] border border-[#1E222D] text-[10px] text-[#94A3B8] hover:text-[#F1F5F9]"
-                  >
-                    OTC Custodian
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAvatarUrlInput("/images/avatar-tuan.jpg")}
-                    className="px-2 py-0.5 rounded bg-[#161922] border border-[#1E222D] text-[10px] text-[#94A3B8] hover:text-[#F1F5F9]"
-                  >
-                    Tech Auditor
-                  </button>
+                <div className="flex items-center gap-2 mt-2.5 text-xs flex-wrap">
+                  <span className="text-sky-100/80 font-medium">Gợi ý ảnh đại diện:</span>
+                  {[
+                    { label: "Fintech Pro", url: "/images/avatar-tuan.jpg" },
+                    { label: "OTC Custodian", url: "/images/avatar-hoang.jpg" },
+                    { label: "Senior Auditor", url: "/images/avatar-nam.jpg" },
+                  ].map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => setAvatarUrlInput(item.url)}
+                      className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-sky-100 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Submit Buttons */}
-              <div className="pt-3 border-t border-[#1E222D] flex items-center justify-between gap-3">
-                <span className="text-[11px] text-[#64748B] font-mono">
-                  ID: {currentUser?.id}
+              <div className="pt-4 border-t border-white/[0.12] flex items-center justify-between gap-4">
+                <span className="text-xs text-sky-100/85">
+                  Mã định danh: <strong className="font-mono text-white">{currentUser?.id}</strong>
                 </span>
 
                 <ShimmerButton
                   type="submit"
                   variant="primary"
                   disabled={usernameStatus.type === "invalid" || !usernameInput.trim()}
-                  className="px-6 py-2.5 rounded-md font-bold text-xs flex items-center gap-2 shadow-md disabled:opacity-40"
+                  className="px-6 py-3"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>{t("Lưu Cập Nhật Hồ Sơ", "Save Profile Changes")}</span>

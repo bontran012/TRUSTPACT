@@ -1,441 +1,180 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useAccount, useConnect } from "wagmi";
+import React, { useState } from "react";
 import {
   X,
-  User,
-  ShieldCheck,
-  Wallet,
-  ArrowRight,
-  CheckCircle2,
+  Mail,
   AlertCircle,
-  Building2,
-  Coins,
-  Sparkles,
-  Lock,
-  AtSign,
-  Fingerprint,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
 } from "lucide-react";
-import { useAuth, PRESET_ACCOUNTS, UserRole } from "@/src/context/AuthContext";
+import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
-import { shortenAddress } from "@/src/lib/contracts";
 
 export function AuthModal() {
   const {
     isAuthModalOpen,
     setIsAuthModalOpen,
-    currentUser,
-    loginWithPreset,
-    loginWithWallet,
-    registerOrUpdateUser,
-    checkUsernameAvailability,
-    logout,
+    loginWithGmail,
   } = useAuth();
   const { t } = useLanguage();
 
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-
-  const [activeTab, setActiveTab] = useState<"preset" | "wallet" | "profile">("preset");
-  const [customUsername, setCustomUsername] = useState(currentUser?.username || "");
-  const [customName, setCustomName] = useState(currentUser?.name || "");
-  const [customRole, setCustomRole] = useState<UserRole>(currentUser?.role || "BUYER");
-  const [customTelegram, setCustomTelegram] = useState(currentUser?.telegram || "");
-  const [customZalo, setCustomZalo] = useState(currentUser?.zalo || "");
-  const [customFacebook, setCustomFacebook] = useState(currentUser?.facebook || "");
-  const [usernameStatus, setUsernameStatus] = useState<{
-    type: "idle" | "valid" | "invalid";
-    msg: string;
-  }>({ type: "idle", msg: "" });
-
-  useEffect(() => {
-    if (currentUser) {
-      setCustomUsername(currentUser.username || "");
-      setCustomName(currentUser.name || "");
-      setCustomRole(currentUser.role || "BUYER");
-      setCustomTelegram(currentUser.telegram || "");
-      setCustomZalo(currentUser.zalo || "");
-      setCustomFacebook(currentUser.facebook || "");
-    }
-  }, [currentUser]);
+  const [gmailInput, setGmailInput] = useState("");
+  const [gmailNameInput, setGmailNameInput] = useState("");
+  const [gmailError, setGmailError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
-  const handleWalletLogin = () => {
-    if (connectors && connectors.length > 0) {
-      connect({ connector: connectors[0] });
-    }
-    if (address) {
-      loginWithWallet(address, customName || undefined, customRole);
-    }
-  };
+  const handleGmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setGmailError("");
 
-  const handleUsernameChange = (val: string) => {
-    const clean = val.replace(/\s+/g, "").toLowerCase();
-    setCustomUsername(clean);
-
-    if (!clean) {
-      setUsernameStatus({ type: "idle", msg: "" });
+    const clean = gmailInput.trim().toLowerCase();
+    if (!clean || !clean.includes("@")) {
+      setGmailError(t("Vui lòng nhập địa chỉ Gmail hợp lệ (VD: user@gmail.com)", "Please enter a valid Gmail address"));
       return;
     }
 
-    const check = checkUsernameAvailability(clean, currentUser?.id);
-    if (check.available) {
-      setUsernameStatus({
-        type: "valid",
-        msg: t("✓ User khả dụng", "✓ Username is available"),
-      });
-    } else {
-      setUsernameStatus({
-        type: "invalid",
-        msg: check.error || t("User không hợp lệ", "Invalid username"),
-      });
+    setIsSubmitting(true);
+    try {
+      const res = loginWithGmail(clean, gmailNameInput.trim() || undefined);
+      if (res.success) {
+        setIsAuthModalOpen(false);
+      } else {
+        setGmailError(res.error || t("Không thể đăng nhập bằng Gmail", "Failed to login with Gmail"));
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (usernameStatus.type === "invalid") return;
-
-    const res = registerOrUpdateUser({
-      username: customUsername,
-      name: customName,
-      role: customRole,
-      telegram: customTelegram,
-      zalo: customZalo.trim(),
-      facebook: customFacebook.trim(),
-    });
-
+  const handleQuickGoogleClick = () => {
+    const sample = gmailInput.trim() || "nguoidung@gmail.com";
+    setGmailInput(sample);
+    const res = loginWithGmail(sample, gmailNameInput.trim() || "Thành Viên TrustPact");
     if (res.success) {
       setIsAuthModalOpen(false);
-    } else {
-      setUsernameStatus({
-        type: "invalid",
-        msg: res.error || t("Không thể lưu hồ sơ", "Could not save profile"),
-      });
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-xl border border-[#1E222D] bg-[#101217] shadow-2xl p-6 text-[#F1F5F9]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#061024]/75 backdrop-blur-xl animate-fade-in">
+      <div className="relative w-full max-w-md rounded-[28px] border border-white/20 bg-[#0F2147]/95 backdrop-blur-2xl shadow-2xl p-6 sm:p-7 text-slate-100">
         {/* Close Button */}
         <button
           onClick={() => setIsAuthModalOpen(false)}
-          className="absolute right-4 top-4 text-[#64748B] hover:text-[#F1F5F9] transition-colors"
+          className="absolute right-5 top-5 p-2 rounded-full text-sky-200/70 hover:text-white hover:bg-white/10 transition-colors"
+          title="Đóng"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1E222D]">
-          <div className="w-10 h-10 rounded-lg bg-[#E84142]/15 border border-[#E84142]/30 flex items-center justify-center text-[#E84142]">
-            <User className="w-5 h-5" />
+        <div className="flex items-center gap-3.5 pb-4 border-b border-white/12">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+            <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[#F1F5F9]">
-              {t("Quản Lý Tài Khoản & Định Danh Cá Nhân", "Account & Identity Center")}
+            <h2 className="text-base font-bold text-white">
+              {t("Đăng Nhập TrustPact", "Sign in to TrustPact")}
             </h2>
-            <p className="text-xs text-[#94A3B8]">
+            <p className="text-xs text-sky-100/75 mt-0.5">
               {t(
-                "Đăng nhập tài khoản riêng biệt để tham gia giao dịch Két Sắt 3 Bên hoặc tra cứu tín nhiệm.",
-                "Login with an isolated persona to participate in 3-party escrows or check reputation."
+                "Đăng nhập chính thức bằng tài khoản Gmail của bạn",
+                "Sign in with your primary Gmail account"
               )}
             </p>
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="grid grid-cols-3 gap-1 p-1 mt-4 rounded-md bg-[#161922] border border-[#1E222D] text-xs font-medium">
+        {/* Quick Google 1-Click Button */}
+        <div className="mt-5 space-y-4">
           <button
-            onClick={() => setActiveTab("preset")}
-            className={`py-2 rounded transition-colors ${
-              activeTab === "preset"
-                ? "bg-[#E84142] text-white shadow-sm font-bold"
-                : "text-[#94A3B8] hover:text-[#F1F5F9]"
-            }`}
+            type="button"
+            onClick={handleQuickGoogleClick}
+            className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs flex items-center justify-center gap-3 transition-colors shadow-lg active:scale-[0.99]"
           >
-            {t("Tài Khoản Mẫu", "Demo Personas")}
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+            </svg>
+            <span>{t("Tiếp Tục Với Tài Khoản Google", "Continue with Google Account")}</span>
           </button>
-          <button
-            onClick={() => setActiveTab("wallet")}
-            className={`py-2 rounded transition-colors ${
-              activeTab === "wallet"
-                ? "bg-[#E84142] text-white shadow-sm font-bold"
-                : "text-[#94A3B8] hover:text-[#F1F5F9]"
-            }`}
-          >
-            {t("Đăng Nhập Ví Web3", "Web3 Wallet")}
-          </button>
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`py-2 rounded transition-colors ${
-              activeTab === "profile"
-                ? "bg-[#E84142] text-white shadow-sm font-bold"
-                : "text-[#94A3B8] hover:text-[#F1F5F9]"
-            }`}
-          >
-            {t("Hồ Sơ Của Bạn", "My Profile")}
-          </button>
-        </div>
 
-        {/* TAB 1: 1-CLICK DEMO PERSONAS */}
-        {activeTab === "preset" && (
-          <div className="mt-4 space-y-3">
-            <span className="text-xs text-[#94A3B8] block">
-              {t(
-                "Chọn ngay 1 tài khoản với vai trò tương ứng để trải nghiệm đầy đủ các tính năng:",
-                "Select a pre-configured account role to test all features instantly:"
-              )}
+          <div className="flex items-center gap-3 my-2">
+            <div className="h-px bg-white/10 flex-1" />
+            <span className="text-[10px] text-sky-100/50 uppercase font-mono tracking-wider">
+              {t("Hoặc nhập địa chỉ Gmail", "Or enter Gmail manually")}
             </span>
-
-            <div className="space-y-2.5">
-              {PRESET_ACCOUNTS.map((account) => {
-                const isSelected = currentUser?.id === account.id;
-                return (
-                  <button
-                    key={account.id}
-                    onClick={() => loginWithPreset(account.id)}
-                    className={`w-full p-3 rounded-lg border text-left flex items-center justify-between transition-all ${
-                      isSelected
-                        ? "border-[#E84142] bg-[#E84142]/10 ring-1 ring-[#E84142]/40"
-                        : "border-[#1E222D] bg-[#161922] hover:border-[#1E222D]/80 hover:bg-[#1E222D]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden border border-[#1E222D] shrink-0 bg-[#090A0D]">
-                        <img
-                          src={account.avatarUrl}
-                          alt={account.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as any).src =
-                              "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80";
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-[#F1F5F9]">{account.name}</span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase ${
-                              account.role === "ADMIN"
-                                ? "bg-[#A855F7]/15 text-[#C084FC] border border-[#A855F7]/30"
-                                : account.role === "BROKER"
-                                ? "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
-                                : account.role === "SELLER"
-                                ? "bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30"
-                                : "bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/30"
-                            }`}
-                          >
-                            {account.role === "ADMIN"
-                              ? t("Admin Tối Cao", "Super Admin")
-                              : account.role === "BROKER"
-                              ? t("GDTG Bảo Chứng", "Staked Broker")
-                              : account.role === "SELLER"
-                              ? t("Bên Bán (OTC)", "OTC Seller")
-                              : t("Bên Mua", "Buyer")}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] font-mono text-[#64748B] mt-0.5">
-                          <span className="text-[#94A3B8] font-bold">@{account.username}</span>
-                          <span>·</span>
-                          <span className="text-[#E84142]">ID: {account.id}</span>
-                          <span>·</span>
-                          <span>Ví: {shortenAddress(account.walletAddress)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-mono font-bold text-[#F1F5F9] block">
-                        {account.balanceUsdc.toLocaleString()} USDC
-                      </span>
-                      {isSelected ? (
-                        <span className="text-[10px] text-[#10B981] font-mono flex items-center gap-1 justify-end">
-                          <CheckCircle2 className="w-3 h-3" /> {t("Đang dùng", "Active")}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-[#94A3B8] font-mono">{t("Bấm để chọn", "Select")}</span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+            <div className="h-px bg-white/10 flex-1" />
           </div>
-        )}
 
-        {/* TAB 2: CONNECT WEB3 WALLET */}
-        {activeTab === "wallet" && (
-          <div className="mt-4 space-y-4">
-            <div className="p-3.5 rounded-md bg-[#161922] border border-[#1E222D] space-y-2 text-xs">
-              <span className="text-xs font-semibold text-[#F1F5F9] block">
-                {t("Kết Nối Ví MetaMask / Core / Rabby:", "Connect MetaMask / Core / Rabby Wallet:")}
-              </span>
-              <p className="text-[#94A3B8] leading-relaxed text-[11px]">
-                {t(
-                  "Hệ thống sẽ đồng bộ tài khoản với địa chỉ ví Avalanche Fuji C-Chain của bạn. Khi kết nối lần đầu, bạn sẽ được tự động cấp một ID duy nhất và thiết lập User riêng.",
-                  "Synchronizes with your Avalanche Fuji C-Chain address. On your first login, a unique System ID is assigned and you can configure your user handle."
-                )}
-              </p>
-            </div>
-
-            {isConnected && address ? (
-              <div className="p-3.5 rounded-md border border-[#10B981]/30 bg-[#10B981]/10 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#10B981] text-xs font-bold">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>{t("Đã Kết Nối Ví Thành Công!", "Wallet Connected Successfully!")}</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-[#64748B]">Avalanche Fuji</span>
-                </div>
-                <div className="text-xs font-mono text-[#F1F5F9] break-all bg-[#090A0D] p-2 rounded border border-[#1E222D]">
-                  {address}
-                </div>
-                <button
-                  onClick={() => {
-                    loginWithWallet(address, customName || undefined, customRole);
-                  }}
-                  className="w-full py-2.5 rounded-md bg-[#10B981] hover:bg-[#059669] text-white text-xs font-bold transition-colors"
-                >
-                  {t("Xác Nhận Đăng Nhập & Thiết Lập Tên", "Confirm Login & Setup Handle")}
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleWalletLogin}
-                className="w-full py-3 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors"
-              >
-                <Wallet className="w-4 h-4" />
-                <span>{t("Kết Nối Ví Trực Tiếp", "Connect Web3 Wallet")}</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* TAB 3: EDIT PROFILE */}
-        {activeTab === "profile" && (
-          <form onSubmit={handleSaveProfile} className="mt-4 space-y-3.5 text-xs">
-            {/* System ID Display */}
-            <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D] flex items-center justify-between font-mono">
-              <span className="text-[#64748B] text-[11px] uppercase">{t("Mã ID Hệ Thống:", "System ID:")}</span>
-              <span className="text-[#10B981] font-bold text-sm tracking-wider">
-                {currentUser?.id || "TP-1001"}
-              </span>
-            </div>
-
-            {/* Username Input with Live Uniqueness Check */}
+          {/* Manual Email Input Form */}
+          <form onSubmit={handleGmailSubmit} className="space-y-3.5">
             <div>
-              <label className="text-[#94A3B8] block mb-1">
-                {t("User (Tên tài khoản không trùng lặp)", "User (Unique Handle)")}
+              <label className="text-[11px] font-semibold text-sky-100 block mb-1">
+                {t("Địa Chỉ Gmail", "Gmail Address")} <span className="text-rose-400">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
-                  <AtSign className="w-3.5 h-3.5" />
-                </div>
                 <input
-                  type="text"
-                  value={customUsername}
-                  onChange={(e) => handleUsernameChange(e.target.value)}
-                  placeholder="tuan_crypto"
-                  className="w-full pl-9 pr-3 py-2 bg-[#161922] border border-[#1E222D] rounded-md text-[#F1F5F9] font-mono focus:outline-none focus:border-[#E84142]"
+                  type="email"
+                  value={gmailInput}
+                  onChange={(e) => {
+                    setGmailInput(e.target.value);
+                    setGmailError("");
+                  }}
+                  placeholder="vi_du@gmail.com"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.08] border border-white/[0.16] text-white text-xs outline-none focus:border-sky-400 font-mono transition-colors"
                   required
                 />
               </div>
-              {usernameStatus.msg && (
-                <div
-                  className={`mt-1 flex items-center gap-1.5 text-[11px] ${
-                    usernameStatus.type === "valid" ? "text-[#10B981]" : "text-[#EF4444]"
-                  }`}
-                >
-                  {usernameStatus.type === "valid" ? (
-                    <CheckCircle2 className="w-3 h-3" />
-                  ) : (
-                    <AlertCircle className="w-3 h-3" />
-                  )}
-                  <span>{usernameStatus.msg}</span>
-                </div>
-              )}
             </div>
 
             <div>
-              <label className="text-[#94A3B8] block mb-1">{t("Tên Hiển Thị (Display Name)", "Display Name")}</label>
+              <label className="text-[11px] font-semibold text-sky-100 block mb-1">
+                {t("Họ & Tên Hiển Thị (Tùy chọn)", "Display Name (Optional)")}
+              </label>
               <input
                 type="text"
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                placeholder="VD: Trần Hoàng (Trader)"
-                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
-                required
+                value={gmailNameInput}
+                onChange={(e) => setGmailNameInput(e.target.value)}
+                placeholder="Lê Minh Tuấn"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.08] border border-white/[0.16] text-white text-xs outline-none focus:border-sky-400 transition-colors"
               />
             </div>
 
-            <div>
-              <label className="text-[#94A3B8] block mb-1">{t("Vai Trò Chính Trong Hệ Thống", "Primary Role")}</label>
-              <select
-                value={customRole}
-                onChange={(e) => setCustomRole(e.target.value as UserRole)}
-                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
-              >
-                <option value="BUYER">{t("Người Mua (Buyer) — Mua tài sản & Ký quỹ an toàn", "Buyer — Safe escrow & purchase")}</option>
-                <option value="SELLER">{t("Người Bán (Seller) — Bán tài sản / OTC Merchant", "Seller — OTC Merchant & Sales")}</option>
-                <option value="BROKER">{t("Trung Gian Bảo Chứng (Broker) — Đặt cọc Aave & Phê duyệt", "Broker — Staked Custodian")}</option>
-              </select>
-            </div>
+            {gmailError && (
+              <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-400/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{gmailError}</span>
+              </div>
+            )}
 
-            <div>
-              <label className="text-[#94A3B8] block mb-1">{t("Telegram Liên Hệ (Nhận thông báo kèo)", "Contact Telegram")}</label>
-              <input
-                type="text"
-                value={customTelegram}
-                onChange={(e) => setCustomTelegram(e.target.value)}
-                placeholder="VD: @hoang_crypto"
-                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] font-mono focus:outline-none focus:border-[#E84142]"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#94A3B8] block mb-1">{t("Số Zalo Liên Hệ", "Zalo Contact")}</label>
-              <input
-                type="text"
-                value={customZalo}
-                onChange={(e) => setCustomZalo(e.target.value)}
-                placeholder="VD: 0912345678"
-                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] font-mono focus:outline-none focus:border-[#0068FF]"
-              />
-            </div>
-
-            <div>
-              <label className="text-[#94A3B8] block mb-1">{t("Liên Kết Facebook", "Facebook Profile")}</label>
-              <input
-                type="text"
-                value={customFacebook}
-                onChange={(e) => setCustomFacebook(e.target.value)}
-                placeholder="https://facebook.com/..."
-                className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-2 text-[#F1F5F9] font-mono focus:outline-none focus:border-[#1877F2]"
-              />
-            </div>
-
-            <div className="pt-2 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={logout}
-                className="px-3 py-2 rounded-md bg-[#EF4444]/15 hover:bg-[#EF4444]/25 text-[#EF4444] font-medium transition-colors"
-              >
-                {t("Đăng Xuất", "Log Out")}
-              </button>
-              <button
-                type="submit"
-                disabled={usernameStatus.type === "invalid" || !customUsername.trim()}
-                className="flex-1 py-2 rounded-md bg-[#E84142] hover:bg-[#D13637] text-white font-bold transition-colors disabled:opacity-40"
-              >
-                {t("Lưu Thay Đổi", "Save Changes")}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-sky-500/25 active:scale-[0.99]"
+            >
+              <Mail className="w-4 h-4" />
+              <span>{t("Đăng Nhập Bằng Gmail", "Sign in with Gmail")}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </form>
-        )}
+
+          {/* Post-login wallet linking note */}
+          <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 text-center space-y-1">
+            <p className="text-[11px] text-sky-100/70 leading-relaxed">
+              {t(
+                "Ví Web3 thanh toán sẽ được liên kết sau trong tài khoản của bạn khi phát sinh giao dịch ký quỹ / nạp cọc on-chain.",
+                "Your Web3 payment wallet can be linked later in your profile whenever transacting."
+              )}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

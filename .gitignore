@@ -20,11 +20,12 @@ contracts/out/
 contracts/cache/
 contracts/broadcast/
 
-# Environment files
+# Environment files & Secret Vault
 .env
 .env*.local
 *.env
 !.env.example
+LUU_TRU_QUAN_TRONG_SECRET.md
 
 # OS files
 .DS_Store

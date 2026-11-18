@@ -4,9 +4,10 @@ pragma solidity ^0.8.24;
 /// @title IUniversalEscrow — Interface for UniversalEscrow 3-Party Escrow Vault
 interface IUniversalEscrow {
     enum EscrowStatus {
-        Active,     // Pending delivery / active in vault
-        Completed,  // Completed & settled
-        Cancelled   // Cancelled (mutual cancel or timeout auto-refund)
+        Active,     // 0: Pending delivery / active in vault
+        Completed,  // 1: Completed & settled
+        Cancelled,  // 2: Cancelled (mutual cancel or timeout auto-refund)
+        Disputed    // 3: Disputed by buyer or seller, freezing auto-refund
     }
 
     struct EscrowItem {
@@ -33,6 +34,8 @@ interface IUniversalEscrow {
     event BrokerRegistryUpdated(address indexed newBrokerRegistry);
     event AdminUpdated(address indexed newAdmin);
     event EscrowRated(uint256 indexed id, address indexed broker, address indexed buyer, uint8 stars, uint256 tipAmount);
+    event DisputeRaised(uint256 indexed id, address indexed initiator, string reason);
+    event DeliveryProofSubmitted(uint256 indexed id, address indexed seller, string proofURI, uint256 timestamp);
     /// @notice Emitted when admin intervenes on behalf of an inactive/corrupt broker
     event AdminIntervened(uint256 indexed id, address indexed admin, string action);
 
@@ -50,6 +53,8 @@ interface IUniversalEscrow {
     function brokerSettle(uint256 _id, uint256 _refundToBuyer, uint256 _payoutToSeller) external;
     function buyerClaimExpiredRefund(uint256 _id) external;
     function mutualCancelEscrow(uint256 _id) external;
+    function raiseDispute(uint256 _id, string calldata _reason) external;
+    function submitDeliveryProof(uint256 _id, string calldata _proofURI) external;
     function adminSlashCorruptBroker(uint256 _id, uint256 _compensation) external;
     function rateAndTip(uint256 _id, uint8 _stars, uint256 _tipAmount) external;
 

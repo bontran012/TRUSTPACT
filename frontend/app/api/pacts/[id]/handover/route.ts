@@ -52,7 +52,7 @@ export async function POST(
     const handoverMsg: DBMessage = {
       id: `msg-handover-${Date.now()}`,
       pactId: id,
-      sender: senderAddress || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+      sender: senderAddress || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002",
       role: "seller",
       senderName: senderName || "Bên Bán",
       text: `✓ Bên Bán đã hoàn tất bàn giao tài sản! Bằng chứng đối soát: ${handover.proofUrl}. Đề nghị Bên Mua và GDTG kiểm tra nghiệm thu.`,

@@ -179,4 +179,17 @@ contract TrustPassportSBTTest is Test {
         vm.expectRevert("Unauthorized");
         sbt.recordRatingAndTip(user1, 5, 10 * 1e6);
     }
+
+    function test_TokenURIOnChainMetadata() public {
+        vm.prank(admin);
+        uint256 tokenId = sbt.mintPassport(user1);
+
+        string memory uri = sbt.tokenURI(tokenId);
+        assertTrue(bytes(uri).length > 50);
+        // Verify it starts with standard data:application/json;base64,
+        bytes memory prefix = bytes("data:application/json;base64,");
+        for (uint i = 0; i < prefix.length; i++) {
+            assertEq(bytes(uri)[i], prefix[i]);
+        }
+    }
 }

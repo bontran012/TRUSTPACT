@@ -2,6 +2,8 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 /// @title TrustPassportSBT — Non-Transferable Soulbound Token (SBT) Reputation Passport
 /// @notice Records verified deal count, success rate, USDC transaction volume, staked collateral, and slashing history
@@ -56,12 +58,70 @@ contract TrustPassportSBT is ERC721 {
         emit AuthorizedUpdaterSet(_updater, _auth);
     }
 
-    function mintPassport(address _user) external onlyAuthorized {
+    function mintPassport(address _user) external onlyAuthorized returns (uint256) {
         require(_user != address(0), "Zero address");
         require(balanceOf(_user) == 0, "Already has passport");
         _tokenIdCounter++;
         emit PassportMinted(_user, _tokenIdCounter);
         _safeMint(_user, _tokenIdCounter);
+        return _tokenIdCounter;
+    }
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        _requireOwned(tokenId);
+        address user = ownerOf(tokenId);
+        TrustProfile memory p = profiles[user];
+        uint256 successRate = p.totalDeals == 0 ? 100 : (p.successfulDeals * 100) / p.totalDeals;
+        string memory badge = p.slashedCount > 0
+            ? "Slashed"
+            : (p.totalDeals >= 100 ? "Master Escrow" : (p.totalDeals >= 20 ? "Verified Broker" : "Member"));
+
+        string memory svg = Base64.encode(
+            bytes(
+                string.concat(
+                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240"><rect width="400" height="240" rx="18" fill="#0B1938"/><text x="24" y="42" fill="#38BDF8" font-family="monospace" font-size="14" font-weight="bold">TRUSTPACT SOULBOUND PASSPORT #',
+                    Strings.toString(tokenId),
+                    '</text><text x="24" y="88" fill="#FFFFFF" font-family="sans-serif" font-size="22" font-weight="bold">',
+                    badge,
+                    '</text><text x="24" y="136" fill="#34D399" font-family="monospace" font-size="15">Success Rate: ',
+                    Strings.toString(successRate),
+                    '% (',
+                    Strings.toString(p.successfulDeals),
+                    '/',
+                    Strings.toString(p.totalDeals),
+                    ' deals)</text><text x="24" y="172" fill="#FBBF24" font-family="monospace" font-size="14">Staked Bond: ',
+                    Strings.toString(p.stakedAmount / 1e6),
+                    ' USDC</text><text x="24" y="208" fill="#94A3B8" font-family="monospace" font-size="11">Avalanche C-Chain Non-Transferable ERC-721</text></svg>'
+                )
+            )
+        );
+
+        string memory json = Base64.encode(
+            bytes(
+                string.concat(
+                    '{"name": "TrustPassport #',
+                    Strings.toString(tokenId),
+                    '", "description": "TrustPact Soulbound Reputation Passport on Avalanche", ',
+                    '"image": "data:image/svg+xml;base64,',
+                    svg,
+                    '", "attributes": [',
+                    '{"trait_type": "Success Rate", "value": "',
+                    Strings.toString(successRate),
+                    '%"}, ',
+                    '{"trait_type": "Total Deals", "value": ',
+                    Strings.toString(p.totalDeals),
+                    '}, ',
+                    '{"trait_type": "Successful Deals", "value": ',
+                    Strings.toString(p.successfulDeals),
+                    '}, ',
+                    '{"trait_type": "Tier Badge", "value": "',
+                    badge,
+                    '"}',
+                    ']}'
+                )
+            )
+        );
+        return string.concat("data:application/json;base64,", json);
     }
 
     function updateProfile(address _user, bool _isSuccess, uint256 _dealVolume) external onlyAuthorized {

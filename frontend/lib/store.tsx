@@ -202,7 +202,7 @@ const INITIAL_DEALS: Deal[] = [
     brokerFeeBps: 150,
     durationHours: 72,
     buyerAddress: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-    sellerAddress: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+    sellerAddress: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002",
     brokerId: "broker-nam",
     brokerName: "Nguyễn Nam (Master Auditor)",
     status: "LOCKED",

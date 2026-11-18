@@ -60,19 +60,82 @@ interface DBStore {
   scams: DBScamReport[];
 }
 
-const DB_DIR = path.join(process.cwd(), "data");
+const IS_VERCEL = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DB_DIR = IS_VERCEL ? "/tmp" : path.join(process.cwd(), "data");
 const DB_FILE = path.join(DB_DIR, "trustpact_store.json");
+
+// In-memory global fallback to survive serverless read-only restrictions
+declare global {
+  // eslint-disable-next-line no-var
+  var __trustpact_memory_store: DBStore | undefined;
+}
 
 function getDefaultData(): DBStore {
   return {
     pacts: {
+      "4": {
+        id: "4",
+        onChainId: 4,
+        txHash: "0xed2752b20b3e0764c5f4ee3d2192376c345ad2fda649b14534cef408210e97f6",
+        buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+        amount: "6",
+        brokerFeeBps: 150,
+        duration: 172800,
+        startTime: Math.floor(Date.now() / 1000) - 900,
+        status: 0,
+        updatedAt: Date.now(),
+      },
+      "1": {
+        id: "1",
+        onChainId: 1,
+        txHash: "0xf8d5803029a3ea235975786f34b22cd95b5ce28950f237ac724f682c37c35047",
+        buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+        amount: "5",
+        brokerFeeBps: 150,
+        duration: 86400,
+        startTime: Math.floor(Date.now() / 1000) - 3600,
+        status: 1,
+        updatedAt: Date.now() - 1800000,
+      },
+      "2": {
+        id: "2",
+        onChainId: 2,
+        txHash: "0xd5fe068de27d8f7777952fd28f77f2867af6feddeb8e07916810e2e0e13524e7",
+        buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+        amount: "3",
+        brokerFeeBps: 150,
+        duration: 86400,
+        startTime: Math.floor(Date.now() / 1000) - 2400,
+        status: 2,
+        updatedAt: Date.now() - 1200000,
+      },
+      "3": {
+        id: "3",
+        onChainId: 3,
+        txHash: "0x523202e9d8ce3ba5bfa3b1ade75f4aa5fd7a6894720bb8e46716c33ea2fe151d",
+        buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+        amount: "4",
+        brokerFeeBps: 150,
+        duration: 86400,
+        startTime: Math.floor(Date.now() / 1000) - 1800,
+        status: 1,
+        updatedAt: Date.now() - 600000,
+      },
       "101": {
         id: "101",
-        onChainId: 101,
-        txHash: "0xb3e0586f61a2dc5c1055528f0939e2fbdce38ad0e44b1928019a84f00101",
-        buyer: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-        seller: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-        broker: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+        onChainId: 4,
+        txHash: "0xed2752b20b3e0764c5f4ee3d2192376c345ad2fda649b14534cef408210e97f6",
+        buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
         amount: "1000",
         brokerFeeBps: 150,
         duration: 86400,
@@ -82,11 +145,55 @@ function getDefaultData(): DBStore {
       },
     },
     messages: {
+      "4": [
+        {
+          id: "msg-4-0",
+          pactId: "4",
+          sender: "0xEe86802fA1e1098797c2980D9E1D73175f35Dd22",
+          role: "system",
+          senderName: "Hệ Thống UniversalEscrow (Avalanche Fuji)",
+          text: "Hợp đồng ký quỹ #4 đã khóa an toàn 6.00 USDC vào Két Sắt on-chain (Tx: 0xed2752b2...0e97f6). GDTG Nguyễn Nam đã phong tỏa hạn mức cọc bảo chứng Aave V3.",
+          timestamp: "10:14",
+          createdAt: Date.now() - 1800000,
+        },
+        {
+          id: "msg-4-1",
+          pactId: "4",
+          sender: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+          role: "buyer",
+          senderName: "Lê Minh Tuấn (Bên Mua)",
+          text: "Tôi đã nạp đủ USDC vào Két Sắt Smart Contract. Mời Bên Bán tiến hành bàn giao tài sản số.",
+          timestamp: "10:15",
+          createdAt: Date.now() - 1700000,
+        },
+        {
+          id: "msg-4-2",
+          pactId: "4",
+          sender: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+          role: "seller",
+          senderName: "Hoàng Minh (Bên Bán)",
+          text: "Đã chuyển giao thông tin tài khoản và gửi chứng từ bàn giao lên phòng ký quỹ để Bên Mua và GDTG đối soát.",
+          timestamp: "10:22",
+          isProof: true,
+          proofUrl: "https://testnet.snowtrace.io/tx/0xed2752b20b3e0764c5f4ee3d2192376c345ad2fda649b14534cef408210e97f6",
+          createdAt: Date.now() - 1200000,
+        },
+        {
+          id: "msg-4-3",
+          pactId: "4",
+          sender: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+          role: "broker",
+          senderName: "Nguyễn Nam (GDTG Broker)",
+          text: "GDTG Nguyễn Nam đã tiếp nhận đối soát. Sẵn sàng phê duyệt giải ngân 2 bước ngay khi Bên Mua kiểm tra xác nhận.",
+          timestamp: "10:25",
+          createdAt: Date.now() - 900000,
+        },
+      ],
       "101": [
         {
           id: "msg-0",
           pactId: "101",
-          sender: "0xb3e0586F61a2dC5C1055528f0939E2fbDcE38Ad0",
+          sender: "0xEe86802fA1e1098797c2980D9E1D73175f35Dd22",
           role: "system",
           senderName: "Hệ Thống UniversalEscrow (Avalanche Fuji)",
           text: "Hợp đồng ký quỹ #101 đã khóa an toàn 1,000.00 USDC vào Két Sắt on-chain. GDTG đã phong tỏa hạn mức cọc bảo chứng.",
@@ -96,7 +203,7 @@ function getDefaultData(): DBStore {
         {
           id: "msg-1",
           pactId: "101",
-          sender: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
+          sender: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
           role: "buyer",
           senderName: "Lê Minh Tuấn (Bên Mua)",
           text: "Tôi đã nạp đủ 1,000 USDC vào Két Sắt Smart Contract. Mời Bên Bán tiến hành bàn giao tài sản số.",
@@ -106,19 +213,19 @@ function getDefaultData(): DBStore {
         {
           id: "msg-2",
           pactId: "101",
-          sender: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+          sender: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
           role: "seller",
           senderName: "Hoàng Minh (Bên Bán)",
           text: "Đã chuyển giao thông tin tài khoản và gửi chứng từ bàn giao lên phòng ký quỹ để Bên Mua và GDTG đối soát.",
           timestamp: "10:22",
           isProof: true,
-          proofUrl: "https://testnet.snowtrace.io/tx/0x44b1928019a84f",
+          proofUrl: "https://testnet.snowtrace.io/tx/0xed2752b20b3e0764c5f4ee3d2192376c345ad2fda649b14534cef408210e97f6",
           createdAt: Date.now() - 1200000,
         },
         {
           id: "msg-3",
           pactId: "101",
-          sender: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+          sender: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
           role: "broker",
           senderName: "Nguyễn Nam (GDTG Broker)",
           text: "GDTG Nguyễn Nam đã tiếp nhận đối soát. Sẵn sàng phê duyệt giải ngân ngay khi Bên Mua kiểm tra xác nhận.",
@@ -128,10 +235,19 @@ function getDefaultData(): DBStore {
       ],
     },
     handovers: {
+      "4": {
+        pactId: "4",
+        assetTitle: "Bàn giao tài sản số & tài khoản OTC theo thỏa thuận",
+        proofUrl: "https://testnet.snowtrace.io/tx/0xed2752b20b3e0764c5f4ee3d2192376c345ad2fda649b14534cef408210e97f6",
+        notes: "Đã bàn giao đầy đủ quyền sở hữu tài sản cho Bên Mua qua kênh bảo mật.",
+        isHandedOver: true,
+        handedOverAt: "10:22",
+        updatedAt: Date.now() - 1200000,
+      },
       "101": {
         pactId: "101",
         assetTitle: "Bàn giao tài sản số & tài khoản OTC theo thỏa thuận",
-        proofUrl: "https://testnet.snowtrace.io/tx/0x44b1928019a84f",
+        proofUrl: "https://testnet.snowtrace.io/tx/0xed2752b20b3e0764c5f4ee3d2192376c345ad2fda649b14534cef408210e97f6",
         notes: "Đã bàn giao đầy đủ quyền sở hữu tài sản cho Bên Mua qua kênh bảo mật.",
         isHandedOver: true,
         handedOverAt: "10:22",
@@ -186,32 +302,48 @@ function getDefaultData(): DBStore {
 }
 
 export function readDB(): DBStore {
+  if (globalThis.__trustpact_memory_store) {
+    return globalThis.__trustpact_memory_store;
+  }
+
   try {
     if (!fs.existsSync(DB_DIR)) {
-      fs.mkdirSync(DB_DIR, { recursive: true });
+      try {
+        fs.mkdirSync(DB_DIR, { recursive: true });
+      } catch {}
     }
     if (!fs.existsSync(DB_FILE)) {
       const initial = getDefaultData();
-      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf8");
+      try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf8");
+      } catch {}
+      globalThis.__trustpact_memory_store = initial;
       return initial;
     }
     const raw = fs.readFileSync(DB_FILE, "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    globalThis.__trustpact_memory_store = parsed;
+    return parsed;
   } catch (err) {
-    console.error("Lỗi đọc cơ sở dữ liệu TrustPact Store:", err);
-    return getDefaultData();
+    console.warn("Using in-memory store for TrustPact DB (serverless safe mode):", err);
+    const initial = getDefaultData();
+    globalThis.__trustpact_memory_store = initial;
+    return initial;
   }
 }
 
 export function writeDB(data: DBStore): boolean {
+  globalThis.__trustpact_memory_store = data;
   try {
     if (!fs.existsSync(DB_DIR)) {
-      fs.mkdirSync(DB_DIR, { recursive: true });
+      try {
+        fs.mkdirSync(DB_DIR, { recursive: true });
+      } catch {}
     }
     fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf8");
     return true;
   } catch (err) {
-    console.error("Lỗi ghi cơ sở dữ liệu TrustPact Store:", err);
-    return false;
+    console.warn("Filesystem write skipped in serverless environment; persisted in-memory:", err);
+    return true;
   }
 }

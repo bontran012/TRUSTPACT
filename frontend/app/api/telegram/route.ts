@@ -1,15 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createPublicClient, http } from "viem";
+import { avalancheFuji } from "wagmi/chains";
 import {
   lookupTarget,
   getStartMessage,
   formatLookupResponse,
   KNOWN_SCAM_DATABASE,
 } from "@/src/lib/telegramBotData";
+import { CONTRACT_ADDRESSES, SCAM_REGISTRY_L1_ABI } from "@/src/lib/contracts";
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8835448254:AAGag-yMuT-cAlqZNqZCRE6N8QGf6iPdSQw";
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const BOT_USERNAME = process.env.BOT_USERNAME || "TrustPact_Sentinel_bot";
 const PUBLIC_WEB_URL = process.env.NEXT_PUBLIC_APP_URL || "https://trustpact-mocha.vercel.app";
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+
+const fujiClient = createPublicClient({
+  chain: avalancheFuji,
+  transport: http(process.env.NEXT_PUBLIC_FUJI_RPC_URL || "https://api.avax-test.network/ext/bc/C/rpc"),
+});
+
+async function checkOnChainScam(identifier: string) {
+  try {
+    const data = await fujiClient.readContract({
+      address: CONTRACT_ADDRESSES.scamRegistryL1,
+      abi: SCAM_REGISTRY_L1_ABI,
+      functionName: "checkScam",
+      args: [identifier],
+    });
+    return {
+      count: Number((data as any)[0] || 0n),
+      hasVerified: Boolean((data as any)[1]),
+    };
+  } catch {
+    return { count: 0, hasVerified: false };
+  }
+}
 
 async function sendTelegramMessage(chatId: number | string, text: string, replyMarkup?: any) {
   try {
@@ -38,6 +63,13 @@ async function sendTelegramMessage(chatId: number | string, text: string, replyM
 // ── POST: INCOMING TELEGRAM WEBHOOK (SERVERLESS) ──────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    // Webhook caller authentication
+    const secretToken = req.headers.get("x-telegram-bot-api-secret-token");
+    const expectedSecret = process.env.TELEGRAM_SECRET_TOKEN;
+    if (expectedSecret && secretToken !== expectedSecret) {
+      return NextResponse.json({ error: "Unauthorized webhook caller" }, { status: 401 });
+    }
+
     const webUrl = req.nextUrl.origin || PUBLIC_WEB_URL;
     const update = await req.json();
 
@@ -72,15 +104,15 @@ Bạn chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào khu
         const brokerGuide = `
 🛡️ <b>DANH SÁCH GDTG / TRUNG GIAN UY TÍN BẢO CHỨNG:</b>
 
-1. <b>Nguyễn Nam (Giám Định Viên)</b> (<code>@nam_escrow_official</code>) - Cọc 5,000 USDC (Aave V3)
-2. <b>Hoàng Minh (Merchant OTC)</b> (<code>@hoangminh_otc</code>) - Cọc 2,500 USDC (Aave V3)
-3. <b>Quản Trị Viên (Super Admin)</b> (<code>@TrustPact_Sentinel_bot</code>) - Cọc 50,000 USDC
+1. <b>Nguyễn Nam (Giám Định Viên)</b> (<code>@nam_escrow_official</code>) - Ví: <code>0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5</code> (Đã Stake Aave V3 Fuji & Mint SBT #1)
+2. <b>Hoàng Minh (Merchant OTC)</b> (<code>@hoangminh_otc</code>) - Ví: <code>0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c</code>
+3. <b>Quản Trị Viên (Super Admin)</b> (<code>@TrustPact_Sentinel_bot</code>) - Ví: <code>0xe85eE178537fa93392d82114A33f6B204Ea7c6aE</code>
 
 👉 <i>Gửi tin nhắn <code>@nam_escrow_official</code> hoặc <code>@hoangminh_otc</code> để tra cứu Hộ Chiếu SBT!</i>
 `;
         await sendTelegramMessage(chatId, brokerGuide, {
           inline_keyboard: [
-            [{ text: "🌐 Xem Danh Sách GDTG Trên Web", url: `${webUrl}/broker` }],
+            [{ text: "🌐 Xem Danh Sách GDTG Trên Web", url: `${webUrl}/broker/stake` }],
           ],
         });
       }
@@ -114,9 +146,9 @@ Bạn chỉ cần <b>gửi trực tiếp</b> thông tin cần tra cứu vào khu
         const text = `
 🔐 <b>KHỞI TẠO KÉT SẮT 3 BÊN BẢO CHỨNG (TRUSTPACT ESCROW)</b>
 
-• <b>Cơ chế:</b> Người mua nạp tiền vào Két Smart Contract. Tiền sinh lãi qua Aave V3.
-• <b>GDTG (Broker):</b> Đã đặt cọc 5,000 - 10,000 USDC cam kết phân xử công minh.
-• <b>Bảo vệ:</b> Hàng nhận đủ ➔ GDTG bấm giải ngân. Gặp scam ➔ Hoàn tiền 100%.
+• <b>Cơ chế:</b> Người mua nạp USDC vào Két Smart Contract. Vốn cọc GDTG sinh lãi thực qua Aave V3.
+• <b>Giải ngân 2 bước (2-of-2):</b> Hàng chuẩn ➔ Cả Bên Mua VÀ GDTG cùng bấm xác nhận mới giải ngân cho Seller.
+• <b>Bảo vệ:</b> Hàng lỗi / sai cam kết ➔ GDTG bấm hoàn tiền 100% về ví Buyer ngay lập tức.
 
 👉 Bấm nút bên dưới để mở phòng ký quỹ an toàn:
 `;
@@ -158,8 +190,13 @@ Phát hiện số tài khoản <code>${matchedScam.identifier}</code> (${matched
       }
 
       if (query.length >= 2 && !query.startsWith("/")) {
+        const onChain = await checkOnChainScam(query);
         const res = formatLookupResponse(query, webUrl);
-        await sendTelegramMessage(chatId, res.text, res.replyMarkup);
+        let responseText = res.text;
+        if (onChain.count > 0) {
+          responseText += `\n\n🔗 <b>DỮ LIỆU ON-CHAIN (Avalanche Fuji #${CONTRACT_ADDRESSES.scamRegistryL1.slice(0, 6)}...):</b>\n• Báo cáo trực tiếp trên Smart Contract: <b>${onChain.count} lượt</b>\n• Kiểm duyệt bằng chứng: ${onChain.hasVerified ? "✅ Đã xác thực" : "⏳ Báo cáo cộng đồng"}`;
+        }
+        await sendTelegramMessage(chatId, responseText, res.replyMarkup);
         return NextResponse.json({ ok: true });
       }
     }

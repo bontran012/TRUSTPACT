@@ -3,6 +3,23 @@ pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../src/scam-radar/ScamRegistryL1.sol";
+import "../src/interfaces/ITeleporterMessenger.sol";
+
+contract MockTeleporterMessenger is ITeleporterMessenger {
+    uint256 public nonce;
+
+    function sendCrossChainMessage(TeleporterMessageInput calldata messageInput) external override returns (bytes32 messageID) {
+        nonce++;
+        messageID = keccak256(abi.encode(nonce, messageInput.destinationBlockchainID, messageInput.destinationAddress, messageInput.message));
+        if (messageInput.destinationAddress != address(0)) {
+            ITeleporterReceiver(messageInput.destinationAddress).receiveTeleporterMessage(
+                0x7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5,
+                msg.sender,
+                messageInput.message
+            );
+        }
+    }
+}
 
 contract ScamRegistryL1Test is Test {
     ScamRegistryL1 public registry;
@@ -122,5 +139,34 @@ contract ScamRegistryL1Test is Test {
         vm.prank(admin);
         registry.removeModerator(newMod);
         assertFalse(registry.moderators(newMod));
+    }
+
+    function test_TeleporterCrossChainSyncDispatchesAndReceivesAlert() public {
+        MockTeleporterMessenger mockTeleporter = new MockTeleporterMessenger();
+        ScamRegistryL1 destRegistry = new ScamRegistryL1();
+
+        vm.prank(admin);
+        registry.setTeleporterMessenger(address(mockTeleporter));
+        destRegistry.setTeleporterMessenger(address(mockTeleporter));
+
+        // 1. Report and verify scam on source registry
+        vm.prank(reporter1);
+        registry.reportScam(SCAM_BANK, "bank", EVIDENCE_IPFS, "Cross-chain scam alert");
+
+        vm.prank(moderator);
+        registry.verifyReport(SCAM_BANK, 0);
+
+        // 2. Dispatch via Teleporter ICM to destRegistry
+        bytes32 destChainId = bytes32(uint256(99943113));
+        vm.prank(moderator);
+        bytes32 msgId = registry.syncVerifiedScamViaTeleporter(destChainId, address(destRegistry), SCAM_BANK, 0);
+
+        assertTrue(msgId != bytes32(0));
+        assertEq(registry.totalCrossChainSyncs(), 1);
+
+        // 3. Verify destRegistry automatically received and verified the report
+        (uint256 count, bool hasVerified) = destRegistry.checkScam(SCAM_BANK);
+        assertEq(count, 1);
+        assertTrue(hasVerified);
     }
 }

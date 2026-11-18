@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className="dark font-sans">
-      <body className="min-h-screen bg-[#090A0D] text-[#F1F5F9] font-sans antialiased">
+      <body className="min-h-screen bg-[#0B1933] text-slate-50 font-sans antialiased">
         <Web3Provider>
           <AppShell>{children}</AppShell>
         </Web3Provider>

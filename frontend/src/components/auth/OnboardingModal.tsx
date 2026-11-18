@@ -2,12 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  ShieldCheck,
-  User,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
-  ArrowRight,
   AtSign,
   Fingerprint,
 } from "lucide-react";
@@ -18,7 +14,6 @@ import { shortenAddress } from "@/src/lib/contracts";
 export function OnboardingModal() {
   const {
     isOnboardingModalOpen,
-    setIsOnboardingModalOpen,
     currentUser,
     registerOrUpdateUser,
     checkUsernameAvailability,
@@ -97,23 +92,23 @@ export function OnboardingModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-xl border border-[#1E222D] bg-[#101217] shadow-2xl p-6 text-[#F1F5F9]">
-        {/* Glow Header */}
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1E222D]">
-          <div className="w-10 h-10 rounded-lg bg-[#E84142]/15 border border-[#E84142]/30 flex items-center justify-center text-[#E84142] shrink-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.1] bg-[#0F1523] shadow-2xl p-6 sm:p-7 text-slate-100">
+        {/* Header */}
+        <div className="flex items-center gap-3.5 pb-4 border-b border-white/[0.06]">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand shrink-0">
             <Fingerprint className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-bold text-[#F1F5F9] flex items-center gap-1.5">
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
               <span>{t("Thiết Lập User", "Setup Unique User")}</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+              <span className="badge-pill bg-emerald-400/10 text-emerald-400 border border-emerald-400/30 text-[10px] font-bold py-0.5 px-2">
                 Bắt Buộc
               </span>
             </h2>
-            <p className="text-xs text-[#94A3B8]">
+            <p className="text-xs text-slate-400 mt-0.5">
               {t(
-                "Định danh User duy nhất không trùng lặp để đối tác tìm kiếm & khởi tạo Két Sắt 3 Bên.",
+                "Định danh User duy nhất để đối tác tìm kiếm & khởi tạo Két Sắt 3 Bên.",
                 "Unique identifier required for partners to search and create 3-party escrows."
               )}
             </p>
@@ -121,154 +116,137 @@ export function OnboardingModal() {
         </div>
 
         {/* Auto Generated ID Badge */}
-        <div className="mt-4 p-3 rounded-md bg-[#161922] border border-[#1E222D] flex items-center justify-between text-xs font-mono">
+        <div className="mt-4 p-3.5 rounded-xl card-inner flex items-center justify-between text-xs font-mono">
           <div className="space-y-0.5">
-            <span className="text-[10px] text-[#64748B] block uppercase">
-              {t("ID Hệ Thống Tự Sinh:", "Auto-Generated System ID:")}
+            <span className="text-[11px] text-slate-500 block uppercase">
+              {t("ID Hệ Thống:", "System ID:")}
             </span>
-            <span className="text-[#F1F5F9] font-bold text-sm tracking-wide">
+            <span className="text-white font-bold text-sm tracking-wide">
               {currentUser?.id || "TP-NEW"}
             </span>
           </div>
 
           <div className="text-right space-y-0.5">
-            <span className="text-[10px] text-[#64748B] block uppercase">
-              {t("Địa Chỉ Ví Liên Kết:", "Linked Wallet:")}
+            <span className="text-[11px] text-slate-500 block uppercase">
+              {t("Địa Chỉ Ví:", "Wallet:")}
             </span>
-            <span className="text-[#10B981] text-xs font-bold">
+            <span className="text-emerald-400 text-xs font-bold">
               {currentUser?.walletAddress ? shortenAddress(currentUser.walletAddress) : "0x..."}
             </span>
           </div>
         </div>
 
         {/* Registration Form */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4 text-xs font-sans">
-          {/* 1. Username Field */}
-          <div>
-            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-              {t("User (Tên tài khoản không dấu, không trùng lặp) *", "User (Unique, no spaces) *")}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#64748B]">
-                <AtSign className="w-3.5 h-3.5" />
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* 1. Username Field */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                {t("User (Không dấu, không khoảng cách) *", "User Handle *")}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <AtSign className="w-3.5 h-3.5" />
+                </div>
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  placeholder="VD: tuan_crypto"
+                  className={`input-field pl-9 py-2 text-xs font-mono ${
+                    statusMessage.type === "valid"
+                      ? "border-emerald-500"
+                      : statusMessage.type === "invalid"
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                  required
+                />
               </div>
-              <input
-                type="text"
-                value={usernameInput}
-                onChange={(e) => handleUsernameChange(e.target.value)}
-                placeholder="VD: tuan_crypto, hoangminh_otc..."
-                className={`w-full pl-9 pr-3 py-2 rounded-md bg-[#090A0D] border font-mono text-xs text-[#F1F5F9] focus:outline-none transition-colors ${
-                  statusMessage.type === "valid"
-                    ? "border-[#10B981] focus:border-[#10B981]"
-                    : statusMessage.type === "invalid"
-                    ? "border-[#EF4444] focus:border-[#EF4444]"
-                    : "border-[#1E222D] focus:border-[#E84142]"
-                }`}
-                required
-              />
+
+              {statusMessage.msg && (
+                <div
+                  className={`mt-1 flex items-center gap-1.5 text-xs ${
+                    statusMessage.type === "valid" ? "text-emerald-400" : "text-red-400"
+                  }`}
+                >
+                  {statusMessage.type === "valid" ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <AlertCircle className="w-3.5 h-3.5" />
+                  )}
+                  <span>{statusMessage.msg}</span>
+                </div>
+              )}
             </div>
 
-            {/* Validation Feedback */}
-            {statusMessage.msg && (
-              <div
-                className={`mt-1.5 flex items-center gap-1.5 text-[11px] ${
-                  statusMessage.type === "valid" ? "text-[#10B981]" : "text-[#EF4444]"
-                }`}
-              >
-                {statusMessage.type === "valid" ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                ) : (
-                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                )}
-                <span>{statusMessage.msg}</span>
-              </div>
-            )}
-            <span className="text-[10px] text-[#64748B] block mt-1">
-              {t(
-                "User này sẽ dùng để người khác tìm thấy bạn khi lập giao dịch.",
-                "Partners will search this user handle to transact with you."
-              )}
-            </span>
-          </div>
-
-          {/* 2. Display Name */}
-          <div>
-            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-              {t("Họ Tên Hiển Thị (Display Name)", "Display Name")}
-            </label>
-            <input
-              type="text"
-              value={displayNameInput}
-              onChange={(e) => setDisplayNameInput(e.target.value)}
-              placeholder="VD: Lê Minh Tuấn"
-              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none"
-            />
+            {/* 2. Display Name */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                {t("Họ Tên Hiển Thị", "Display Name")}
+              </label>
+              <input
+                type="text"
+                value={displayNameInput}
+                onChange={(e) => setDisplayNameInput(e.target.value)}
+                placeholder="VD: Lê Minh Tuấn"
+                className="input-field py-2 text-xs"
+              />
+            </div>
           </div>
 
           {/* 3. Primary Role */}
           <div>
-            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
+            <label className="text-xs font-semibold text-slate-300 block mb-1">
               {t("Vai Trò Chính Hoạt Động", "Primary Role")}
             </label>
             <select
               value={roleInput}
               onChange={(e) => setRoleInput(e.target.value as UserRole)}
-              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none"
+              className="input-field py-2 text-xs"
             >
               <option value="BUYER">{t("Bên Mua (Buyer) — Ký quỹ & Mua tài sản", "Buyer — Escrow & Purchase")}</option>
-              <option value="SELLER">{t("Bên Bán (Seller) — OTC Merchant & Bán tài sản", "Seller — OTC Merchant & Sales")}</option>
-              <option value="BROKER">{t("GDTG Bảo Chứng (Broker) — Ký cọc Aave & Phân xử", "Broker — Staked Custodian")}</option>
+              <option value="SELLER">{t("Bên Bán (Seller) — OTC Merchant", "Seller — OTC Merchant & Sales")}</option>
+              <option value="BROKER">{t("GDTG Bảo Chứng (Broker) — Ký cọc Aave", "Broker — Staked Custodian")}</option>
             </select>
           </div>
 
-          {/* 4. Telegram */}
-          <div>
-            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-              {t("Telegram Liên Hệ (Tùy chọn)", "Contact Telegram (Optional)")}
-            </label>
-            <input
-              type="text"
-              value={telegramInput}
-              onChange={(e) => setTelegramInput(e.target.value)}
-              placeholder="@telegram_handle"
-              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] text-xs text-[#F1F5F9] focus:outline-none font-mono"
-            />
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* 4. Telegram */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                {t("Telegram (Tùy chọn)", "Telegram (Optional)")}
+              </label>
+              <input
+                type="text"
+                value={telegramInput}
+                onChange={(e) => setTelegramInput(e.target.value)}
+                placeholder="@telegram_handle"
+                className="input-field py-2 text-xs font-mono"
+              />
+            </div>
 
-          {/* 5. Zalo Contact */}
-          <div>
-            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-              {t("Số Zalo Liên Hệ (Tùy chọn)", "Zalo Contact (Optional)")}
-            </label>
-            <input
-              type="text"
-              value={zaloInput}
-              onChange={(e) => setZaloInput(e.target.value)}
-              placeholder="VD: 0912345678"
-              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#0068FF] text-xs text-[#F1F5F9] focus:outline-none font-mono"
-            />
-          </div>
-
-          {/* 6. Facebook Contact */}
-          <div>
-            <label className="text-[11px] font-bold text-[#F1F5F9] block mb-1">
-              {t("Liên Kết Facebook (Tùy chọn)", "Facebook Profile (Optional)")}
-            </label>
-            <input
-              type="text"
-              value={facebookInput}
-              onChange={(e) => setFacebookInput(e.target.value)}
-              placeholder="https://facebook.com/..."
-              className="w-full px-3 py-2 rounded-md bg-[#090A0D] border border-[#1E222D] focus:border-[#1877F2] text-xs text-[#F1F5F9] focus:outline-none font-mono"
-            />
+            {/* 5. Zalo Contact */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">
+                {t("Số Zalo (Tùy chọn)", "Zalo (Optional)")}
+              </label>
+              <input
+                type="text"
+                value={zaloInput}
+                onChange={(e) => setZaloInput(e.target.value)}
+                placeholder="VD: 0912345678"
+                className="input-field py-2 text-xs font-mono"
+              />
+            </div>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-2">
+          <div className="pt-3 border-t border-white/[0.06]">
             <button
               type="submit"
               disabled={statusMessage.type === "invalid" || !usernameInput.trim()}
-              className="w-full py-2.5 rounded-md bg-[#E84142] hover:bg-[#D13637] disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md"
+              className="w-full py-3 rounded-xl bg-brand hover:bg-brand-hover disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-brand/20"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{t("Hoàn Tất Đăng Ký User", "Complete User Registration")}</span>

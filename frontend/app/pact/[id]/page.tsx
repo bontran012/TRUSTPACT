@@ -17,18 +17,12 @@ import {
   RefreshCw,
   Clock,
   Check,
-  AlertOctagon,
-  Award,
   Headphones,
   Copy,
-  FileText,
-  ShieldAlert,
   User,
   Store,
-  ChevronRight,
   Shield,
   Gavel,
-  UploadCloud,
   FileCheck2,
 } from "lucide-react";
 import {
@@ -42,9 +36,7 @@ import {
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
-import { BorderBeam } from "@/src/components/ui/BorderBeam";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
-import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 interface EscrowStruct {
   id: bigint;
@@ -153,7 +145,31 @@ export default function EscrowPactRoomPage() {
     args: [pactId],
   });
 
-  // Server DB pact data for real multi-device synchronization
+  const { data: buyerApprovedRelease, refetch: refetchBuyerApproved } = useReadContract({
+    address: CONTRACT_ADDRESSES.universalEscrow,
+    abi: UNIVERSAL_ESCROW_ABI,
+    functionName: "buyerApprovedRelease",
+    args: [pactId],
+    query: { refetchInterval: 3000 },
+  });
+
+  const { data: brokerApprovedRelease, refetch: refetchBrokerApproved } = useReadContract({
+    address: CONTRACT_ADDRESSES.universalEscrow,
+    abi: UNIVERSAL_ESCROW_ABI,
+    functionName: "brokerApprovedRelease",
+    args: [pactId],
+    query: { refetchInterval: 3000 },
+  });
+
+  const [lastFinalityMs, setLastFinalityMs] = useState<number | null>(null);
+
+  const { data: contractAdmin } = useReadContract({
+    address: CONTRACT_ADDRESSES.universalEscrow,
+    abi: UNIVERSAL_ESCROW_ABI,
+    functionName: "admin",
+  });
+
+  // Server DB pact data
   const [serverPactData, setServerPactData] = useState<any>(null);
   const [localPactData, setLocalPactData] = useState<any>(null);
 
@@ -168,15 +184,15 @@ export default function EscrowPactRoomPage() {
     }
   }, [pactId]);
 
-  // Fallback Escrow Struct: On-chain > Server DB (Cross-device) > LocalStorage > Default
+  // Fallback Escrow Struct
   const escrowItem: EscrowStruct = (escrowData && (escrowData as any).amount > 0n)
     ? (escrowData as unknown as EscrowStruct)
     : serverPactData
     ? {
         id: pactId,
-        buyer: (serverPactData.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-        seller: (serverPactData.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-        broker: (serverPactData.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+        buyer: (serverPactData.buyer as `0x${string}`) || "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: (serverPactData.seller as `0x${string}`) || "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: (serverPactData.broker as `0x${string}`) || "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
         amount: parseUsdc(String(serverPactData.amount || "1000")),
         brokerFeeBps: BigInt(serverPactData.brokerFeeBps || 150),
         duration: BigInt(serverPactData.duration || 86400),
@@ -186,9 +202,9 @@ export default function EscrowPactRoomPage() {
     : localPactData
     ? {
         id: pactId,
-        buyer: (localPactData.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-        seller: (localPactData.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-        broker: (localPactData.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+        buyer: (localPactData.buyer as `0x${string}`) || "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: (localPactData.seller as `0x${string}`) || "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: (localPactData.broker as `0x${string}`) || "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
         amount: parseUsdc(String(localPactData.amount || "1000")),
         brokerFeeBps: BigInt(localPactData.brokerFeeBps || 150),
         duration: BigInt(localPactData.duration || 86400),
@@ -197,23 +213,21 @@ export default function EscrowPactRoomPage() {
       }
     : {
         id: pactId,
-        buyer: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-        seller: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-        broker: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
-        amount: 1000000000n, // 1000 USDC
+        buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+        seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+        broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+        amount: 6000000n,
         brokerFeeBps: 150n,
-        duration: 86400n,
+        duration: 172800n,
         startTime: BigInt(Math.floor(Date.now() / 1000) - 1800),
         status: 0,
       };
 
-  // Status computation
   const statusNumber = simulatedStatusOverride !== null ? simulatedStatusOverride : Number(escrowItem.status);
   const deadline = Number(escrowItem.startTime + escrowItem.duration);
   const remainingSeconds = Math.max(0, deadline - currentTime);
   const isTimeExpired = Boolean(isExpiredFromContract) || remainingSeconds === 0;
 
-  // Format Timer
   const hoursLeft = Math.floor(remainingSeconds / 3600);
   const minsLeft = Math.floor((remainingSeconds % 3600) / 60);
   const secsLeft = remainingSeconds % 60;
@@ -224,7 +238,15 @@ export default function EscrowPactRoomPage() {
   const connectedLower = effectiveAddress?.toLowerCase();
   const userRole = currentUser?.role;
 
-  const isAdmin = userRole === "ADMIN" || connectedLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
+  const contractAdminLower = (contractAdmin as string)?.toLowerCase();
+  const configuredAdminLower = process.env.NEXT_PUBLIC_ADMIN_ADDRESS?.toLowerCase();
+  const isContractAdmin = Boolean(
+    connectedLower &&
+    ((contractAdminLower && connectedLower === contractAdminLower) ||
+     (configuredAdminLower && connectedLower === configuredAdminLower))
+  );
+
+  const isAdmin = userRole === "ADMIN" || isContractAdmin;
   const isSeller = !isAdmin && (userRole === "SELLER" || connectedLower === escrowItem.seller.toLowerCase());
   const isBroker = isAdmin || userRole === "BROKER" || connectedLower === escrowItem.broker.toLowerCase();
   const isBuyer = !isAdmin && !isSeller && (userRole === "BUYER" || connectedLower === escrowItem.buyer.toLowerCase() || !isBroker);
@@ -232,7 +254,7 @@ export default function EscrowPactRoomPage() {
   // Financial Calculations
   const dealAmountNum = Number(escrowItem.amount) / 1e6;
   const brokerFeeNum = +((dealAmountNum * Number(escrowItem.brokerFeeBps)) / 10000).toFixed(2);
-  const protocolFeeNum = +((dealAmountNum * 30) / 10000).toFixed(2); // 0.30%
+  const protocolFeeNum = +((dealAmountNum * 30) / 10000).toFixed(2);
   const netSellerReceives = +(dealAmountNum - brokerFeeNum - protocolFeeNum).toFixed(2);
 
   // Settlement Inputs for Broker Split
@@ -240,11 +262,23 @@ export default function EscrowPactRoomPage() {
   const [refundToBuyerInput, setRefundToBuyerInput] = useState<string>(String(dealAmountNum / 2));
   const [payoutToSellerInput, setPayoutToSellerInput] = useState<string>(String(dealAmountNum / 2));
 
-  // Chat message stream & real-time synchronization
+  // Dispute Modal State
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeReasonInput, setDisputeReasonInput] = useState("Bên đối tác không thực hiện đúng cam kết bàn giao, yêu cầu GDTG hòa giải.");
+
+  const handleRaiseDispute = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowDisputeModal(false);
+    await executePactWrite("Kích Hoạt Khiếu Nại Tranh Chấp (Đóng Băng Hạn Rút Tiền)", "raiseDispute", [
+      pactId,
+      disputeReasonInput.trim(),
+    ]);
+  };
+
+  // Chat message stream
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessageText, setNewMessageText] = useState("");
 
-  // Real-time synchronization from persistent server DB
   useEffect(() => {
     let isMounted = true;
     const fetchChatAndHandover = async () => {
@@ -274,9 +308,7 @@ export default function EscrowPactRoomPage() {
             setSimulatedStatusOverride(pactJson.pact.status);
           }
         }
-      } catch (err) {
-        // Fallback silently if offline
-      }
+      } catch (err) {}
     };
 
     fetchChatAndHandover();
@@ -312,7 +344,6 @@ export default function EscrowPactRoomPage() {
       text: newMessageText.trim(),
     };
 
-    // Optimistic UI update
     const optimisticMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: (effectiveAddress || escrowItem.buyer) as `0x${string}`,
@@ -335,7 +366,7 @@ export default function EscrowPactRoomPage() {
         setMessages((prev) => prev.map((m) => (m.id === optimisticMsg.id ? data.message : m)));
       }
     } catch (err) {
-      console.error("Lỗi đồng bộ tin nhắn lên server:", err);
+      console.error("Lỗi đồng bộ tin nhắn:", err);
     }
   };
 
@@ -370,12 +401,9 @@ export default function EscrowPactRoomPage() {
       if (data.success && data.message) {
         setMessages((prev) => [...prev, data.message]);
       }
-    } catch (err) {
-      console.error("Lỗi gửi phản hồi nhanh:", err);
-    }
+    } catch (err) {}
   };
 
-  // Seller confirms handover
   const handleSellerConfirmHandover = async (e: React.FormEvent) => {
     e.preventDefault();
     const proofUrl = sellerProofInput.trim() || "https://testnet.snowtrace.io";
@@ -408,12 +436,9 @@ export default function EscrowPactRoomPage() {
         if (data.handover) setHandoverData(data.handover);
         if (data.message) setMessages((prev) => [...prev, data.message]);
       }
-    } catch (err) {
-      console.error("Lỗi đồng bộ bàn giao lên server:", err);
-    }
+    } catch (err) {}
   };
 
-  // Open CSKH Live Support
   const handleOpenCSKH = () => {
     window.dispatchEvent(
       new CustomEvent("open-cskh-chat", {
@@ -422,23 +447,27 @@ export default function EscrowPactRoomPage() {
     );
   };
 
-  // Execution engine: Call real smart contract with auto-simulation fallback
   const executePactWrite = async (actionTitle: string, functionName: any, args: any[]) => {
     setTxStatus({ step: "awaiting_signature", actionTitle });
 
-    // Verify if connected wallet address actually matches the on-chain role for this action
     const addrLower = address?.toLowerCase();
+    const isCallerAdmin = Boolean(
+      addrLower &&
+      ((contractAdminLower && addrLower === contractAdminLower) ||
+       (configuredAdminLower && addrLower === configuredAdminLower))
+    );
+
     const isWalletEligibleOnChain =
       addrLower &&
       ((functionName === "buyerConfirmDelivery" && addrLower === escrowItem.buyer.toLowerCase()) ||
-       (functionName === "brokerRelease" && (addrLower === escrowItem.broker.toLowerCase() || addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")) ||
-       (functionName === "brokerRefundBuyer" && (addrLower === escrowItem.broker.toLowerCase() || addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")) ||
-       (functionName === "brokerSettle" && (addrLower === escrowItem.broker.toLowerCase() || addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")) ||
+       (functionName === "brokerRelease" && (addrLower === escrowItem.broker.toLowerCase() || isCallerAdmin)) ||
+       (functionName === "brokerRefundBuyer" && (addrLower === escrowItem.broker.toLowerCase() || isCallerAdmin)) ||
+       (functionName === "brokerSettle" && (addrLower === escrowItem.broker.toLowerCase() || isCallerAdmin)) ||
        (functionName === "buyerClaimExpiredRefund" && addrLower === escrowItem.buyer.toLowerCase()) ||
        (functionName === "mutualCancelEscrow" && (addrLower === escrowItem.buyer.toLowerCase() || addrLower === escrowItem.seller.toLowerCase())) ||
-       (functionName === "adminSlashCorruptBroker" && addrLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"));
+       (functionName === "raiseDispute" && (addrLower === escrowItem.buyer.toLowerCase() || addrLower === escrowItem.seller.toLowerCase() || addrLower === escrowItem.broker.toLowerCase() || isCallerAdmin)) ||
+       (functionName === "adminSlashCorruptBroker" && isCallerAdmin));
 
-    // 1. REAL ON-CHAIN TRANSACTION (when user connects eligible Web3 wallet)
     if (isWalletEligibleOnChain && writeContractAsync) {
       try {
         const hash = await writeContractAsync({
@@ -448,25 +477,46 @@ export default function EscrowPactRoomPage() {
           args: args as any,
         });
 
+        const txStartTime = performance.now();
         setTxStatus({ step: "confirming", txHash: hash, actionTitle });
         if (publicClient) {
           await publicClient.waitForTransactionReceipt({ hash });
         }
+        const finalityMs = Math.round(performance.now() - txStartTime);
+        setLastFinalityMs(finalityMs);
 
-        setTxStatus({ step: "success", txHash: hash, actionTitle });
+        setTxStatus({ step: "success", txHash: hash, actionTitle: `${actionTitle} (${finalityMs}ms Snowman Finality)` });
 
-        const isRelease = functionName === "brokerRelease" || functionName === "buyerConfirmDelivery" || functionName === "brokerSettle";
-        const isRefund = functionName === "brokerRefundBuyer" || functionName === "buyerClaimExpiredRefund" || functionName === "mutualCancelEscrow" || functionName === "adminSlashCorruptBroker";
-        const newStatus = isRelease ? 1 : isRefund ? 2 : 0;
+        const buyerSignedNow = functionName === "buyerConfirmDelivery" || Boolean(buyerApprovedRelease);
+        const brokerSignedNow = functionName === "brokerRelease" || Boolean(brokerApprovedRelease);
+        const isFullRelease =
+          functionName === "brokerSettle" ||
+          (statusNumber === 3 && (functionName === "brokerRelease" || functionName === "buyerConfirmDelivery")) ||
+          (isCallerAdmin && functionName === "brokerRelease") ||
+          (buyerSignedNow && brokerSignedNow);
+        const isRefund =
+          functionName === "brokerRefundBuyer" ||
+          functionName === "buyerClaimExpiredRefund" ||
+          functionName === "mutualCancelEscrow" ||
+          functionName === "adminSlashCorruptBroker";
+        const isDispute = functionName === "raiseDispute";
+        const newStatus = isFullRelease ? 1 : isRefund ? 2 : isDispute ? 3 : 0;
 
-        // Persist real on-chain transaction result to server DB
         await fetch(`/api/pacts/${pactId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus, txHash: hash }),
         });
 
-        // Add real on-chain confirmation message into chat stream
+        const stepNote =
+          !isFullRelease && functionName === "buyerConfirmDelivery"
+            ? " (Bước 1/2: Bên Mua đã xác nhận nhận hàng — chờ GDTG bấm giải ngân)"
+            : !isFullRelease && functionName === "brokerRelease"
+            ? " (Bước 1/2: GDTG đã kiểm định OK — chờ Bên Mua xác nhận nhận hàng)"
+            : isFullRelease
+            ? " (Đủ 2/2 chữ ký xác nhận — Đã giải ngân tự động về ví Seller!)"
+            : "";
+
         await fetch(`/api/pacts/${pactId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -474,20 +524,23 @@ export default function EscrowPactRoomPage() {
             sender: CONTRACT_ADDRESSES.universalEscrow,
             role: "system",
             senderName: "UniversalEscrow Protocol",
-            text: `✓ Giao dịch đã xác thực ON-CHAIN thành công trên Avalanche Fuji! Mã Tx: ${hash}`,
+            text: `✓ Giao dịch ON-CHAIN thành công trên Avalanche Fuji (${finalityMs}ms)!${stepNote} Mã Tx: ${hash}`,
             isProof: true,
             proofUrl: `https://testnet.snowtrace.io/tx/${hash}`,
           }),
         });
 
-        await refetchEscrow();
-        await refetchExpired();
-        await refetchBuyerCancel();
-        await refetchSellerCancel();
+        await Promise.all([
+          refetchEscrow(),
+          refetchExpired(),
+          refetchBuyerCancel(),
+          refetchSellerCancel(),
+          refetchBuyerApproved(),
+          refetchBrokerApproved(),
+        ]);
         setTimeout(() => setTxStatus({ step: "idle" }), 2500);
         return;
       } catch (err: any) {
-        console.error("On-chain tx error:", err);
         setTxStatus({
           step: "error",
           actionTitle,
@@ -497,506 +550,597 @@ export default function EscrowPactRoomPage() {
       }
     }
 
-    // 2. AUDIT SANDBOX MODE (For evaluation when testing accounts without their private keys)
+    // Clear error when wallet is not connected or does not match the authorized role on-chain
+    const requiredWalletHint =
+      functionName === "buyerConfirmDelivery" || functionName === "buyerClaimExpiredRefund"
+        ? `Ví Bên Mua (${shortenAddress(escrowItem.buyer)})`
+        : functionName === "brokerRelease" || functionName === "brokerRefundBuyer" || functionName === "brokerSettle"
+        ? `Ví GDTG (${shortenAddress(escrowItem.broker)}) hoặc Admin`
+        : `Ví hợp lệ trong hợp đồng (#${pactId.toString()})`;
+
     setTxStatus({
-      step: "confirming",
-      actionTitle: `${actionTitle} [Chế Độ Kiểm Thử Sandbox]`,
+      step: "error",
+      actionTitle,
+      errorMessage: !address
+        ? `Vui lòng kết nối ví Web3 mạng Avalanche Fuji (${requiredWalletHint}) để ký giao dịch thật trên Smart Contract.`
+        : `Ví đang kết nối (${shortenAddress(address)}) không khớp với quyền thực thi trên hợp đồng. Yêu cầu: ${requiredWalletHint}.`,
     });
-
-    setTimeout(async () => {
-      const isRelease = functionName === "brokerRelease" || functionName === "buyerConfirmDelivery" || functionName === "brokerSettle";
-      const isRefund = functionName === "brokerRefundBuyer" || functionName === "buyerClaimExpiredRefund" || functionName === "mutualCancelEscrow" || functionName === "adminSlashCorruptBroker";
-      const newStatus = isRelease ? 1 : isRefund ? 2 : 0;
-
-      setSimulatedStatusOverride(newStatus);
-      setTxStatus({
-        step: "success",
-        actionTitle: `${actionTitle} (Đã ghi nhận trên hệ thống kiểm thử)`,
-      });
-
-      // Persist status change to server DB so all connected clients sync
-      try {
-        await fetch(`/api/pacts/${pactId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
-        });
-
-        const receiptText = isRelease
-          ? `✓ [Sandbox] Quyết toán thành công: Đã chuyển ${netSellerReceives} USDC cho Bên Bán và ${brokerFeeNum} USDC cho GDTG.`
-          : isRefund
-          ? `✓ [Sandbox] Hoàn tiền thành công: 100% số tiền (${dealAmountNum} USDC) đã hoàn trả về ví Bên Mua.`
-          : `✓ [Sandbox] Cập nhật trạng thái hợp đồng thành công.`;
-
-        await fetch(`/api/pacts/${pactId}/messages`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sender: CONTRACT_ADDRESSES.universalEscrow,
-            role: "system",
-            senderName: "UniversalEscrow Protocol",
-            text: receiptText,
-          }),
-        });
-      } catch (e) {}
-
-      setTimeout(() => setTxStatus({ step: "idle" }), 2000);
-    }, 600);
   };
 
   return (
-    <div className="space-y-5">
-      {/* ── TOP ROOM HEADER ─────────────────────────────────────────────────── */}
-      <section className="rounded-lg panel-border bg-[#101217] p-4 sm:p-5 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="font-mono text-xs font-bold text-[#F1F5F9] bg-[#161922] px-3 py-1 rounded border border-[#1E222D]">
-                {t(`PHÒNG KÝ QUỸ #${escrowItem.id.toString()}`, `ESCROW PACT #${escrowItem.id.toString()}`)}
-              </span>
+    <div className="space-y-6 animate-fade-in">
+      {/* ── SCENIC 3D VAULT ROOM HEADER ─────────────────────────────────────── */}
+      <section className="card overflow-hidden p-0 relative">
+        <img
+          src="/images/hero-3d-escrow.png"
+          alt=""
+          className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-50 hidden sm:block"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B1E47]/95 via-[#0E2454]/88 to-[#0E2454]/45" />
 
-              {/* Status Badge */}
-              <span
-                className={`px-2.5 py-1 rounded text-xs font-mono font-bold border flex items-center gap-1.5 ${
-                  statusNumber === 0
-                    ? "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
-                    : statusNumber === 1
-                    ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
-                    : "bg-[#64748B]/10 border-[#64748B]/30 text-[#64748B]"
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    statusNumber === 0
-                      ? "bg-[#F59E0B] animate-pulse"
-                      : statusNumber === 1
-                      ? "bg-[#10B981]"
-                      : "bg-[#64748B]"
-                  }`}
-                />
-                <span>
-                  {statusNumber === 0
-                    ? t("TIỀN ĐANG KHÓA TRONG KÉT SẮT", "FUNDS LOCKED IN VAULT")
-                    : statusNumber === 1
-                    ? t("ĐÃ GIẢI NGÂN HOÀN TẤT", "COMPLETED & DISBURSED")
-                    : t("ĐÃ HỦY — TIỀN ĐÃ HOÀN VỀ VÍ BUYER", "CANCELLED & REFUNDED")}
+        <div className="relative p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span className="text-xs font-bold text-white bg-sky-400/25 px-3.5 py-1 rounded-full border border-sky-300/40">
+                  {t("Phòng Ký Quỹ", "Escrow Room")} <strong className="font-mono">#{escrowItem.id.toString()}</strong>
                 </span>
-              </span>
 
-              <span className="text-[11px] font-mono text-[#64748B] bg-[#090A0D] px-2 py-0.5 rounded border border-[#1E222D]">
-                Fuji C-Chain #43113
-              </span>
-            </div>
+                <span
+                  className={`badge-pill border ${
+                    statusNumber === 0
+                      ? "bg-amber-400/20 border-amber-300/40 text-amber-200"
+                      : statusNumber === 1
+                      ? "bg-emerald-400/20 border-emerald-300/40 text-emerald-200"
+                      : statusNumber === 3
+                      ? "bg-rose-500/25 border-rose-400/50 text-rose-200 font-bold animate-pulse"
+                      : "bg-white/[0.12] border-white/[0.2] text-sky-100"
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      statusNumber === 0
+                        ? "bg-amber-300 animate-pulse"
+                        : statusNumber === 1
+                        ? "bg-emerald-300"
+                        : statusNumber === 3
+                        ? "bg-rose-400"
+                        : "bg-slate-300"
+                    }`}
+                  />
+                  <span>
+                    {statusNumber === 0
+                      ? t("Đang Khóa Trong Két", "Funds Locked in Vault")
+                      : statusNumber === 1
+                      ? t("Đã Giải Ngân Hoàn Tất", "Completed & Disbursed")
+                      : statusNumber === 3
+                      ? t("Đang Khiếu Nại Tranh Chấp", "Dispute Raised & Auto-Refund Frozen")
+                      : t("Đã Hoàn Tiền Cho Buyer", "Cancelled & Refunded")}
+                  </span>
+                </span>
 
-            <p className="text-xs text-[#94A3B8]">
-              {t(
-                "Phòng đối soát 3 bên bảo mật • Dòng tiền ký quỹ nằm an toàn trong Smart Contract UniversalEscrow",
-                "3-Party settlement desk • Escrow funds secured in UniversalEscrow Smart Contract Vault"
-              )}
-            </p>
-          </div>
-
-          {/* Quick External Links & Refresh */}
-          <div className="flex items-center gap-2.5 text-xs font-mono shrink-0">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#090A0D] border border-[#1E222D]">
-              <Clock className="w-3.5 h-3.5 text-[#F59E0B]" />
-              <span className="text-[#94A3B8]">{t("Hạn chót:", "Deadline:")}</span>
-              <span className={`font-bold tabular-nums ${isTimeExpired ? "text-[#EF4444]" : "text-[#F1F5F9]"}`}>
-                {isTimeExpired ? t("Đã quá hạn", "Expired") : timerDisplay}
-              </span>
-            </div>
-
-            <a
-              href={`https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.universalEscrow}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#94A3B8] hover:text-[#F1F5F9] px-2.5 py-1.5 rounded bg-[#161922] border border-[#1E222D] inline-flex items-center gap-1 transition-colors"
-            >
-              <span>Snowtrace</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-
-            <button
-              onClick={() => {
-                refetchEscrow();
-                refetchExpired();
-                refetchBuyerCancel();
-                refetchSellerCancel();
-              }}
-              className="p-1.5 rounded bg-[#161922] border border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
-              title="Làm mới trạng thái On-chain"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* ── SLIM LIFECYCLE PROGRESS PIPELINE (4 STAGES) ──────────────────── */}
-        <div className="pt-1">
-          <div className="grid grid-cols-4 gap-2 text-xs font-mono">
-            {[
-              {
-                step: 1,
-                title: t("1. Nạp Két Sắt", "1. Deposit"),
-                desc: `${formatUsdc(escrowItem.amount)} USDC`,
-                isDone: true,
-                isActive: false,
-              },
-              {
-                step: 2,
-                title: t("2. Bàn Giao Hàng", "2. Handover"),
-                desc: handoverData.isHandedOver ? t("Đã giao ✓", "Done ✓") : t("Đang giao...", "Pending..."),
-                isDone: handoverData.isHandedOver,
-                isActive: !handoverData.isHandedOver && statusNumber === 0,
-              },
-              {
-                step: 3,
-                title: t("3. Đối Soát Nghiệm Thu", "3. Audit & Inspect"),
-                desc: statusNumber === 1 ? t("Đã duyệt ✓", "Approved ✓") : t("Kiểm thử", "Inspecting"),
-                isDone: statusNumber === 1,
-                isActive: handoverData.isHandedOver && statusNumber === 0,
-              },
-              {
-                step: 4,
-                title: t("4. Quyết Toán", "4. Settlement"),
-                desc: statusNumber === 1 ? t("Giải ngân ✓", "Disbursed ✓") : statusNumber === 2 ? t("Đã hoàn tiền", "Refunded") : t("Chờ lệnh", "Awaiting"),
-                isDone: statusNumber !== 0,
-                isActive: false,
-              },
-            ].map((st) => (
-              <div
-                key={st.step}
-                className={`p-2.5 rounded border transition-colors ${
-                  st.isDone
-                    ? "bg-[#161922] border-[#10B981]/30 text-[#10B981]"
-                    : st.isActive
-                    ? "bg-[#F59E0B]/10 border-[#F59E0B]/40 text-[#F59E0B]"
-                    : "bg-[#090A0D] border-[#1E222D] text-[#64748B]"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[11px] block">{st.title}</span>
-                  {st.isDone && <Check className="w-3 h-3 text-[#10B981]" />}
-                </div>
-                <span className="text-[10px] text-[#94A3B8] block truncate">{st.desc}</span>
+                <span className="text-xs font-mono text-sky-100/80 bg-white/[0.08] px-3 py-1 rounded-full border border-white/[0.16]">
+                  Avalanche Fuji #43113
+                </span>
               </div>
-            ))}
+
+              <p className="text-sm text-sky-100/85">
+                {t(
+                  "Phòng đối soát 3 bên bảo mật · Dòng tiền ký quỹ nằm an toàn trong Smart Contract UniversalEscrow",
+                  "3-Party settlement desk · Escrow funds secured in UniversalEscrow Smart Contract Vault"
+                )}
+              </p>
+            </div>
+
+            {/* Countdown & Quick Actions */}
+            <div className="flex items-center gap-2.5 text-xs shrink-0 flex-wrap">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#081635]/60 backdrop-blur-md border border-white/[0.18]">
+                <Clock className={`w-4 h-4 ${isTimeExpired ? "text-rose-300" : "text-amber-300"}`} />
+                <span className="text-sky-100/80">{t("Thời hạn:", "Deadline:")}</span>
+                {isTimeExpired ? (
+                  <span className="font-semibold text-rose-300">{t("Đã quá hạn", "Expired")}</span>
+                ) : (
+                  <span className="font-bold font-mono text-white tabular-nums">{timerDisplay}</span>
+                )}
+              </div>
+
+              <a
+                href={`https://testnet.snowtrace.io/address/${CONTRACT_ADDRESSES.universalEscrow}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white px-4 py-2 rounded-full bg-white/[0.1] hover:bg-white/[0.18] border border-white/[0.2] inline-flex items-center gap-1.5 font-semibold transition-colors"
+              >
+                <span>Snowtrace</span>
+                <ExternalLink className="w-3.5 h-3.5 text-sky-200" />
+              </a>
+
+              <button
+                onClick={() => {
+                  refetchEscrow();
+                  refetchExpired();
+                  refetchBuyerCancel();
+                  refetchSellerCancel();
+                }}
+                className="p-2 rounded-full bg-white/[0.1] hover:bg-white/[0.18] border border-white/[0.2] text-sky-100 hover:text-white transition-colors"
+                title="Làm mới trạng thái"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* ── 4-STAGE CIRCULAR STEPPER ──────────────────────────────────── */}
+          <div className="pt-4 border-t border-white/[0.14]">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                {
+                  step: "01",
+                  title: t("Nạp Két Sắt", "Vault Deposit"),
+                  desc: `${formatUsdc(escrowItem.amount)} USDC`,
+                  isDone: true,
+                  isActive: false,
+                },
+                {
+                  step: "02",
+                  title: t("Bàn Giao Tài Sản", "Asset Handover"),
+                  desc: handoverData.isHandedOver ? t("Đã bàn giao", "Delivered") : t("Đang chờ giao", "Pending"),
+                  isDone: handoverData.isHandedOver,
+                  isActive: !handoverData.isHandedOver && statusNumber === 0,
+                },
+                {
+                  step: "03",
+                  title: t("Đối Soát Nghiệm Thu", "Audit & Inspect"),
+                  desc: statusNumber === 1 ? t("Đã nghiệm thu", "Approved") : t("Đang kiểm tra", "Inspecting"),
+                  isDone: statusNumber === 1,
+                  isActive: handoverData.isHandedOver && statusNumber === 0,
+                },
+                {
+                  step: "04",
+                  title: t("Quyết Toán Kèo", "Final Settlement"),
+                  desc: statusNumber === 1 ? t("Đã giải ngân", "Disbursed") : statusNumber === 2 ? t("Đã hoàn tiền", "Refunded") : t("Chờ ký lệnh", "Awaiting"),
+                  isDone: statusNumber !== 0,
+                  isActive: false,
+                },
+              ].map((st) => (
+                <div
+                  key={st.step}
+                  className={`p-3.5 rounded-2xl border transition-all flex items-center gap-3 ${
+                    st.isDone
+                      ? "bg-emerald-400/15 border-emerald-300/35"
+                      : st.isActive
+                      ? "bg-sky-400/20 border-sky-300/45 shadow-sm"
+                      : "bg-white/[0.06] border-white/[0.14]"
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
+                      st.isDone
+                        ? "bg-emerald-400 text-slate-950 shadow-sm"
+                        : st.isActive
+                        ? "bg-gradient-to-br from-sky-400 to-indigo-500 text-white shadow-sm"
+                        : "bg-white/[0.1] text-sky-200/70 border border-white/[0.16]"
+                    }`}
+                  >
+                    {st.isDone ? <Check className="w-4 h-4 stroke-[3]" /> : st.step}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="font-bold text-xs text-white block truncate">{st.title}</span>
+                    <span
+                      className={`text-xs block truncate mt-0.5 ${
+                        st.isDone ? "text-emerald-200" : st.isActive ? "text-sky-200" : "text-sky-100/65"
+                      }`}
+                    >
+                      {st.desc}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 3-PARTY COMPACT STRIP (BUYER - VAULT - SELLER + BROKER) ─────────── */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
+      {/* ── 3-PARTY IDENTITY STRIP WITH REAL PORTRAITS ──────────────────────── */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Buyer */}
         <div
-          className={`p-3.5 rounded-lg border bg-[#101217] space-y-1.5 ${
-            isBuyer ? "border-[#E84142] ring-1 ring-[#E84142]/40 bg-[#E84142]/5" : "border-[#1E222D]"
+          className={`card p-5 space-y-3.5 ${
+            isBuyer ? "border-sky-300/50 bg-sky-400/[0.12]" : ""
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
-              {t("BÊN MUA (BUYER)", "BUYER")}
+            <span className="text-xs text-sky-100/80 font-semibold uppercase tracking-wider">
+              {t("Bên Mua (Buyer)", "Buyer")}
             </span>
             {isBuyer && (
-              <span className="text-[9px] font-bold text-[#E84142] bg-[#E84142]/10 px-1 rounded">
-                {t("VÍ BẠN", "YOU")}
+              <span className="badge-pill bg-sky-400/25 text-white border border-sky-300/40 text-[11px]">
+                {t("Bạn đang xem", "You")}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
-            <User className="w-3.5 h-3.5 text-[#E84142]" />
-            <span>Lê Minh Tuấn</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/avatar-tuan.jpg"
+              alt="Buyer"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-sky-300/50 shrink-0 shadow-md"
+            />
+            <div>
+              <span className="font-bold text-sm text-white block">Lê Minh Tuấn</span>
+              <span className="text-sky-100/75 font-mono text-xs block">{shortenAddress(escrowItem.buyer)}</span>
+            </div>
           </div>
-          <span className="text-[#94A3B8] block text-[11px]">{shortenAddress(escrowItem.buyer)}</span>
-          <span className="text-[11px] text-[#10B981] font-bold block">
-            {t(`Đã nạp: ${formatUsdc(escrowItem.amount)} USDC`, `Deposited: ${formatUsdc(escrowItem.amount)} USDC`)}
-          </span>
+          <div className="pt-2.5 border-t border-white/[0.14] flex justify-between items-center text-xs">
+            <span className="text-sky-100/80">Đã ký quỹ</span>
+            <span className="text-white font-mono font-bold tabular-nums">{formatUsdc(escrowItem.amount)} USDC</span>
+          </div>
         </div>
 
         {/* Broker */}
         <div
-          className={`p-3.5 rounded-lg border bg-[#101217] space-y-1.5 ${
-            isBroker && !isAdmin ? "border-[#F59E0B] ring-1 ring-[#F59E0B]/40 bg-[#F59E0B]/5" : "border-[#1E222D]"
+          className={`card p-5 space-y-3.5 ${
+            isBroker && !isAdmin ? "border-amber-300/50 bg-amber-400/[0.12]" : ""
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
-              {t("GDTG BẢO CHỨNG (BROKER)", "BROKER")}
+            <span className="text-xs text-sky-100/80 font-semibold uppercase tracking-wider">
+              {t("GDTG Bảo Chứng", "Escrow Broker")}
             </span>
             {isBroker && !isAdmin && (
-              <span className="text-[9px] font-bold text-[#F59E0B] bg-[#F59E0B]/10 px-1 rounded">
-                {t("VÍ BẠN", "YOU")}
+              <span className="badge-pill bg-amber-400/25 text-amber-100 border border-amber-300/40 text-[11px]">
+                {t("Bạn đang xem", "You")}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
-            <Scale className="w-3.5 h-3.5 text-[#F59E0B]" />
-            <span>Nguyễn Nam (Giám Định)</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/avatar-nam.jpg"
+              alt="Broker"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-amber-300/50 shrink-0 shadow-md"
+            />
+            <div>
+              <span className="font-bold text-sm text-white block">Nguyễn Nam (Giám Định)</span>
+              <span className="text-sky-100/75 font-mono text-xs block">{shortenAddress(escrowItem.broker)}</span>
+            </div>
           </div>
-          <span className="text-[#94A3B8] block text-[11px]">{shortenAddress(escrowItem.broker)}</span>
-          <span className="text-[11px] text-[#F59E0B] block">
-            {t(`Phí: ${(Number(escrowItem.brokerFeeBps) / 100).toFixed(2)}% (+${brokerFeeNum} USDC)`, `Fee: ${(Number(escrowItem.brokerFeeBps) / 100).toFixed(2)}% (+${brokerFeeNum} USDC)`)}
-          </span>
+          <div className="pt-2.5 border-t border-white/[0.14] flex justify-between items-center text-xs">
+            <span className="text-sky-100/80">Phí bảo chứng ({(Number(escrowItem.brokerFeeBps) / 100).toFixed(2)}%)</span>
+            <span className="text-amber-200 font-mono font-bold tabular-nums">+{brokerFeeNum} USDC</span>
+          </div>
         </div>
 
         {/* Seller */}
         <div
-          className={`p-3.5 rounded-lg border bg-[#101217] space-y-1.5 ${
-            isSeller ? "border-[#10B981] ring-1 ring-[#10B981]/40 bg-[#10B981]/5" : "border-[#1E222D]"
+          className={`card p-5 space-y-3.5 ${
+            isSeller ? "border-emerald-300/50 bg-emerald-400/[0.12]" : ""
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">
-              {t("BÊN BÁN (SELLER)", "SELLER")}
+            <span className="text-xs text-sky-100/80 font-semibold uppercase tracking-wider">
+              {t("Bên Bán (Seller)", "Seller")}
             </span>
             {isSeller && (
-              <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-1 rounded">
-                {t("VÍ BẠN", "YOU")}
+              <span className="badge-pill bg-emerald-400/25 text-emerald-100 border border-emerald-300/40 text-[11px]">
+                {t("Bạn đang xem", "You")}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 font-sans font-bold text-[#F1F5F9]">
-            <Store className="w-3.5 h-3.5 text-[#10B981]" />
-            <span>Hoàng Minh (OTC)</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/avatar-hoang.jpg"
+              alt="Seller"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-300/50 shrink-0 shadow-md"
+            />
+            <div>
+              <span className="font-bold text-sm text-white block">Hoàng Minh (OTC)</span>
+              <span className="text-sky-100/75 font-mono text-xs block">{shortenAddress(escrowItem.seller)}</span>
+            </div>
           </div>
-          <span className="text-[#94A3B8] block text-[11px]">{shortenAddress(escrowItem.seller)}</span>
-          <span className="text-[11px] text-[#10B981] font-bold block">
-            {t(`Thực nhận Net: ${netSellerReceives} USDC`, `Net Proceeds: ${netSellerReceives} USDC`)}
-          </span>
+          <div className="pt-2.5 border-t border-white/[0.14] flex justify-between items-center text-xs">
+            <span className="text-sky-100/80">Thực nhận (Net)</span>
+            <span className="text-emerald-300 font-mono font-bold tabular-nums">{netSellerReceives} USDC</span>
+          </div>
         </div>
       </section>
 
       {/* ── MAIN WORKSPACE: 2 COLUMNS (7 - 5) ───────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
         {/* ── LEFT PANE (7 COLS): HANDOVER & 3-PARTY CHAT ─────────────────────── */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Section 1: Practical Handover Status Card */}
-          <div className="rounded-lg panel-border bg-[#101217] p-4 sm:p-5 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2">
-                <FileCheck2 className="w-4 h-4 text-[#10B981]" />
-                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
+        <div className="lg:col-span-7 space-y-6">
+          {/* Handover Proof Card */}
+          <div className="card p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.14] gap-2 flex-wrap">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-emerald-400/20 border border-emerald-300/35 flex items-center justify-center text-emerald-200">
+                  <FileCheck2 className="w-4 h-4" />
+                </div>
+                <h2 className="section-title">
                   {t("Bằng Chứng & Trạng Thái Bàn Giao", "Handover Proof & Delivery Status")}
-                </span>
+                </h2>
               </div>
               <span
-                className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                className={`badge-pill border ${
                   handoverData.isHandedOver
-                    ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
-                    : "bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/30"
+                    ? "bg-emerald-400/20 text-emerald-200 border-emerald-300/35"
+                    : "bg-amber-400/20 text-amber-200 border-amber-300/35"
                 }`}
               >
-                {handoverData.isHandedOver ? t("ĐÃ BÀN GIAO HÀNG ✓", "HANDED OVER ✓") : t("CHỜ BÊN BÁN GIAO HÀNG ⏳", "AWAITING DELIVERY ⏳")}
+                {handoverData.isHandedOver ? t("Đã Bàn Giao ✓", "Handed Over ✓") : t("Chờ Bàn Giao", "Awaiting Delivery")}
               </span>
             </div>
 
-            <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-1.5 font-sans">
-              <span className="text-[10px] font-mono text-[#64748B] uppercase block">
-                {t("Nội dung thỏa thuận kèo:", "Agreed Deal Terms:")}
+            <div className="card-inner p-4 space-y-2.5">
+              <span className="text-xs text-sky-100/80 font-semibold uppercase tracking-wider block">
+                {t("Điều khoản thỏa thuận", "Agreed Deal Terms")}
               </span>
-              <p className="text-xs text-[#F1F5F9] leading-relaxed">
+              <p className="text-sm text-white leading-relaxed">
                 {localPactData?.terms || t("Bên Bán bàn giao tài sản số và quyền sở hữu trong vòng 24 giờ. GDTG đối soát trước khi duyệt giải ngân.", "Seller delivers digital assets within 24 hours. Broker audits before release.")}
               </p>
               {handoverData.proofUrl && (
-                <div className="pt-1.5 flex items-center gap-2 text-xs font-mono">
-                  <span className="text-[#64748B]">{t("Bằng chứng đối soát:", "Audit Proof:")}</span>
+                <div className="pt-2.5 border-t border-white/[0.12] flex items-center justify-between gap-2 text-xs flex-wrap">
+                  <span className="text-sky-100/80">{t("Chứng từ bàn giao:", "Audit Proof:")}</span>
                   <a
                     href={handoverData.proofUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#E84142] hover:underline inline-flex items-center gap-1 font-bold"
+                    className="text-sky-300 hover:text-white hover:underline font-mono inline-flex items-center gap-1 font-semibold"
                   >
-                    <span>{handoverData.proofUrl.slice(0, 32)}...</span>
+                    <span>{handoverData.proofUrl.slice(0, 38)}...</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               )}
             </div>
 
-            {/* If Seller is viewing and hasn't confirmed yet */}
             {isSeller && !handoverData.isHandedOver && statusNumber === 0 && (
-              <form onSubmit={handleSellerConfirmHandover} className="p-3 rounded-md bg-[#161922] border border-[#10B981]/30 space-y-2.5 font-sans">
-                <span className="text-xs font-bold text-[#10B981] block">
-                  {t("Bên Bán (Hoàng Minh): Xác nhận đã hoàn tất giao hàng", "Seller: Confirm delivery completed")}
+              <form onSubmit={handleSellerConfirmHandover} className="card-inner p-4 border border-emerald-300/40 space-y-3">
+                <span className="text-sm font-semibold text-emerald-300 block">
+                  {t("Bên Bán: Xác nhận hoàn tất giao hàng", "Seller: Confirm delivery completed")}
                 </span>
                 <input
                   type="text"
                   value={sellerProofInput}
                   onChange={(e) => setSellerProofInput(e.target.value)}
                   placeholder={t("Dán link bằng chứng / bill / TxHash chuyển nhượng...", "Paste proof link / TxHash / screenshot URL...")}
-                  className="w-full bg-[#090A0D] border border-[#1E222D] rounded px-3 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none focus:border-[#10B981]"
+                  className="input-field text-xs font-mono"
                 />
-                <button
-                  type="submit"
-                  className="w-full py-2 px-3 rounded bg-[#10B981] hover:bg-[#059669] text-black font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-                >
+                <ShimmerButton type="submit" variant="success" className="w-full py-2.5">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>{t("Xác Nhận Tôi Đã Bàn Giao Xong", "Confirm Handover Completed")}</span>
-                </button>
+                  <span>{t("Xác Nhận Đã Bàn Giao Xong", "Confirm Handover Completed")}</span>
+                </ShimmerButton>
               </form>
             )}
           </div>
 
-          {/* Section 2: 3-Party Chat & Audit Trail */}
-          <div className="rounded-lg panel-border bg-[#101217] p-4 sm:p-5 space-y-3">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#1E222D]">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#E84142]" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#F1F5F9]">
+          {/* 3-Party Audit Stream */}
+          <div className="card p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.14]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-sky-400/20 border border-sky-300/35 flex items-center justify-center text-sky-200">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <h2 className="section-title">
                   {t("Nhật Ký Đối Soát & Trao Đổi 3 Bên", "3-Party Real-Time Audit Log")}
-                </span>
+                </h2>
               </div>
-              <span className="text-[10px] font-mono text-[#64748B]">UniversalEscrow Stream</span>
+              <span className="text-xs font-mono text-sky-200/80">Live Sync</span>
             </div>
 
-            {/* Message stream */}
-            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
               {messages.map((m) => (
                 <div
                   key={m.id}
-                  className={`p-3 rounded-md border text-xs space-y-1 ${
+                  className={`p-4 rounded-2xl border text-sm space-y-1.5 ${
                     m.role === "system"
-                      ? "bg-[#090A0D] border-[#1E222D]"
-                      : m.role === "admin"
-                      ? "bg-[#A855F7]/10 border-[#A855F7]/30"
-                      : m.role === "broker"
-                      ? "bg-[#F59E0B]/10 border-[#F59E0B]/30"
-                      : m.role === "buyer"
-                      ? "bg-[#E84142]/10 border-[#E84142]/20"
-                      : "bg-[#10B981]/10 border-[#10B981]/20"
+                      ? "bg-sky-400/12 border-sky-300/30"
+                      : "card-inner"
                   }`}
                 >
-                  <div className="flex items-center justify-between font-mono text-[10px]">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between text-xs gap-2">
+                    <div className="flex items-center gap-2">
                       <span
-                        className={`font-bold uppercase ${
+                        className={`badge-pill text-[10px] uppercase py-0.5 px-2.5 ${
                           m.role === "system"
-                            ? "text-[#64748B]"
+                            ? "bg-sky-400/25 text-sky-100 border border-sky-300/35"
                             : m.role === "admin"
-                            ? "text-[#C084FC]"
+                            ? "bg-purple-400/25 text-purple-100 border border-purple-300/35"
                             : m.role === "broker"
-                            ? "text-[#F59E0B]"
+                            ? "bg-amber-400/25 text-amber-100 border border-amber-300/35"
                             : m.role === "buyer"
-                            ? "text-[#E84142]"
-                            : "text-[#10B981]"
+                            ? "bg-indigo-400/25 text-indigo-100 border border-indigo-300/35"
+                            : "bg-emerald-400/25 text-emerald-100 border border-emerald-300/35"
                         }`}
                       >
                         {m.role === "system"
-                          ? t("HỆ THỐNG", "SYSTEM")
+                          ? "Hệ thống"
                           : m.role === "admin"
-                          ? t("ADMIN TỐI CAO", "SUPER ADMIN")
+                          ? "Admin"
                           : m.role === "broker"
-                          ? t("GDTG", "BROKER")
+                          ? "GDTG"
                           : m.role === "buyer"
-                          ? t("BÊN MUA", "BUYER")
-                          : t("BÊN BÁN", "SELLER")}
+                          ? "Bên Mua"
+                          : "Bên Bán"}
                       </span>
-                      <span className="text-[#F1F5F9] font-sans font-medium">{m.senderName}</span>
+                      <span className="text-white font-semibold">{m.senderName}</span>
                     </div>
-                    <span className="text-[#64748B]">{m.timestamp}</span>
+                    <span className="text-sky-200/70 text-xs font-mono">{m.timestamp}</span>
                   </div>
-                  <p className="text-xs text-[#F1F5F9] leading-relaxed font-sans">{m.text}</p>
+                  <p className="text-sky-50 leading-relaxed text-[13px]">{m.text}</p>
                 </div>
               ))}
             </div>
 
-            {/* Quick action chips */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-[#1E222D]">
-              <span className="text-[10px] text-[#64748B] font-mono mr-1">
+            {/* Quick Reply Chips */}
+            <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-white/[0.12]">
+              <span className="text-xs text-sky-100/75 font-medium">
                 {t("Phản hồi nhanh:", "Quick replies:")}
               </span>
-              <button
-                type="button"
-                onClick={() => handleQuickReply(t("Đã kiểm tra và nhận đủ hàng/tài sản, sẵn sàng giải ngân.", "Verified and received all assets, ready for release."))}
-                className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] transition-colors"
-              >
-                {t("Đã nhận đủ hàng ✓", "Received all ✓")}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickReply(t("Đã chuyển giao xong, mời Bên Mua đối soát nghiệm thu.", "Delivered, requesting Buyer to verify."))}
-                className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] transition-colors"
-              >
-                {t("Đã chuyển giao xong", "Delivered")}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickReply(t("GDTG đang đối soát chứng từ, chuẩn bị duyệt lệnh.", "Broker auditing proof, preparing release."))}
-                className="px-2 py-0.5 rounded bg-[#161922] hover:bg-[#1E222D] text-[11px] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1E222D] transition-colors"
-              >
-                {t("GDTG đang đối soát", "Broker auditing")}
-              </button>
+              {[
+                t("Đã kiểm tra và nhận đủ hàng ✓", "Verified and received all ✓"),
+                t("Đã chuyển giao xong tài sản", "Assets delivered"),
+                t("GDTG đang đối soát chứng từ", "Broker auditing proof"),
+              ].map((txt) => (
+                <button
+                  key={txt}
+                  type="button"
+                  onClick={() => handleQuickReply(txt)}
+                  className="px-3.5 py-1 rounded-full bg-white/[0.1] hover:bg-white/[0.18] text-xs text-white border border-white/[0.18] transition-colors"
+                >
+                  {txt}
+                </button>
+              ))}
             </div>
 
-            {/* Message input */}
-            <form onSubmit={handleSendMessage} className="flex gap-2 pt-1">
+            {/* Composer */}
+            <form onSubmit={handleSendMessage} className="flex gap-2.5 pt-1">
               <input
                 type="text"
                 value={newMessageText}
                 onChange={(e) => setNewMessageText(e.target.value)}
-                placeholder={t("Nhắn tin đối soát, trao đổi hoặc phản hồi...", "Type audit message or response...")}
-                className="flex-1 bg-[#090A0D] border border-[#1E222D] focus:border-[#E84142] rounded-md px-3.5 py-2 text-xs text-[#F1F5F9] focus:outline-none"
+                placeholder={t("Nhập nội dung trao đổi hoặc bằng chứng đối soát...", "Type audit message or proof...")}
+                className="input-field rounded-full py-2.5 text-sm"
               />
-              <button
+              <ShimmerButton
                 type="submit"
                 disabled={!newMessageText.trim()}
-                className="px-4 py-2 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-semibold text-[#F1F5F9] inline-flex items-center gap-1.5 disabled:opacity-40 transition-colors"
+                variant="primary"
+                className="px-6 py-2.5 shrink-0 font-bold"
               >
-                <Send className="w-3.5 h-3.5" />
+                <Send className="w-4 h-4" />
                 <span>{t("Gửi", "Send")}</span>
-              </button>
+              </ShimmerButton>
             </form>
           </div>
         </div>
 
-        {/* ── RIGHT PANE (5 COLS): ACTION & SETTLEMENT TERMINAL ──────────────── */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="relative rounded-lg panel-border bg-[#101217] overflow-hidden shadow-2xl">
-            <BorderBeam colorFrom="#E84142" colorTo="#10B981" duration={12} borderWidth={1.5} size={220} />
-            <CardSpotlight className="p-5 space-y-4 font-mono text-xs relative z-10" color="rgba(232, 65, 66, 0.08)" radius={280}>
-              <div className="flex items-center justify-between pb-2.5 border-b border-[#1E222D]">
-                <span className="font-semibold uppercase tracking-wider text-[#F1F5F9] font-sans">
-                  {t("Bảng Quyết Toán & Hành Động Smart Contract", "Settlement & Smart Contract Actions")}
-                </span>
-                <span className="text-[10px] text-[#64748B]">UniversalEscrow</span>
-              </div>
-
-              {/* Financial Settlement Breakdown */}
-              <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2 text-xs">
-                <div className="flex justify-between items-center text-[#94A3B8]">
-                  <span>{t("Giá trị ký quỹ trong két:", "Escrow Vault Amount:")}</span>
-                  <span className="text-[#F1F5F9] font-bold tabular-nums">{dealAmountNum.toFixed(2)} USDC</span>
+        {/* ── RIGHT PANE (5 COLS): SETTLEMENT TERMINAL ──────────────────────── */}
+        <div className="lg:col-span-5 sticky top-24 space-y-6">
+          <div className="card-elevated overflow-hidden p-0">
+            <div className="relative h-24 overflow-hidden border-b border-white/[0.16]">
+              <img
+                src="/images/sbt-passport-bg.png"
+                alt=""
+                className="w-full h-full object-cover opacity-50"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0D214D]/90 to-[#162C63]/75 backdrop-blur-md px-6 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-extrabold text-white">
+                    {t("Bảng Quyết Toán Hợp Đồng", "Settlement Terminal")}
+                  </h3>
+                  <span className="text-xs text-sky-100/80">Thực thi giải ngân hoặc hoàn cọc on-chain</span>
                 </div>
-                <div className="flex justify-between items-center text-[#94A3B8]">
-                  <span>{t("Phí GDTG bảo chứng (1.5%):", "Broker Escrow Fee (1.5%):")}</span>
-                  <span className="text-[#F59E0B] tabular-nums">+{brokerFeeNum.toFixed(2)} USDC</span>
-                </div>
-                <div className="flex justify-between items-center text-[#94A3B8]">
-                  <span>{t("Phí giao thức TrustPact (0.3%):", "Protocol Fee (0.3%):")}</span>
-                  <span className="text-[#64748B] tabular-nums">+{protocolFeeNum.toFixed(2)} USDC</span>
-                </div>
-                <div className="pt-2 border-t border-[#1E222D] flex justify-between items-center text-sm">
-                  <span className="font-sans font-bold text-[#F1F5F9]">{t("Bên Bán nhận thực tế:", "Net Seller Proceeds:")}</span>
-                  <span className="font-bold text-[#10B981] tabular-nums">{netSellerReceives.toFixed(2)} USDC</span>
+                <div className="w-9 h-9 rounded-full bg-white/[0.14] border border-white/[0.25] flex items-center justify-center text-sky-200">
+                  <Lock className="w-4 h-4" />
                 </div>
               </div>
+            </div>
 
-              {/* Connected Active Role Pill */}
-              <div className="p-2.5 rounded bg-[#090A0D] border border-[#1E222D] flex items-center justify-between font-sans">
-                <span className="text-[11px] text-[#64748B]">{t("Vai trò tài khoản bạn:", "Your Connected Role:")}</span>
+            <div className="p-6 sm:p-7 space-y-5">
+              {/* Financial Breakdown */}
+              <div className="p-4 rounded-2xl card-inner space-y-2.5 text-sm">
+                <div className="flex justify-between items-center text-sky-100">
+                  <span>{t("Tiền đang khóa trong két", "Locked in Vault")}</span>
+                  <span className="text-white font-mono font-bold tabular-nums">{dealAmountNum.toFixed(2)} USDC</span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-sky-100/80">
+                  <span>{t("Phí GDTG bảo chứng", "Broker Fee")}</span>
+                  <span className="text-amber-200 font-mono tabular-nums">+{brokerFeeNum.toFixed(2)} USDC</span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-sky-100/80">
+                  <span>{t("Phí giao thức (0.3%)", "Protocol Fee (0.3%)")}</span>
+                  <span className="text-sky-200/80 font-mono tabular-nums">+{protocolFeeNum.toFixed(2)} USDC</span>
+                </div>
+                <div className="pt-2.5 border-t border-white/[0.14] flex justify-between items-center">
+                  <span className="font-bold text-white">{t("Bên Bán thực nhận", "Net Seller Payout")}</span>
+                  <span className="font-extrabold font-mono text-lg text-emerald-300 tabular-nums">{netSellerReceives.toFixed(2)} USDC</span>
+                </div>
+              </div>
+
+              {/* 2-STEP RELEASE CONSENSUS TRACKER (GDTG + BUYER) */}
+              <div className="p-4 rounded-2xl bg-sky-950/55 border border-sky-300/35 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                    <span>{t("Cơ Chế Giải Ngân 2 Bước (2-of-2)", "2-Step Release Consensus")}</span>
+                  </span>
+                  <span className="font-mono text-[11px] text-sky-200">
+                    {statusNumber === 1
+                      ? "2/2 Hoàn Tất ✓"
+                      : `${(buyerApprovedRelease ? 1 : 0) + (brokerApprovedRelease ? 1 : 0)}/2 Đã Xác Nhận`}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  <div
+                    className={`p-2.5 rounded-xl border flex items-center gap-2 ${
+                      buyerApprovedRelease || statusNumber === 1
+                        ? "bg-emerald-400/20 border-emerald-300/45 text-emerald-100"
+                        : "bg-white/[0.05] border-white/[0.14] text-sky-100/75"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-4 h-4 shrink-0 ${
+                        buyerApprovedRelease || statusNumber === 1 ? "text-emerald-300" : "text-sky-200/40"
+                      }`}
+                    />
+                    <div className="min-w-0">
+                      <span className="font-bold block truncate">Bước 1: Bên Mua</span>
+                      <span className="text-[11px] block truncate">
+                        {buyerApprovedRelease || statusNumber === 1 ? "Đã gật đầu OK ✓" : "Chờ nghiệm thu"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`p-2.5 rounded-xl border flex items-center gap-2 ${
+                      brokerApprovedRelease || statusNumber === 1
+                        ? "bg-emerald-400/20 border-emerald-300/45 text-emerald-100"
+                        : "bg-white/[0.05] border-white/[0.14] text-sky-100/75"
+                    }`}
+                  >
+                    <CheckCircle2
+                      className={`w-4 h-4 shrink-0 ${
+                        brokerApprovedRelease || statusNumber === 1 ? "text-emerald-300" : "text-sky-200/40"
+                      }`}
+                    />
+                    <div className="min-w-0">
+                      <span className="font-bold block truncate">Bước 2: GDTG</span>
+                      <span className="text-[11px] block truncate">
+                        {brokerApprovedRelease || statusNumber === 1 ? "Đã duyệt OK ✓" : "Chờ kiểm định"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-sky-100/80 leading-relaxed">
+                  {statusNumber === 3
+                    ? "⚖️ Đang trong trạng thái Tranh Chấp: GDTG có toàn quyền phân xử Giải Ngân, Hoàn Tiền 100% hoặc Chia Tỷ Lệ."
+                    : "🔒 Tiền chỉ bắn về ví Seller khi CẢ Bên Mua VÀ GDTG cùng bấm xác nhận. Nếu hàng lỗi, GDTG bấm Hoàn Tiền 100% cho Buyer ngay lập tức."}
+                </p>
+
+                {lastFinalityMs !== null && (
+                  <div className="pt-2 border-t border-white/[0.12] flex items-center justify-between text-[11px] font-mono text-emerald-300">
+                    <span>⚡ Avalanche Snowman Finality thực tế:</span>
+                    <strong>{lastFinalityMs} ms</strong>
+                  </div>
+                )}
+              </div>
+
+              {/* Active Role Indicator */}
+              <div className="p-3.5 rounded-full bg-white/[0.08] border border-white/[0.16] flex items-center justify-between text-xs px-4">
+                <span className="text-sky-100/80">{t("Quyền thao tác hiện tại:", "Active Role:")}</span>
                 <span
-                  className={`font-bold text-xs uppercase px-2 py-0.5 rounded ${
+                  className={`badge-pill ${
                     isAdmin
-                      ? "bg-[#A855F7]/15 text-[#C084FC] border border-[#A855F7]/30"
+                      ? "bg-purple-400/25 text-purple-100 border border-purple-300/40"
                       : isBuyer
-                      ? "bg-[#E84142]/15 text-[#E84142] border border-[#E84142]/30"
+                      ? "bg-sky-400/25 text-white border border-sky-300/40"
                       : isSeller
-                      ? "bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30"
-                      : "bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30"
+                      ? "bg-emerald-400/25 text-emerald-100 border border-emerald-300/40"
+                      : "bg-amber-400/25 text-amber-100 border border-amber-300/40"
                   }`}
                 >
                   {isAdmin
-                    ? t("Admin Tối Cao (Đầy Đủ Toàn Quyền)", "Super Admin (Full Authority)")
+                    ? t("Admin Tối Cao", "Super Admin")
                     : isBuyer
                     ? t("Bên Mua (Buyer)", "Buyer")
                     : isSeller
@@ -1005,27 +1149,32 @@ export default function EscrowPactRoomPage() {
                 </span>
               </div>
 
-              {/* ── 1. BUYER ACTIONS ────────────────────────────────────────── */}
+              {/* 1. BUYER ACTIONS */}
               {isBuyer && statusNumber === 0 && (
-                <div className="space-y-3 font-sans">
-                  {/* Primary: Buyer Confirm Delivery */}
+                <div className="space-y-3 pt-1">
                   <ShimmerButton
                     type="button"
+                    disabled={Boolean(buyerApprovedRelease)}
                     onClick={() =>
                       executePactWrite(
-                        t("Xác Nhận Đã Nhận Đủ Hàng & Giải Ngân", "Confirm Delivery & Release Escrow"),
+                        t("Bước 1/2: Bên Mua Xác Nhận Hàng Chuẩn", "Step 1/2: Buyer Confirms Valid Delivery"),
                         "buyerConfirmDelivery",
                         [pactId]
                       )
                     }
                     variant="success"
-                    className="w-full py-3 px-4 rounded-md text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-md"
+                    className="w-full py-3.5"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>{t("✓ Tôi Đã Nhận Đủ Hàng — Giải Ngân Cho Seller", "✓ I Received All Assets — Release To Seller")}</span>
+                    <span>
+                      {buyerApprovedRelease
+                        ? t("Đã Xác Nhận Bước 1/2 ✓ (Chờ GDTG Bấm Giải Ngân)", "Confirmed Step 1/2 ✓ (Waiting for Broker)")
+                        : brokerApprovedRelease
+                        ? t("Hàng Chuẩn — Xác Nhận Bước 2/2 & Bắn Tiền Cho Seller", "Confirm Final Step 2/2 & Release to Seller")
+                        : t("Hàng Chuẩn — Xác Nhận Bước 1/2 (Cần Thêm GDTG Duyệt)", "Confirm Delivery Step 1/2")}
+                    </span>
                   </ShimmerButton>
 
-                  {/* Secondary: Auto-refund on expired timeout */}
                   <ShimmerButton
                     type="button"
                     onClick={() =>
@@ -1037,18 +1186,17 @@ export default function EscrowPactRoomPage() {
                     }
                     disabled={!isTimeExpired}
                     variant={isTimeExpired ? "danger" : "secondary"}
-                    className="w-full py-2.5 px-3 rounded-md text-xs font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+                    className="w-full py-2.5 text-xs"
                   >
                     <Clock className="w-3.5 h-3.5" />
                     <span>
                       {isTimeExpired
-                        ? t("Rút 100% Tiền Về Ví Ngay (Quá Hạn Kèo)", "Claim 100% Timeout Refund To Wallet")
-                        : t(`Chốt Thoát Hiểm Tự Rút Tiền (Còn ${timerDisplay})`, `Auto-Refund Locked (${timerDisplay} remaining)`)}
+                        ? t("Rút 100% Tiền Về Ví Ngay (Đã Quá Hạn)", "Claim 100% Timeout Refund")
+                        : t(`Tự Rút Tiền Khi Quá Hạn (${timerDisplay})`, `Auto-Refund Unlocks in ${timerDisplay}`)}
                     </span>
                   </ShimmerButton>
 
-                  {/* Mutual Cancel Button */}
-                  <div className="pt-2 border-t border-[#1E222D] space-y-1.5">
+                  <div className="pt-2.5 border-t border-white/[0.12] space-y-2">
                     <button
                       type="button"
                       onClick={() =>
@@ -1058,59 +1206,70 @@ export default function EscrowPactRoomPage() {
                           [pactId]
                         )
                       }
-                      className="w-full py-2 px-3 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+                      className="w-full py-2.5 px-4 rounded-full bg-white/[0.1] hover:bg-white/[0.16] border border-white/[0.2] text-xs font-semibold text-white transition-colors"
                     >
-                      {t("Đồng Thuận Hủy Kèo Hoàn Tiền (Cần 2 bên cùng ký)", "Mutual Cancellation (Both parties sign)")}
+                      {t("Đồng Thuận Hủy Kèo (2 bên cùng ký)", "Mutual Cancellation (Both sign)")}
                     </button>
-                    <div className="flex justify-between text-[10px] font-mono text-[#64748B]">
-                      <span>Buyer: {buyerCancelApproved ? "Đã ký ✓" : "Chưa ký"}</span>
-                      <span>Seller: {sellerCancelApproved ? "Đã ký ✓" : "Chưa ký"}</span>
+                    <div className="flex justify-between text-xs text-sky-100/75 px-2">
+                      <span>Buyer: <strong className={buyerCancelApproved ? "text-emerald-300" : "text-sky-200/60"}>{buyerCancelApproved ? "Đã ký ✓" : "Chưa ký"}</strong></span>
+                      <span>Seller: <strong className={sellerCancelApproved ? "text-emerald-300" : "text-sky-200/60"}>{sellerCancelApproved ? "Đã ký ✓" : "Chưa ký"}</strong></span>
                     </div>
                   </div>
 
-                  {/* Escalation Support */}
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={handleOpenCSKH}
-                      className="w-full py-2 px-3 rounded-md bg-[#EF4444]/10 hover:bg-[#EF4444]/20 border border-[#EF4444]/30 text-xs font-bold text-[#EF4444] flex items-center justify-center gap-1.5 transition-colors"
-                    >
-                      <Headphones className="w-3.5 h-3.5" />
-                      <span>{t("Hỗ Trợ CSKH 24/7 (Sự Cố / Khiếu Nại GDTG)", "24/7 Support (Escalate Incident / Inactive Broker)")}</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowDisputeModal(true)}
+                    className="w-full py-2.5 px-4 rounded-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-xs font-semibold text-rose-200 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-300" />
+                    <span>{t("Kích Hoạt Khiếu Nại Tranh Chấp", "Raise Dispute (Freeze Auto-Refund)")}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenCSKH}
+                    className="w-full py-2.5 px-4 rounded-full bg-amber-400/20 hover:bg-amber-400/30 border border-amber-300/40 text-xs font-semibold text-amber-100 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Headphones className="w-3.5 h-3.5" />
+                    <span>{t("Yêu Cầu Trọng Tài / CSKH Hỗ Trợ 24/7", "Escalate to 24/7 Dispute Desk")}</span>
+                  </button>
                 </div>
               )}
 
-              {/* ── 2. BROKER & ADMIN ACTIONS ──────────────────────────────── */}
-              {isBroker && statusNumber === 0 && (
-                <div className="space-y-3 font-sans">
+              {/* 2. BROKER & ADMIN ACTIONS */}
+              {isBroker && (statusNumber === 0 || statusNumber === 3) && (
+                <div className="space-y-3 pt-1">
                   {isAdmin && (
-                    <div className="p-2.5 rounded bg-[#A855F7]/10 border border-[#A855F7]/30 text-[11px] text-[#D8B4FE] flex items-center gap-2 font-medium">
-                      <Shield className="w-4 h-4 text-[#C084FC] shrink-0" />
-                      <span>{t("QUYỀN QUẢN TRỊ VIÊN TỐI CAO: Bạn có toàn quyền duyệt giải ngân hoặc hoàn tiền thay thế GDTG.", "SUPER ADMIN: You hold full authority to release or refund on behalf of Broker.")}</span>
+                    <div className="p-3 rounded-2xl bg-purple-400/20 border border-purple-300/40 text-xs text-purple-100 flex items-center gap-2 font-medium">
+                      <Shield className="w-4 h-4 text-purple-200 shrink-0" />
+                      <span>{t("Quyền Admin: Duyệt giải ngân, hoàn tiền hoặc phạt cọc GDTG vi phạm.", "Admin Authority Active.")}</span>
                     </div>
                   )}
 
-                  {/* Action 1: Broker Release */}
                   <ShimmerButton
                     type="button"
+                    disabled={statusNumber === 0 && Boolean(brokerApprovedRelease) && !isAdmin}
                     onClick={() =>
                       executePactWrite(
-                        t("GDTG Duyệt Giải Ngân Cho Bên Bán", "Broker Releases Funds To Seller"),
+                        t("GDTG Xác Nhận Hàng Chuẩn & Duyệt Giải Ngân", "Broker Confirms & Approves Release"),
                         "brokerRelease",
                         [pactId]
                       )
                     }
                     variant="success"
-                    className="w-full py-3 px-4 rounded-md text-white text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-md"
+                    className="w-full py-3.5"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>{t(`✓ Duyệt Giải Ngân Cho Seller (${netSellerReceives} USDC)`, `✓ Release To Seller (${netSellerReceives} USDC)`)}</span>
+                    <span>
+                      {statusNumber === 0 && brokerApprovedRelease && !buyerApprovedRelease
+                        ? t("GDTG Đã Duyệt ✓ (Đang Chờ Bên Mua Xác Nhận)", "Broker Approved ✓ (Waiting for Buyer)")
+                        : buyerApprovedRelease || statusNumber === 3 || isAdmin
+                        ? t(`Duyệt Bước Cuối & Giải Ngân Ngay (${netSellerReceives} USDC)`, `Final Release To Seller (${netSellerReceives} USDC)`)
+                        : t(`GDTG Duyệt Hàng Chuẩn (Bước 1/2 · ${netSellerReceives} USDC)`, `Broker Approve Step 1/2 (${netSellerReceives} USDC)`)}
+                    </span>
                   </ShimmerButton>
 
-                  {/* Action 2: Broker Refund Buyer */}
-                  <button
+                  <ShimmerButton
                     type="button"
                     onClick={() =>
                       executePactWrite(
@@ -1119,27 +1278,27 @@ export default function EscrowPactRoomPage() {
                         [pactId]
                       )
                     }
-                    className="w-full py-2.5 px-3 rounded-md bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 text-xs font-bold text-[#EF4444] transition-colors"
+                    variant="danger"
+                    className="w-full py-2.5 text-xs font-bold"
                   >
-                    {t(`✕ Bác Bỏ & Hoàn 100% Cho Buyer (${dealAmountNum} USDC)`, `✕ Reject & Refund 100% To Buyer (${dealAmountNum} USDC)`)}
-                  </button>
+                    <span>{t(`Bác Bỏ & Hoàn 100% Cho Buyer (${dealAmountNum} USDC)`, `Reject & Refund 100% (${dealAmountNum} USDC)`)}</span>
+                  </ShimmerButton>
 
-                  {/* Action 3: Settlement Split Toggle */}
-                  <div className="pt-2 border-t border-[#1E222D]">
+                  <div className="pt-2 border-t border-white/[0.12]">
                     <button
                       type="button"
                       onClick={() => setShowSplitModal(!showSplitModal)}
-                      className="w-full py-2 px-3 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-semibold text-[#F59E0B] flex items-center justify-center gap-1.5 transition-colors"
+                      className="w-full py-2.5 px-4 rounded-full bg-white/[0.1] hover:bg-white/[0.16] border border-white/[0.2] text-xs font-semibold text-amber-200 flex items-center justify-center gap-2 transition-colors"
                     >
-                      <Scale className="w-3.5 h-3.5" />
-                      <span>{showSplitModal ? t("Đóng Hòa Giải Chia Tiền", "Close Split Settlement") : t("Hòa Giải Phân Chia Tiền Theo Tỷ Lệ", "Split Settlement (Dispute Resolution)")}</span>
+                      <Scale className="w-4 h-4" />
+                      <span>{showSplitModal ? t("Đóng Hòa Giải Chia Tiền", "Close Split Settlement") : t("Hòa Giải Phân Chia Tỷ Lệ", "Split Settlement")}</span>
                     </button>
 
                     {showSplitModal && (
-                      <div className="mt-2.5 p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2.5">
-                        <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+                      <div className="mt-3 p-4 rounded-2xl card-inner space-y-3">
+                        <div className="grid grid-cols-2 gap-2.5 text-xs">
                           <div>
-                            <label className="text-[10px] text-[#64748B] block mb-0.5">Về Buyer (USDC):</label>
+                            <label className="text-sky-100/80 block mb-1">Hoàn Buyer (USDC)</label>
                             <input
                               type="number"
                               value={refundToBuyerInput}
@@ -1148,11 +1307,11 @@ export default function EscrowPactRoomPage() {
                                 setRefundToBuyerInput(e.target.value);
                                 setPayoutToSellerInput(Math.max(0, dealAmountNum - val).toString());
                               }}
-                              className="w-full bg-[#161922] border border-[#1E222D] rounded px-2 py-1.5 text-xs text-[#F1F5F9] focus:outline-none"
+                              className="input-field py-2 text-xs font-mono"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-[#64748B] block mb-0.5">Về Seller (USDC):</label>
+                            <label className="text-sky-100/80 block mb-1">Trả Seller (USDC)</label>
                             <input
                               type="number"
                               value={payoutToSellerInput}
@@ -1161,7 +1320,7 @@ export default function EscrowPactRoomPage() {
                                 setPayoutToSellerInput(e.target.value);
                                 setRefundToBuyerInput(Math.max(0, dealAmountNum - val).toString());
                               }}
-                              className="w-full bg-[#161922] border border-[#1E222D] rounded px-2 py-1.5 text-xs text-[#F1F5F9] focus:outline-none"
+                              className="input-field py-2 text-xs font-mono"
                             />
                           </div>
                         </div>
@@ -1177,53 +1336,45 @@ export default function EscrowPactRoomPage() {
                               [pactId, refBig, payBig]
                             );
                           }}
-                          className="w-full py-2 rounded-md bg-[#F59E0B] hover:bg-[#D97706] text-black font-bold text-xs transition-colors"
+                          className="w-full py-2.5 rounded-full bg-amber-300 hover:bg-amber-200 text-slate-950 font-bold text-xs transition-colors"
                         >
-                          {t("Ký Lệnh Phân Chia Hòa Giải", "Confirm Split Settlement")}
+                          {t("Xác Nhận Phân Chia Hòa Giải", "Confirm Split Settlement")}
                         </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Action 4: Admin Slash Corrupt Broker */}
                   {isAdmin && (
-                    <div className="pt-2 border-t border-[#1E222D]">
-                      <button
+                    <div className="pt-2 border-t border-white/[0.12]">
+                      <ShimmerButton
                         type="button"
+                        variant="danger"
                         onClick={() =>
                           executePactWrite(
-                            t("Admin Phán Quyết: Chém Cọc Broker & Đền 100% Cho Buyer", "Admin Slash Corrupt Broker & Compensate Buyer"),
+                            t("Admin Phán Quyết: Phạt Cọc Broker & Đền 100% Cho Buyer", "Admin Slash Corrupt Broker"),
                             "adminSlashCorruptBroker",
                             [pactId, escrowItem.amount]
                           )
                         }
-                        className="w-full py-2.5 px-3 rounded-md bg-[#EF4444]/15 hover:bg-[#EF4444]/25 border border-[#EF4444]/40 text-xs font-bold text-[#EF4444] transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                        className="w-full py-2.5 text-xs font-bold"
                       >
-                        <Gavel className="w-3.5 h-3.5" />
-                        <span>{t("Tịch Thu Cọc Broker Vi Phạm (Đền Bù Buyer)", "Slash Corrupt Broker (Compensate Buyer)")}</span>
-                      </button>
+                        <Gavel className="w-4 h-4" />
+                        <span>{t("Tịch Thu Cọc Broker Vi Phạm", "Slash Corrupt Broker")}</span>
+                      </ShimmerButton>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* ── 3. SELLER ACTIONS ───────────────────────────────────────── */}
+              {/* 3. SELLER ACTIONS */}
               {isSeller && statusNumber === 0 && (
-                <div className="space-y-3 font-sans">
-                  <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-1.5 text-xs font-mono">
-                    <span className="text-[#64748B] block">{t("Số tiền thực nhận khi giải ngân:", "Net payout on release:")}</span>
-                    <span className="text-base font-bold text-[#10B981] block">{netSellerReceives} USDC</span>
-                    <span className="text-[10px] text-[#64748B] block">
-                      {t(`Đã trừ phí GDTG (${brokerFeeNum} USDC) và phí sàn (${protocolFeeNum} USDC).`, `Deducted Broker fee (${brokerFeeNum} USDC) and protocol fee (${protocolFeeNum} USDC).`)}
-                    </span>
-                  </div>
-
+                <div className="space-y-3 pt-1">
                   <button
                     type="button"
                     onClick={() => handleQuickReply(t("Bên Bán nhắc: Tôi đã hoàn tất giao hàng, mời Bên Mua và GDTG kiểm tra duyệt giải ngân.", "Seller: Delivered, please verify and release funds."))}
-                    className="w-full py-2.5 px-3 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-semibold text-[#F1F5F9] transition-colors"
+                    className="w-full py-3 px-4 rounded-full bg-sky-400/25 hover:bg-sky-400/35 border border-sky-300/40 text-xs font-semibold text-white transition-colors"
                   >
-                    {t("Nhắc Bên Mua & GDTG Duyệt Giải Ngân", "Remind Buyer & Broker to Release")}
+                    {t("Gửi Thông Báo Nhắc Duyệt Giải Ngân", "Remind Buyer & Broker to Release")}
                   </button>
 
                   <button
@@ -1235,36 +1386,99 @@ export default function EscrowPactRoomPage() {
                         [pactId]
                       )
                     }
-                    className="w-full py-2 px-3 rounded-md bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-xs font-medium text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+                    className="w-full py-2.5 px-4 rounded-full bg-white/[0.1] hover:bg-white/[0.16] border border-white/[0.2] text-xs font-medium text-white transition-colors"
                   >
                     {t("Đồng Thuận Hủy Kèo & Hoàn Tiền Cho Buyer", "Agree to Cancel & Refund Buyer")}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowDisputeModal(true)}
+                    className="w-full py-2.5 px-4 rounded-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-xs font-semibold text-rose-200 flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-300" />
+                    <span>{t("Khiếu Nại Lên GDTG (Đóng Băng Hạn Rút Tiền)", "Raise Dispute (Freeze Timeout)")}</span>
                   </button>
                 </div>
               )}
 
-              {/* ── 4. COMPLETED OR CANCELLED RECEIPT ───────────────────────── */}
-              {statusNumber !== 0 && (
-                <div className="p-3.5 rounded-md bg-[#090A0D] border border-[#1E222D] text-xs font-sans space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-[#10B981]">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>
-                      {statusNumber === 1
-                        ? t("Hợp đồng đã quyết toán & giải ngân thành công!", "Pact completed & disbursed successfully!")
-                        : t("Hợp đồng đã hủy & 100% tiền đã hoàn về ví Buyer!", "Pact cancelled & 100% refunded to Buyer!")}
-                    </span>
+              {/* 4. DISPUTE ACTIVE BANNER */}
+              {statusNumber === 3 && (
+                <div className="p-4 rounded-2xl bg-rose-500/20 border border-rose-400/50 text-xs space-y-2 text-rose-100">
+                  <div className="flex items-center gap-2 font-bold text-rose-200 text-sm">
+                    <AlertTriangle className="w-4 h-4 text-rose-300" />
+                    <span>{t("Hợp Đồng Đang Khiếu Nại Tranh Chấp", "Escrow Under Dispute")}</span>
                   </div>
-                  <span className="text-[11px] text-[#64748B] font-mono block">
+                  <p>
                     {t(
-                      "Toàn bộ dữ liệu giao dịch và lịch sử phân xử đã được ghi vĩnh viễn trên sổ cái Avalanche Fuji C-Chain.",
-                      "All settlement records permanently stored on Avalanche Fuji C-Chain ledger."
+                      "Lệnh tự động rút tiền quá hạn đã được Smart Contract đóng băng nhằm bảo vệ Người Bán và Người Mua. GDTG bảo chứng hoặc Admin tối cao đang phân xử giải ngân hoặc hoàn trả sau khi đối soát bằng chứng.",
+                      "Smart contract has frozen automatic timeout refunds to protect both parties. Staked Broker or Admin mediator is reviewing the dispute."
                     )}
-                  </span>
+                  </p>
                 </div>
               )}
-            </CardSpotlight>
+
+              {/* 5. COMPLETED / CANCELLED RECEIPT */}
+              {(statusNumber === 1 || statusNumber === 2) && (
+                <div className="p-4 rounded-2xl bg-emerald-400/15 border border-emerald-300/35 text-xs space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-emerald-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                    <span>
+                      {statusNumber === 1
+                        ? t("Hợp đồng đã giải ngân hoàn tất!", "Pact disbursed successfully!")
+                        : t("Hợp đồng đã hủy & hoàn trả 100% tiền gốc!", "Pact cancelled & 100% refunded!")}
+                    </span>
+                  </div>
+                  <p className="text-sky-50/90 leading-relaxed">
+                    {t(
+                      "Biên bản quyết toán đã được ghi nhận bất biến trên sổ cái Avalanche Fuji C-Chain.",
+                      "Settlement permanently recorded on Avalanche Fuji C-Chain."
+                    )}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* DISPUTE MODAL */}
+      {showDisputeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="w-full max-w-md card p-6 space-y-4 border border-rose-400/40">
+            <div className="flex items-center gap-2.5 text-rose-300">
+              <AlertTriangle className="w-5 h-5" />
+              <h3 className="font-bold text-white text-base">Kích Hoạt Khiếu Nại Tranh Chấp</h3>
+            </div>
+            <p className="text-xs text-sky-100/80">
+              Hành động này sẽ ghi nhận trạng thái Tranh Chấp (Disputed) lên Smart Contract UniversalEscrow và đóng băng cơ chế tự động rút tiền quá hạn để bảo vệ quyền lợi hai bên.
+            </p>
+            <textarea
+              value={disputeReasonInput}
+              onChange={(e) => setDisputeReasonInput(e.target.value)}
+              rows={3}
+              className="w-full input-field text-xs p-3 rounded-xl"
+              placeholder="Nhập lý do khiếu nại tranh chấp..."
+            />
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDisputeModal(false)}
+                className="flex-1 py-2.5 rounded-full border border-white/20 hover:bg-white/10 text-white text-xs font-semibold"
+              >
+                Hủy Bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleRaiseDispute}
+                className="flex-1 py-2.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-lg"
+              >
+                Xác Nhận Khiếu Nại
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <TransactionFeedback
         status={txStatus}

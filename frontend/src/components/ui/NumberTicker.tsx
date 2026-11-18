@@ -8,6 +8,7 @@ interface NumberTickerProps {
   className?: string;
   delay?: number;
   decimalPlaces?: number;
+  decimals?: number;
   suffix?: string;
   prefix?: string;
 }
@@ -17,10 +18,12 @@ export function NumberTicker({
   direction = "up",
   className = "",
   delay = 0,
-  decimalPlaces = 2,
+  decimalPlaces,
+  decimals,
   suffix = "",
   prefix = "",
 }: NumberTickerProps) {
+  const resolvedDecimals = decimals ?? decimalPlaces ?? 2;
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
@@ -58,8 +61,8 @@ export function NumberTicker({
     <span className={`tabular-nums font-mono ${className}`}>
       {prefix}
       {displayValue.toLocaleString("en-US", {
-        minimumFractionDigits: decimalPlaces,
-        maximumFractionDigits: decimalPlaces,
+        minimumFractionDigits: resolvedDecimals,
+        maximumFractionDigits: resolvedDecimals,
       })}
       {suffix}
     </span>

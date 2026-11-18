@@ -18,11 +18,16 @@ contract DeployCChain is Script {
     address public constant FUJI_AAVE_V3_POOL = 0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40;
     address public constant FUJI_AAVE_POOL_ADDRESSES_PROVIDER = 0x07D04EfAAA0Ac69D19d107795aF247C42Eb50F1C;
     address public constant FUJI_CIRCLE_USDC = 0x5425890298aed601595a70AB815c96711a31Bc65;
-    // Fuji aUSDC (Aave V3 Fuji Interest Bearing Token)
-    address public constant FUJI_AAVE_A_USDC = 0x8B9b2AF4afB389b4a70A474dfD4AdCD4a302bb40;
+    // Real Fuji aUSDC (Aave V3 Fuji Interest Bearing Token)
+    address public constant FUJI_AAVE_A_USDC = 0x9CFcc1B289E59FBe1E769f020C77315DF8473760;
 
     function run() external {
-        uint256 deployerPrivateKey = vm.envOr("PRIVATE_KEY", uint256(0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80));
+        uint256 deployerPrivateKey = vm.envOr("PRIVATE_KEY", uint256(0));
+        require(deployerPrivateKey != 0, "FATAL: PRIVATE_KEY environment variable required");
+        require(
+            deployerPrivateKey != 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80,
+            "FATAL: Default Anvil dev private key is strictly prohibited for production deployment!"
+        );
         address deployer = vm.addr(deployerPrivateKey);
         address treasury = vm.envOr("TREASURY_ADDRESS", deployer);
 
@@ -106,6 +111,10 @@ contract DeployCChain is Script {
         // Wire: TrustPassportSBT authorizes StakedBrokerRegistry to sync stake balances and slash penalties
         passport.setAuthorizedUpdater(address(brokerRegistry), true);
         console.log("  [+] TrustPassportSBT -> setAuthorizedUpdater(StakedBrokerRegistry, true)");
+
+        // Wire: StakedBrokerRegistry records stake balance updates on TrustPassportSBT
+        brokerRegistry.setTrustPassportSBT(address(passport));
+        console.log("  [+] StakedBrokerRegistry -> setTrustPassportSBT(TrustPassportSBT)");
 
         vm.stopBroadcast();
 

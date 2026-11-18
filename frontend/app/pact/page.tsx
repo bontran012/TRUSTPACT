@@ -5,26 +5,20 @@ import Link from "next/link";
 import { useAccount, useReadContract } from "wagmi";
 import {
   Lock,
-  PlusSquare,
+  PlusCircle,
   ArrowRight,
   Clock,
   CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  ExternalLink,
   Search,
-  Coins,
-  ShieldCheck,
   TrendingUp,
+  Layers,
 } from "lucide-react";
 import {
   CONTRACT_ADDRESSES,
   UNIVERSAL_ESCROW_ABI,
-  formatUsdc,
   shortenAddress,
 } from "@/src/lib/contracts";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
-import { BorderBeam } from "@/src/components/ui/BorderBeam";
 
 interface PactSummary {
   id: number;
@@ -41,37 +35,48 @@ interface PactSummary {
 
 const DEFAULT_PACTS: PactSummary[] = [
   {
-    id: 101,
-    title: "Chuyển nhượng tài khoản số & Full Skin VIP",
-    amount: 1000,
-    buyer: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-    seller: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-    broker: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+    id: 4,
+    title: "Chuyển nhượng tài khoản số & Full Skin VIP (On-Chain Fuji #4)",
+    amount: 6,
+    buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+    seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+    broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
     brokerName: "Nguyễn Nam (Giám Định)",
     status: "ACTIVE",
-    timeLeft: "23:42:10",
+    timeLeft: "47:58:10",
   },
   {
-    id: 102,
-    title: "Bàn giao mã nguồn Smart Contract DeFi Vault",
-    amount: 2500,
-    buyer: "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-    seller: "0x77D1492bC78E12a899Ad34De91eF11B12E7a889E",
-    broker: "0x44B1492bC78E12a899Ad34De91eF11B12E7a889B",
-    brokerName: "Hoàng Minh (OTC Custodian)",
+    id: 1,
+    title: "Bàn giao mã nguồn Smart Contract DeFi Vault (On-Chain Fuji #1)",
+    amount: 5,
+    buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+    seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+    broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+    brokerName: "Nguyễn Nam (Giám Định)",
     status: "COMPLETED",
     timeLeft: "00:00:00",
   },
   {
-    id: 103,
-    title: "Thương vụ trao đổi tên miền web3 cao cấp",
-    amount: 800,
-    buyer: "0x66F1492bC78E12a899Ad34De91eF11B12E7a889D",
-    seller: "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
-    broker: "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
+    id: 3,
+    title: "Thương vụ trao đổi tên miền Web3 cao cấp (On-Chain Fuji #3 · Hòa giải)",
+    amount: 4,
+    buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+    seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+    broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
     brokerName: "Nguyễn Nam (Giám Định)",
-    status: "ACTIVE",
-    timeLeft: "14:10:05",
+    status: "COMPLETED",
+    timeLeft: "00:00:00",
+  },
+  {
+    id: 2,
+    title: "Giao dịch Acc Game VIP lỗi thông tin (On-Chain Fuji #2 · Hoàn 100%)",
+    amount: 3,
+    buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
+    seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
+    broker: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
+    brokerName: "Nguyễn Nam (Giám Định)",
+    status: "CANCELLED",
+    timeLeft: "00:00:00",
   },
 ];
 
@@ -81,13 +86,12 @@ export default function MyEscrowPactsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [allPacts, setAllPacts] = useState<PactSummary[]>(DEFAULT_PACTS);
 
-  const { data: counterRaw } = useReadContract({
+  useReadContract({
     address: CONTRACT_ADDRESSES.universalEscrow,
     abi: UNIVERSAL_ESCROW_ABI,
     functionName: "counter",
   });
 
-  // Load pacts from server backend database & merge with defaults
   useEffect(() => {
     let isMounted = true;
     const fetchServerPacts = async () => {
@@ -100,7 +104,7 @@ export default function MyEscrowPactsPage() {
             title: `Kèo Ký Quỹ #${item.id} (${item.amount} USDC)`,
             amount: Number(item.amount) || 1000,
             buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002",
             broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
             brokerName: "Nguyễn Nam (Giám Định)",
             status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
@@ -108,7 +112,6 @@ export default function MyEscrowPactsPage() {
             isCustom: true,
           }));
 
-          // Merge: server list takes top precedence
           const serverIds = new Set(serverList.map((p) => p.id));
           const merged = [...serverList, ...DEFAULT_PACTS.filter((p) => !serverIds.has(p.id))];
           setAllPacts(merged);
@@ -116,7 +119,6 @@ export default function MyEscrowPactsPage() {
         }
       } catch (err) {}
 
-      // Fallback to localStorage if offline
       if (typeof window !== "undefined") {
         try {
           const stored = JSON.parse(localStorage.getItem("trustpact_custom_pacts") || "{}");
@@ -125,7 +127,7 @@ export default function MyEscrowPactsPage() {
             title: item.terms?.slice(0, 60) || "Kèo Ký Quỹ Bảo Chứng UniversalEscrow 3 Bên",
             amount: Number(item.amount) || 1000,
             buyer: (item.buyer as `0x${string}`) || "0x1A2bC3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80001",
-            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002",
+            seller: (item.seller as `0x${string}`) || "0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002",
             broker: (item.broker as `0x${string}`) || "0x30F1492bC78E12a899Ad34De91eF11B12E7a889A",
             brokerName: item.brokerName || "Nguyễn Nam (Giám Định)",
             status: item.status === 1 ? "COMPLETED" : item.status === 2 ? "CANCELLED" : "ACTIVE",
@@ -146,7 +148,7 @@ export default function MyEscrowPactsPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [address]);
 
   const filteredPacts = allPacts.filter((p) => {
     if (filter !== "ALL" && p.status !== filter) return false;
@@ -167,74 +169,104 @@ export default function MyEscrowPactsPage() {
   const completedCount = allPacts.filter((p) => p.status === "COMPLETED").length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1E222D]">
-        <div>
-          <h1 className="text-base sm:text-lg font-bold text-[#F1F5F9] uppercase tracking-wide">
-            Sổ Kèo Của Tôi (UniversalEscrow Ledger)
-          </h1>
-          <p className="text-xs text-[#94A3B8] mt-0.5">
-            Quản lý và giám sát tất cả các két sắt ký quỹ ba bên mà ví của bạn tham gia
-          </p>
-        </div>
+    <div className="space-y-8 animate-fade-in">
+      {/* ── SCENIC 3D VAULT BANNER HEADER ───────────────────────────────── */}
+      <div className="card overflow-hidden p-0 relative">
+        <img
+          src="/images/hero-3d-escrow.png"
+          alt=""
+          className="absolute right-0 top-0 h-full w-1/2 object-cover opacity-55 hidden sm:block"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0B1E47]/95 via-[#0E2454]/85 to-[#0E2454]/30" />
 
-        <Link href="/pact/create" className="self-start sm:self-auto">
-          <ShimmerButton
-            variant="primary"
-            className="px-4 py-2 rounded-md text-white text-xs font-medium inline-flex items-center gap-1.5 shadow-sm"
-          >
-            <PlusSquare className="w-3.5 h-3.5" />
-            <span>Tạo Kèo Mới</span>
-          </ShimmerButton>
-        </Link>
-      </div>
+        <div className="relative p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <span className="badge-pill bg-sky-400/20 border border-sky-300/35 text-sky-200 text-xs">
+              <Layers className="w-3.5 h-3.5 text-sky-300" />
+              <span>Escrow Ledger · Avalanche Fuji</span>
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Sổ Kèo Giao Dịch Của Tôi
+            </h1>
+            <p className="text-sm text-sky-100/85">
+              Theo dõi trạng thái dòng tiền và truy cập trực tiếp phòng đối soát 3 bên phi tập trung
+            </p>
+          </div>
 
-      {/* ── TOP SUMMARY TELEMETRY ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-        <div className="p-3.5 rounded-lg panel-border bg-[#101217] space-y-1">
-          <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">Tổng Số Kèo</span>
-          <div className="text-xl font-bold text-[#F1F5F9]">{allPacts.length} Kèo</div>
-          <span className="text-[10px] text-[#64748B]">Sổ cái UniversalEscrow</span>
-        </div>
-        <div className="p-3.5 rounded-lg panel-border bg-[#101217] space-y-1">
-          <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">Đang Khóa Tiền</span>
-          <div className="text-xl font-bold text-[#F59E0B]">{activeCount} Kèo</div>
-          <span className="text-[10px] text-[#F59E0B] flex items-center gap-1">
-            <Clock className="w-3 h-3" /> Đang bảo chứng
-          </span>
-        </div>
-        <div className="p-3.5 rounded-lg panel-border bg-[#101217] space-y-1">
-          <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">Đã Tất Toán</span>
-          <div className="text-xl font-bold text-[#10B981]">{completedCount} Kèo</div>
-          <span className="text-[10px] text-[#10B981] flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> Giải ngân thành công
-          </span>
-        </div>
-        <div className="p-3.5 rounded-lg panel-border bg-[#101217] space-y-1">
-          <span className="text-[10px] text-[#64748B] uppercase font-bold font-sans">Tổng Giá Trị Ký Quỹ</span>
-          <div className="text-xl font-bold text-[#F1F5F9] tabular-nums">{totalValue.toLocaleString()} USDC</div>
-          <span className="text-[10px] text-[#10B981] flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> Bảo vệ 100% dòng tiền
-          </span>
+          <Link href="/pact/create" className="self-start sm:self-auto shrink-0">
+            <ShimmerButton variant="primary" className="px-6 py-3.5 font-bold">
+              <PlusCircle className="w-4 h-4" />
+              <span>Tạo Kèo Mới</span>
+            </ShimmerButton>
+          </Link>
         </div>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 rounded-md bg-[#101217] border border-[#1E222D] w-fit text-xs font-mono">
+      {/* ── SUMMARY FROSTED CAPSULES ────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-sky-100/80 font-medium">Tổng số hợp đồng</span>
+            <div className="w-9 h-9 rounded-full bg-sky-400/20 border border-sky-300/30 flex items-center justify-center text-sky-200">
+              <Layers className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-extrabold font-mono text-white tabular-nums">{allPacts.length}</div>
+          <span className="text-xs text-sky-200/70 block">Sổ cái UniversalEscrow</span>
+        </div>
+
+        <div className="card p-5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-sky-100/80 font-medium">Đang khóa trong két</span>
+            <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-300/30 flex items-center justify-center text-amber-200">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-extrabold font-mono text-amber-300 tabular-nums">{activeCount}</div>
+          <span className="text-xs text-amber-200/80 block">Đang được bảo chứng</span>
+        </div>
+
+        <div className="card p-5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-sky-100/80 font-medium">Đã tất toán</span>
+            <div className="w-9 h-9 rounded-full bg-emerald-400/20 border border-emerald-300/30 flex items-center justify-center text-emerald-200">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-extrabold font-mono text-emerald-300 tabular-nums">{completedCount}</div>
+          <span className="text-xs text-emerald-200/80 block">Giải ngân hoàn tất</span>
+        </div>
+
+        <div className="card p-5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-sky-100/80 font-medium">Tổng giá trị bảo vệ</span>
+            <div className="w-9 h-9 rounded-full bg-emerald-400/20 border border-emerald-300/30 flex items-center justify-center text-emerald-200">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-extrabold font-mono text-white tabular-nums whitespace-nowrap">
+            {totalValue.toLocaleString()} <span className="text-xs font-normal text-sky-200/80">USDC</span>
+          </div>
+          <span className="text-xs text-sky-200/70 block">An toàn 100% On-Chain</span>
+        </div>
+      </div>
+
+      {/* ── PILL FILTER TABS & SEARCH BAR ───────────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-1 p-1.5 rounded-full bg-white/[0.09] backdrop-blur-xl border border-white/[0.18] w-fit overflow-x-auto">
           {[
             { id: "ALL", label: "Tất Cả" },
             { id: "ACTIVE", label: "Đang Khóa Tiền" },
             { id: "COMPLETED", label: "Đã Tất Toán" },
-            { id: "CANCELLED", label: "Đã Hủy" },
+            { id: "CANCELLED", label: "Đã Hoàn Tiền" },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setFilter(tab.id as any)}
-              className={`px-3 py-1.5 rounded transition-colors ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                 filter === tab.id
-                  ? "bg-[#161922] text-[#F1F5F9] border border-[#1E222D] font-bold"
-                  : "text-[#94A3B8] hover:text-[#F1F5F9]"
+                  ? "bg-gradient-to-r from-sky-400/35 to-indigo-500/40 text-white border border-sky-300/45 shadow-sm"
+                  : "text-sky-100/75 hover:text-white border border-transparent"
               }`}
             >
               {tab.label}
@@ -242,101 +274,117 @@ export default function MyEscrowPactsPage() {
           ))}
         </div>
 
-        {/* Search Input */}
-        <div className="relative max-w-xs w-full">
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#64748B]">
-            <Search className="w-3.5 h-3.5" />
+        <div className="relative max-w-sm w-full">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-sky-200/60">
+            <Search className="w-4 h-4" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo ID, tiêu đề, ví, GDTG..."
-            className="w-full pl-8 pr-3 py-1.5 rounded-md bg-[#101217] border border-[#1E222D] focus:border-[#E84142] text-xs font-mono text-[#F1F5F9] placeholder-[#64748B] focus:outline-none transition-colors"
+            placeholder="Tìm theo mã kèo, tiêu đề, ví hoặc GDTG..."
+            className="input-field rounded-full pl-11 py-2.5 text-sm"
           />
         </div>
       </div>
 
-      {/* Pacts Table / List */}
-      <div className="rounded-lg panel-border bg-[#101217] overflow-hidden">
-        {filteredPacts.length > 0 ? (
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#090A0D] text-[#64748B] border-b border-[#1E222D] text-[10px] uppercase">
-              <tr>
-                <th className="py-3 px-4">Pact ID</th>
-                <th className="py-3 px-4 font-sans">Nội Dung Giao Dịch</th>
-                <th className="py-3 px-4 text-right">Giá Trị Ký Quỹ</th>
-                <th className="py-3 px-4">Bên Bán</th>
-                <th className="py-3 px-4">GDTG (Broker)</th>
-                <th className="py-3 px-4 text-center">Trạng Thái</th>
-                <th className="py-3 px-4 text-right">Chi Tiết</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1E222D] text-[#94A3B8]">
-              {filteredPacts.map((p) => (
-                <tr key={p.id} className="hover:bg-[#161922] transition-colors">
-                  <td className="py-3 px-4 font-bold text-[#F1F5F9]">
-                    <div className="flex items-center gap-1.5">
-                      <span>#{p.id}</span>
-                      {p.isCustom && (
-                        <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-[#E84142]/15 text-[#E84142] border border-[#E84142]/30 font-bold">
-                          MỚI TẠO
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 font-sans font-medium text-[#F1F5F9] max-w-xs truncate">
-                    {p.title}
-                  </td>
-                  <td className="py-3 px-4 text-right font-bold text-[#F1F5F9] tabular-nums">
-                    {p.amount.toLocaleString()} USDC
-                  </td>
-                  <td className="py-3 px-4 text-[#94A3B8]">{shortenAddress(p.seller)}</td>
-                  <td className="py-3 px-4">
-                    <span className="text-[#F1F5F9] block">{p.brokerName}</span>
-                    <span className="text-[10px] text-[#64748B] block">{shortenAddress(p.broker)}</span>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${
-                        p.status === "ACTIVE"
-                          ? "bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]"
-                          : p.status === "COMPLETED"
-                          ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
-                          : "bg-[#64748B]/10 border-[#64748B]/30 text-[#64748B]"
-                      }`}
-                    >
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <Link
-                      href={`/pact/${p.id}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] text-[#F1F5F9] text-xs transition-colors"
-                    >
-                      <span>Vào Két Sắt</span>
-                      <ArrowRight className="w-3 h-3 text-[#E84142]" />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="p-8 text-center space-y-2">
-            <Lock className="w-8 h-8 text-[#64748B] mx-auto opacity-50" />
-            <span className="text-xs text-[#94A3B8] block font-sans">
-              Không tìm thấy hợp đồng ký quỹ nào phù hợp với bộ lọc hiện tại.
-            </span>
+      {/* ── FLOATING FROSTED DEAL CARDS (Zero Rigid Spreadsheet Grid!) ──── */}
+      {filteredPacts.length > 0 ? (
+        <div className="space-y-3.5">
+          {filteredPacts.map((p) => (
             <Link
-              href="/pact/create"
-              className="inline-block mt-2 px-3 py-1.5 rounded bg-[#E84142] text-white text-xs font-medium hover:bg-[#D13637] transition-colors"
+              key={p.id}
+              href={`/pact/${p.id}`}
+              className="group card p-5 sm:px-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:border-sky-300/45 hover:-translate-y-0.5 transition-all duration-200"
             >
-              Tạo Kèo Mới Ngay
+              {/* Left: Vault Icon + Deal Title & Counterparties */}
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400/25 to-indigo-500/30 border border-sky-300/35 flex flex-col items-center justify-center shrink-0 shadow-sm">
+                  <span className="text-[10px] font-mono text-sky-200 leading-none">KÈO</span>
+                  <span className="text-sm font-extrabold font-mono text-white leading-tight">#{p.id}</span>
+                </div>
+
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-base text-white group-hover:text-sky-200 transition-colors truncate max-w-md">
+                      {p.title}
+                    </span>
+                    {p.isCustom && (
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-400/25 text-sky-100 border border-sky-300/40">
+                        MỚI TẠO
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-sky-100/75 flex-wrap">
+                    <span>
+                      Bên Bán: <strong className="font-mono text-white">{shortenAddress(p.seller)}</strong>
+                    </span>
+                    <span className="text-white/30">·</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <img
+                        src="/images/avatar-nam.jpg"
+                        alt={p.brokerName}
+                        className="w-4 h-4 rounded-full object-cover"
+                      />
+                      <span>GDTG: <strong className="text-sky-200">{p.brokerName}</strong></span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Amount + Status Pill + CTA */}
+              <div className="flex items-center justify-between lg:justify-end gap-5 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/[0.1] shrink-0">
+                <div className="text-left lg:text-right">
+                  <span className="text-[11px] text-sky-100/70 block">Giá trị ký quỹ</span>
+                  <span className="text-lg font-extrabold font-mono text-white tabular-nums whitespace-nowrap">
+                    {p.amount.toLocaleString("en-US")} <span className="text-xs font-normal text-sky-200">USDC</span>
+                  </span>
+                </div>
+
+                <div>
+                  {p.status === "ACTIVE" ? (
+                    <span className="badge-pill bg-amber-400/20 border border-amber-300/40 text-amber-200">
+                      <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse" />
+                      <span>Đang Khóa</span>
+                    </span>
+                  ) : p.status === "COMPLETED" ? (
+                    <span className="badge-pill bg-emerald-400/20 border border-emerald-300/40 text-emerald-200">
+                      <span className="w-2 h-2 rounded-full bg-emerald-300" />
+                      <span>Hoàn Tất</span>
+                    </span>
+                  ) : (
+                    <span className="badge-pill bg-white/[0.1] border border-white/[0.2] text-sky-100/80">
+                      <span>Đã Hoàn Tiền</span>
+                    </span>
+                  )}
+                </div>
+
+                <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/[0.12] group-hover:bg-sky-400/30 border border-white/[0.22] group-hover:border-sky-300/50 text-xs font-bold text-white transition-all whitespace-nowrap">
+                  <span>Mở Phòng</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-sky-200 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
             </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="card p-14 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-sky-400/20 border border-sky-300/35 flex items-center justify-center mx-auto text-sky-200">
+            <Lock className="w-6 h-6" />
           </div>
-        )}
-      </div>
+          <div className="space-y-1">
+            <p className="text-base font-bold text-white">Không tìm thấy hợp đồng phù hợp</p>
+            <p className="text-xs text-sky-100/80">Hãy thử từ khóa khác hoặc tạo một két sắt ký quỹ mới.</p>
+          </div>
+          <Link
+            href="/pact/create"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 text-white text-xs font-bold transition-all shadow-lg"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Tạo Kèo Ký Quỹ Đầu Tiên</span>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

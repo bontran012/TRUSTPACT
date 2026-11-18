@@ -57,7 +57,7 @@ export function EscrowSimulationHero() {
           </div>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
-              href="/create"
+              href="/pact/create"
               className="inline-flex items-center space-x-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-[0_10px_30px_rgba(37,99,235,0.4)] transition-all"
             >
               <Lock className="w-4 h-4" />
@@ -65,11 +65,11 @@ export function EscrowSimulationHero() {
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/room/101"
+              href="/pact/4"
               className="inline-flex items-center space-x-2 px-5 py-3.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.12] text-white font-semibold text-xs sm:text-sm transition-all"
             >
               <Zap className="w-4 h-4 text-amber-400" />
-              <span>Phòng Giao Dịch #101</span>
+              <span>Phòng Giao Dịch #4 (Live Fuji)</span>
             </Link>
             <Link
               href="/radar"
@@ -88,9 +88,9 @@ export function EscrowSimulationHero() {
             </div>
             <div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-emerald-400 tabular-nums">
-                120% Quota
+                100% Quota
               </div>
-              <span className="text-[11px] text-slate-400 block">Bảo Hiểm Cọc Aave V3</span>
+              <span className="text-[11px] text-slate-400 block">Bảo Hiểm Cọc 1:1 Aave V3</span>
             </div>
             <div>
               <div className="text-lg sm:text-xl font-extrabold font-mono text-amber-400 tabular-nums">
@@ -216,7 +216,7 @@ export function EscrowSimulationHero() {
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
-                    <Identicon address="0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F80002" size={34} />
+                    <Identicon address="0x89C3d4E5f6A7B8C9D0E1F2A3B4C5D6E7F8000002" size={34} />
                     <div className="min-w-0">
                       <span className="text-[10px] font-mono uppercase text-emerald-400 block">
                         Bên Bán (Seller)

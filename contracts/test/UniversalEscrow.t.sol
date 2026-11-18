@@ -26,7 +26,7 @@ contract UniversalEscrowTest is Test {
 
     uint256 public constant DEAL_AMOUNT = 1_000 * 1e6;  // 1,000 USDC
     uint256 public constant BROKER_STAKE = 5_000 * 1e6; // 5,000 USDC
-    uint256 public constant TOTAL_BROKER_QUOTA = (BROKER_STAKE * 120) / 100; // 6,000 USDC
+    uint256 public constant TOTAL_BROKER_QUOTA = BROKER_STAKE; // 5,000 USDC (100% quota backed by full collateral)
     uint256 public constant DEAL_DURATION = 3 days;
     uint256 public constant BROKER_FEE_BPS = 150;       // 1.5%
 
@@ -69,7 +69,7 @@ contract UniversalEscrowTest is Test {
         vm.stopPrank();
 
         assertTrue(registry.isBrokerVerified(broker));
-        assertEq(registry.getAvailableQuota(broker), (BROKER_STAKE * 120) / 100);
+        assertEq(registry.getAvailableQuota(broker), BROKER_STAKE);
 
         // Buyer approves escrow contract
         vm.prank(buyer);
@@ -165,7 +165,10 @@ contract UniversalEscrowTest is Test {
         uint256 brokerBalBefore = usdc.balanceOf(broker);
         uint256 treasuryBalBefore = usdc.balanceOf(treasury);
 
-        // Broker verifies and releases immediately
+        // 2-Step Confirmation: Buyer confirms receipt, then Broker releases
+        vm.prank(buyer);
+        escrow.buyerConfirmDelivery(id);
+
         vm.prank(broker);
         escrow.brokerRelease(id);
 
@@ -230,7 +233,7 @@ contract UniversalEscrowTest is Test {
 
         assertEq(usdc.balanceOf(buyer) - buyerBalBefore, DEAL_AMOUNT);
         IUniversalEscrow.EscrowItem memory item = escrow.getEscrow(id);
-        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Completed));
+        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Cancelled));
     }
 
     // =========================================================================
@@ -245,7 +248,10 @@ contract UniversalEscrowTest is Test {
         uint256 brokerBalBefore = usdc.balanceOf(broker);
         uint256 treasuryBalBefore = usdc.balanceOf(treasury);
 
-        // Buyer directly confirms delivery
+        // Broker approves, then Buyer confirms delivery to complete 2-step release
+        vm.prank(broker);
+        escrow.brokerRelease(id);
+
         vm.prank(buyer);
         escrow.buyerConfirmDelivery(id);
 
@@ -290,7 +296,7 @@ contract UniversalEscrowTest is Test {
         assertEq(registry.getAvailableQuota(broker), TOTAL_BROKER_QUOTA);
 
         IUniversalEscrow.EscrowItem memory item = escrow.getEscrow(id);
-        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Completed));
+        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Cancelled));
 
         // Cannot refund or release again
         vm.prank(broker);
@@ -535,7 +541,9 @@ contract UniversalEscrowTest is Test {
     function test_RateAndTipSuccess() public {
         uint256 id = _createDefaultEscrow();
 
-        // Broker releases funds -> Completed
+        // 2-Step release -> Completed
+        vm.prank(buyer);
+        escrow.buyerConfirmDelivery(id);
         vm.prank(broker);
         escrow.brokerRelease(id);
 
@@ -572,6 +580,8 @@ contract UniversalEscrowTest is Test {
     function test_RateAndTipRevertsWhenNotBuyer() public {
         uint256 id = _createDefaultEscrow();
 
+        vm.prank(buyer);
+        escrow.buyerConfirmDelivery(id);
         vm.prank(broker);
         escrow.brokerRelease(id);
 
@@ -589,6 +599,8 @@ contract UniversalEscrowTest is Test {
     function test_RateAndTipRevertsWhenAlreadyRated() public {
         uint256 id = _createDefaultEscrow();
 
+        vm.prank(buyer);
+        escrow.buyerConfirmDelivery(id);
         vm.prank(broker);
         escrow.brokerRelease(id);
 
@@ -603,6 +615,8 @@ contract UniversalEscrowTest is Test {
     function test_RateAndTipRevertsInvalidStars() public {
         uint256 id = _createDefaultEscrow();
 
+        vm.prank(buyer);
+        escrow.buyerConfirmDelivery(id);
         vm.prank(broker);
         escrow.brokerRelease(id);
 
@@ -613,5 +627,41 @@ contract UniversalEscrowTest is Test {
         vm.expectRevert("Stars: 1-5");
         escrow.rateAndTip(id, 6, 0);
         vm.stopPrank();
+    }
+
+    function test_DisputeWorkflowAndTimeoutBlock() public {
+        uint256 id = _createDefaultEscrow();
+
+        // Seller raises dispute because buyer refuses to confirm delivery
+        vm.prank(seller);
+        escrow.raiseDispute(id, "Delivered accounts but buyer unresponsive");
+
+        IUniversalEscrow.EscrowItem memory item = escrow.getEscrow(id);
+        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Disputed));
+
+        // Time elapses past expiration
+        vm.warp(block.timestamp + DEAL_DURATION + 1 days);
+
+        // Buyer attempts to steal funds via timeout auto-refund -> MUST REVERT
+        vm.prank(buyer);
+        vm.expectRevert("Cannot claim when disputed or resolved");
+        escrow.buyerClaimExpiredRefund(id);
+
+        // Broker reviews evidence and releases funds to seller
+        uint256 sellerBalBefore = usdc.balanceOf(seller);
+        vm.prank(broker);
+        escrow.brokerRelease(id);
+
+        item = escrow.getEscrow(id);
+        assertEq(uint8(item.status), uint8(IUniversalEscrow.EscrowStatus.Completed));
+        assertTrue(usdc.balanceOf(seller) > sellerBalBefore);
+    }
+
+    function test_UnauthorizedDisputeReverts() public {
+        uint256 id = _createDefaultEscrow();
+
+        vm.prank(stranger);
+        vm.expectRevert("Unauthorized dispute");
+        escrow.raiseDispute(id, "Spam dispute");
     }
 }

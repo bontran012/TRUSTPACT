@@ -68,7 +68,7 @@ contract StakedBrokerTest is Test {
         assertTrue(b.isVerified);
         assertFalse(b.isBlacklisted);
         assertEq(registry.totalPrincipal(), STAKE_AMOUNT);
-        assertEq(registry.getAvailableQuota(broker1), (STAKE_AMOUNT * 120) / 100);
+        assertEq(registry.getAvailableQuota(broker1), STAKE_AMOUNT);
 
         // Verify Aave Pool holds USDC and Registry holds aUSDC
         assertEq(usdc.balanceOf(address(aavePool)), STAKE_AMOUNT);
@@ -129,6 +129,7 @@ contract StakedBrokerTest is Test {
         // Simulate 500 USDC total accrued interest from Aave lending
         uint256 simulatedYield = 500 * 1e6;
         aavePool.simulateYield(address(registry), simulatedYield);
+        vm.warp(block.timestamp + 1 hours);
 
         // Check accrued yield view
         assertEq(registry.getTotalAccruedYield(), simulatedYield);
@@ -165,17 +166,17 @@ contract StakedBrokerTest is Test {
         // Escrow locks 4,000 USDC quota for active deals
         vm.prank(escrow);
         assertTrue(registry.allocateQuota(broker1, 4_000 * 1e6));
-        assertEq(registry.getAvailableQuota(broker1), (STAKE_AMOUNT * 120) / 100 - 4_000 * 1e6);
+        assertEq(registry.getAvailableQuota(broker1), STAKE_AMOUNT - 4_000 * 1e6);
 
         // Attempting to unstake 2,000 USDC must revert
         vm.prank(broker1);
         vm.expectRevert("Stake is backing active deals");
         registry.unstakeInsurance(2_000 * 1e6);
 
-        // Unstaking 1,000 USDC must succeed (remaining stake = 4,000, max quota = 4,800, available = 800)
+        // Unstaking 1,000 USDC must succeed (remaining stake = 4,000, max quota = 4,000, available = 0)
         vm.prank(broker1);
         registry.unstakeInsurance(1_000 * 1e6);
-        assertEq(registry.getAvailableQuota(broker1), (4_000 * 1e6 * 120) / 100 - 4_000 * 1e6);
+        assertEq(registry.getAvailableQuota(broker1), 4_000 * 1e6 - 4_000 * 1e6);
     }
 
     // =========================================================================
@@ -186,21 +187,21 @@ contract StakedBrokerTest is Test {
         vm.prank(broker1);
         registry.stakeInsurance(STAKE_AMOUNT);
 
-        // Escrow allocates 3,000 USDC (max quota = 6,000, so remaining = 3,000)
+        // Escrow allocates 3,000 USDC (max quota = 5,000, so remaining = 2,000)
         vm.prank(escrow);
         bool allocated = registry.allocateQuota(broker1, 3_000 * 1e6);
         assertTrue(allocated);
-        assertEq(registry.getAvailableQuota(broker1), 3_000 * 1e6);
+        assertEq(registry.getAvailableQuota(broker1), 2_000 * 1e6);
 
-        // Exceeding capacity returns false (3,000 + 3,001 > 6,000)
+        // Exceeding capacity returns false (3,000 + 2,001 > 5,000)
         vm.prank(escrow);
-        bool overAllocated = registry.allocateQuota(broker1, 3_001 * 1e6);
+        bool overAllocated = registry.allocateQuota(broker1, 2_001 * 1e6);
         assertFalse(overAllocated);
 
         // Release 3,000 USDC
         vm.prank(escrow);
         registry.releaseQuota(broker1, 3_000 * 1e6);
-        assertEq(registry.getAvailableQuota(broker1), (STAKE_AMOUNT * 120) / 100);
+        assertEq(registry.getAvailableQuota(broker1), STAKE_AMOUNT);
 
         // Record successful deal
         vm.prank(escrow);

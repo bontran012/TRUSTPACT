@@ -3,22 +3,13 @@
 import React, { useState } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import {
-  ShieldAlert,
-  Scale,
   Search,
-  ExternalLink,
   AlertTriangle,
   Lock,
-  Unlock,
   CheckCircle2,
-  XCircle,
   FileText,
-  UserCheck,
   UserX,
-  Clock,
-  ArrowRight,
   Gavel,
-  BadgeAlert,
   ShieldCheck,
   Copy,
   Headphones,
@@ -33,9 +24,7 @@ import {
 } from "@/src/lib/contracts";
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 import { useAuth } from "@/src/context/AuthContext";
-import { BorderBeam } from "@/src/components/ui/BorderBeam";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
-import { CardSpotlight } from "@/src/components/ui/CardSpotlight";
 
 export default function AdminDisputesPage() {
   const { address, isConnected } = useAccount();
@@ -43,9 +32,9 @@ export default function AdminDisputesPage() {
   const [simulatedTxStatus, setSimulatedTxStatus] = useState<TxStatus | null>(null);
 
   // Search Escrow ID
-  const [searchIdInput, setSearchIdInput] = useState("1");
-  const [activeEscrowId, setActiveEscrowId] = useState<bigint>(1n);
-  const [compensationInput, setCompensationInput] = useState("50");
+  const [searchIdInput, setSearchIdInput] = useState("4");
+  const [activeEscrowId, setActiveEscrowId] = useState<bigint>(4n);
+  const [compensationInput, setCompensationInput] = useState("6");
   const [evidenceConfirmed, setEvidenceConfirmed] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -78,11 +67,12 @@ export default function AdminDisputesPage() {
   const connectedLower = effectiveAddress?.toLowerCase();
   const userRole = currentUser?.role;
 
+  const configuredAdminLower = process.env.NEXT_PUBLIC_ADMIN_ADDRESS?.toLowerCase();
   const isAdminOrTreasury =
     userRole === "ADMIN" ||
-    connectedLower === "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266" ||
     (adminAddress && connectedLower === (adminAddress as string).toLowerCase()) ||
-    (treasuryAddress && connectedLower === (treasuryAddress as string).toLowerCase());
+    (treasuryAddress && connectedLower === (treasuryAddress as string).toLowerCase()) ||
+    (configuredAdminLower && connectedLower === configuredAdminLower);
 
   // Read Selected Escrow Item
   const { data: escrowData, refetch: refetchEscrow } = useReadContract({
@@ -155,99 +145,79 @@ export default function AdminDisputesPage() {
 
     const compWei = parseUsdc(compensationInput || "0");
 
-    if (address && slashBrokerWrite) {
-      try {
-        slashBrokerWrite({
-          address: CONTRACT_ADDRESSES.universalEscrow,
-          abi: UNIVERSAL_ESCROW_ABI,
-          functionName: "adminSlashCorruptBroker",
-          args: [activeEscrowId, compWei],
-        });
-        return;
-      } catch (err) {
-        console.warn("Wallet slash failed, falling back to instant sandbox simulation:", err);
-      }
+    if (!address || !slashBrokerWrite) {
+      setSimulatedTxStatus({
+        step: "error",
+        actionTitle: "Yêu Cầu Ví Admin On-Chain",
+        errorMessage: `Vui lòng kết nối đúng ví Admin (${shortenAddress((adminAddress as string) || "0xe85e...c6aE")}) trên mạng Avalanche Fuji để ký lệnh tịch thu cọc thật.`,
+      });
+      return;
     }
 
-    // Instant Sandbox Simulation for Judge / Tester
-    setSimulatedTxStatus({
-      step: "awaiting_signature",
-      actionTitle: "Tịch Thu Cọc Broker & Bồi Hoàn Nạn Nhân",
+    slashBrokerWrite({
+      address: CONTRACT_ADDRESSES.universalEscrow,
+      abi: UNIVERSAL_ESCROW_ABI,
+      functionName: "adminSlashCorruptBroker",
+      args: [activeEscrowId, compWei],
     });
-    setTimeout(() => {
-      setSimulatedTxStatus({
-        step: "confirming",
-        actionTitle: "Đang Quyết Toán Bồi Hoàn 0.8s Fuji Finality...",
-      });
-      setTimeout(() => {
-        const dummyHash = "0x" + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-        setSimulatedTxStatus({
-          step: "success",
-          txHash: dummyHash,
-          actionTitle: "Đã Tịch Thu Cọc & Bồi Hoàn Thành Công! Đã Blacklist Broker vĩnh viễn.",
-        });
-        setTimeout(() => setSimulatedTxStatus(null), 3000);
-      }, 700);
-    }, 400);
   };
 
-  const statusMap = ["ĐANG HOẠT ĐỘNG (ACTIVE)", "ĐÃ HOÀN TẤT (COMPLETED)", "ĐÃ HỦY / HOÀN TIỀN (CANCELLED)"];
+  const statusMap = ["ĐANG KHÓA TRONG KÉT", "ĐÃ HOÀN TẤT", "ĐÃ HỦY / HOÀN TIỀN", "ĐANG KHIẾU NẠI TRANH CHẤP"];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-8 animate-fade-in">
       {/* ── TOP IDENTITY & ACCESS BANNER ─────────────────────────────────── */}
-      <div className="border border-[#1E222D] bg-[#101217] rounded-lg p-5">
+      <div className="card p-6 sm:p-7">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-md bg-[#EF4444]/15 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] shrink-0">
-              <Headphones className="w-5 h-5" />
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/12 border border-amber-400/25 flex items-center justify-center text-amber-400 shrink-0">
+              <Gavel className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold tracking-tight text-[#F1F5F9]">
-                  Trung Tâm Xử Lý Khiếu Nại &amp; Bồi Hoàn (Admin)
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
+                  Hội Đồng Trọng Tài &amp; Xử Lý Khiếu Nại
                 </h1>
-                <span className="text-[10px] font-mono uppercase bg-[#161922] border border-[#1E222D] px-2 py-0.5 rounded text-[#94A3B8]">
-                  Quản Trị Viên
+                <span className="badge-pill bg-indigo-500/15 text-indigo-300 border border-indigo-400/25">
+                  On-Chain Arbitration
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] mt-1">
-                Bộ phận tiếp nhận và xử lý các trường hợp trung gian vi phạm thỏa thuận, gian lận hoặc chậm trễ giải ngân để tịch thu tiền cọc bảo chứng bồi hoàn 100% cho người dùng.
+              <p className="text-sm text-slate-400 mt-1 max-w-2xl">
+                Tiếp nhận và xử lý các trường hợp trung gian vi phạm thỏa thuận hoặc chậm trễ giải ngân để tịch thu tiền cọc bảo chứng bồi hoàn 100% cho người dùng.
               </p>
             </div>
           </div>
 
           {/* Connected Address Permission Pill */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="shrink-0">
             {isAdminOrTreasury ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#10B981]/15 border border-[#10B981]/30 text-[#10B981] text-xs font-mono font-medium">
+              <div className="badge-pill bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium py-1.5 px-3">
                 <ShieldCheck className="w-4 h-4" />
                 <span>Quyền Quản Trị Hợp Lệ (Admin / Treasury)</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#F59E0B]/10 border border-[#F59E0B]/20 text-[#F59E0B] text-xs font-mono">
+              <div className="badge-pill bg-amber-400/10 border border-amber-400/20 text-amber-400 text-xs py-1.5 px-3">
                 <Lock className="w-4 h-4" />
-                <span>Chế Độ Tra Cứu Minh Bạch (Yêu cầu tài khoản quản trị để xử lý vi phạm)</span>
+                <span>Chế Độ Tra Cứu Minh Bạch</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Public Audit Mode Warning Alert if not Admin */}
         {!isAdminOrTreasury && (
-          <div className="mt-4 pt-3 border-t border-[#1E222D] flex items-center gap-2.5 text-xs text-[#94A3B8]">
-            <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0" />
+          <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center gap-2.5 text-xs text-slate-400">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              <strong className="text-[#F1F5F9]">Chế độ Minh Bạch Công Khai:</strong> Bất kỳ ai cũng có thể tra cứu tiến độ xử lý khiếu nại on-chain. Chỉ tài khoản quản trị viên (<code className="text-[#F1F5F9] font-mono">{shortenAddress(adminAddress as string || "0x0")}</code>) mới có quyền ký lệnh tịch thu cọc bồi hoàn.
+              <strong className="text-white">Chế độ Tra Cứu Công Khai:</strong> Bất kỳ ai cũng có thể tra cứu hồ sơ khiếu nại on-chain. Chỉ tài khoản quản trị viên (<code className="text-white font-mono">{shortenAddress(adminAddress as string || "0x0")}</code>) mới có quyền ký lệnh tịch thu cọc.
             </span>
           </div>
         )}
       </div>
 
       {/* ── ESCROW SELECTOR TOOLBAR ─────────────────────────────────────── */}
-      <div className="border border-[#1E222D] bg-[#101217] rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="card p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <span className="text-xs font-medium text-[#64748B] uppercase tracking-wider shrink-0">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider shrink-0">
             Tra Cứu Mã Kèo:
           </span>
           <div className="relative flex-1 sm:w-56">
@@ -257,7 +227,7 @@ export default function AdminDisputesPage() {
               value={searchIdInput}
               onChange={(e) => setSearchIdInput(e.target.value)}
               placeholder="VD: 1, 2, 3..."
-              className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3 py-1.5 text-xs font-mono text-[#F1F5F9] focus:outline-none focus:border-[#E84142]"
+              className="input-field py-2 text-xs font-mono"
             />
           </div>
           <button
@@ -266,7 +236,7 @@ export default function AdminDisputesPage() {
                 setActiveEscrowId(BigInt(searchIdInput));
               }
             }}
-            className="px-3 py-1.5 bg-[#161922] hover:bg-[#1E222D] border border-[#1E222D] rounded-md text-xs font-medium text-[#F1F5F9] flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-medium text-white flex items-center gap-1.5 transition-colors"
           >
             <Search className="w-3.5 h-3.5" />
             <span>Tải Hồ Sơ</span>
@@ -274,27 +244,27 @@ export default function AdminDisputesPage() {
         </div>
 
         {/* Quick presets */}
-        <div className="flex items-center gap-2 text-xs font-mono text-[#64748B] w-full sm:w-auto justify-end">
-          <span>Kèo Gần Đây:</span>
-          {[1, 2, 3].map((num) => (
+        <div className="flex items-center gap-2 text-xs text-slate-400 w-full sm:w-auto justify-end">
+          <span>Kèo gần đây:</span>
+          {[1, 2, 3, 4].map((num) => (
             <button
               key={num}
               onClick={() => {
                 setSearchIdInput(num.toString());
                 setActiveEscrowId(BigInt(num));
               }}
-              className={`px-2 py-0.5 rounded border text-[11px] ${
+              className={`px-2.5 py-1 rounded-lg border text-xs font-mono transition-colors ${
                 activeEscrowId === BigInt(num)
-                  ? "bg-[#E84142]/20 border-[#E84142] text-[#F1F5F9]"
-                  : "bg-[#161922] border-[#1E222D] text-[#94A3B8] hover:text-[#F1F5F9]"
+                  ? "bg-brand/20 border-brand text-white font-bold"
+                  : "bg-white/[0.04] border-white/[0.06] text-slate-400 hover:text-white"
               }`}
             >
               #{num}
             </button>
           ))}
           {totalEscrowsCount ? (
-            <span className="text-[11px] text-[#94A3B8] ml-2">
-              (Tổng: {totalEscrowsCount.toString()} kèo)
+            <span className="text-xs text-slate-500 ml-2">
+              (Tổng: <span className="font-mono">{totalEscrowsCount.toString()}</span>)
             </span>
           ) : null}
         </div>
@@ -303,220 +273,213 @@ export default function AdminDisputesPage() {
       {/* ── MAIN 2-COLUMN DOSSIER & SLASHING CONSOLE ──────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* LEFT PANE: DISPUTE & BROKER DOSSIER (6 COLS) */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="lg:col-span-6 space-y-6">
           {/* Escrow Details Card */}
-          <div className="border border-[#1E222D] bg-[#101217] rounded-lg p-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
+          <div className="card p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#94A3B8]" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
+                <FileText className="w-4 h-4 text-slate-400" />
+                <h2 className="section-title text-sm">
                   Hồ Sơ Két Sắt #{activeEscrowId.toString()}
                 </h2>
               </div>
               {escrow ? (
                 <span
-                  className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                  className={`badge-pill ${
                     escrow.status === 0
-                      ? "bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30"
+                      ? "bg-emerald-400/10 text-emerald-400 border border-emerald-400/30"
                       : escrow.status === 1
-                      ? "bg-[#64748B]/15 text-[#94A3B8] border-[#64748B]/30"
-                      : "bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/30"
+                      ? "bg-slate-500/10 text-slate-400 border border-slate-500/30"
+                      : "bg-red-500/10 text-red-400 border border-red-500/30"
                   }`}
                 >
                   {statusMap[escrow.status] || "KHÔNG RÕ"}
                 </span>
               ) : (
-                <span className="text-[10px] font-mono text-[#64748B]">Chưa khởi tạo</span>
+                <span className="text-xs text-slate-500">Chưa khởi tạo</span>
               )}
             </div>
 
             {escrow && escrow.buyer !== "0x0000000000000000000000000000000000000000" ? (
-              <div className="mt-4 space-y-3.5">
-                <div className="flex items-center justify-between p-3 rounded-md bg-[#161922] border border-[#1E222D]">
-                  <span className="text-xs text-[#94A3B8]">Giá Trị Két Sắt Khóa:</span>
-                  <span className="text-base font-bold font-mono text-[#F1F5F9] tabular-nums">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-xl card-inner">
+                  <span className="text-xs text-slate-400">Giá Trị Két Sắt Khóa:</span>
+                  <span className="text-lg font-bold font-mono text-white tabular-nums">
                     {formatUsdc(escrow.amount)} USDC
                   </span>
                 </div>
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-2.5 text-xs">
                   {/* Buyer */}
-                  <div className="flex items-center justify-between py-1.5 border-b border-[#1E222D]/50">
-                    <span className="text-[#94A3B8]">Bên Mua (Nạn Nhân Tiềm Ẩn):</span>
-                    <div className="flex items-center gap-1.5 font-mono text-[#F1F5F9]">
+                  <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
+                    <span className="text-slate-400">Bên Mua (Nạn Nhân Tiềm Ẩn):</span>
+                    <div className="flex items-center gap-2 font-mono text-white">
                       <span>{shortenAddress(escrow.buyer)}</span>
                       <button
                         onClick={() => copyToClipboard(escrow.buyer, "buyer")}
-                        className="text-[#64748B] hover:text-[#F1F5F9]"
+                        className="text-slate-500 hover:text-white"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
                   {/* Seller */}
-                  <div className="flex items-center justify-between py-1.5 border-b border-[#1E222D]/50">
-                    <span className="text-[#94A3B8]">Bên Bán (Đối tác):</span>
-                    <div className="flex items-center gap-1.5 font-mono text-[#F1F5F9]">
+                  <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
+                    <span className="text-slate-400">Bên Bán (Đối tác):</span>
+                    <div className="flex items-center gap-2 font-mono text-white">
                       <span>{shortenAddress(escrow.seller)}</span>
                       <button
                         onClick={() => copyToClipboard(escrow.seller, "seller")}
-                        className="text-[#64748B] hover:text-[#F1F5F9]"
+                        className="text-slate-500 hover:text-white"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
                   {/* Broker */}
-                  <div className="flex items-center justify-between py-1.5 border-b border-[#1E222D]/50">
-                    <span className="text-[#94A3B8]">GDTG Trung Gian (Broker):</span>
-                    <div className="flex items-center gap-1.5 font-mono text-[#EF4444] font-medium">
+                  <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
+                    <span className="text-slate-400">GDTG Trung Gian:</span>
+                    <div className="flex items-center gap-2 font-mono text-red-400 font-medium">
                       <span>{shortenAddress(escrow.broker)}</span>
                       <button
                         onClick={() => copyToClipboard(escrow.broker, "broker")}
-                        className="text-[#64748B] hover:text-[#F1F5F9]"
+                        className="text-slate-500 hover:text-white"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
                   {/* Duration */}
-                  <div className="flex items-center justify-between py-1.5 border-b border-[#1E222D]/50">
-                    <span className="text-[#94A3B8]">Thời Hạn Kèo:</span>
-                    <span className="font-mono text-[#F1F5F9]">
-                      {(Number(escrow.duration) / 3600).toFixed(1)} Giờ
+                  <div className="flex items-center justify-between py-2 border-b border-white/[0.04]">
+                    <span className="text-slate-400">Thời Hạn Kèo:</span>
+                    <span className="text-white">
+                      <span className="font-mono">{(Number(escrow.duration) / 3600).toFixed(1)}</span> Giờ
                     </span>
                   </div>
 
                   {/* Start Time */}
-                  <div className="flex items-center justify-between py-1.5">
-                    <span className="text-[#94A3B8]">Thời Điểm Kích Hoạt:</span>
-                    <span className="font-mono text-[#F1F5F9]">
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-slate-400">Thời Điểm Kích Hoạt:</span>
+                    <span className="font-mono text-white">
                       {new Date(Number(escrow.startTime) * 1000).toLocaleString("vi-VN")}
                     </span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="py-8 text-center text-xs text-[#64748B]">
-                Không tìm thấy dữ liệu hợp đồng cho ID #{activeEscrowId.toString()}. Vui lòng kiểm tra lại.
+              <div className="py-8 text-center text-xs text-slate-500">
+                Không tìm thấy dữ liệu hợp đồng cho ID #{activeEscrowId.toString()}.
               </div>
             )}
           </div>
 
-          {/* Broker Staking Health & Blacklist Status */}
-          <div className="border border-[#1E222D] bg-[#101217] rounded-lg p-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#1E222D]">
+          {/* Broker Staking Health */}
+          <div className="card p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <UserX className="w-4 h-4 text-[#EF4444]" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
-                  Hồ Sơ Cọc & Lịch Sử Vi Phạm Của GDTG
+                <UserX className="w-4 h-4 text-red-400" />
+                <h2 className="section-title text-sm">
+                  Hồ Sơ Cọc & Lịch Sử Vi Phạm GDTG
                 </h2>
               </div>
               {brokerIsBlacklisted ? (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 font-bold">
+                <span className="badge-pill bg-red-500/15 text-red-400 border border-red-500/30 font-bold">
                   ĐÃ BỊ BLACKLIST
                 </span>
               ) : (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                <span className="badge-pill bg-emerald-400/10 text-emerald-400 border border-emerald-400/30">
                   CHƯA BỊ CẤM
                 </span>
               )}
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D]">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Cọc Đang Gửi Aave V3
-                </span>
-                <span className="text-sm font-bold font-mono text-[#F1F5F9] tabular-nums mt-1 block">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="card-inner p-4 space-y-1">
+                <span className="text-xs text-slate-400 block">Cọc Đang Gửi Aave V3</span>
+                <span className="text-base font-bold font-mono text-white tabular-nums block">
                   {formatUsdc(brokerStakedBalance)} USDC
                 </span>
               </div>
-              <div className="p-3 rounded-md bg-[#161922] border border-[#1E222D]">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] block">
-                  Số Lần Bị Phạt Vi Phạm
-                </span>
+              <div className="card-inner p-4 space-y-1">
+                <span className="text-xs text-slate-400 block">Số Lần Bị Phạt</span>
                 <span
-                  className={`text-sm font-bold font-mono tabular-nums mt-1 block ${
-                    brokerSlashedCount > 0 ? "text-[#EF4444]" : "text-[#10B981]"
+                  className={`text-base font-bold tabular-nums block ${
+                    brokerSlashedCount > 0 ? "text-red-400" : "text-emerald-400"
                   }`}
                 >
-                  {brokerSlashedCount} lần
+                  <span className="font-mono">{brokerSlashedCount}</span> lần
                 </span>
               </div>
             </div>
 
-            {/* Red Alert if Suspicious */}
-            <div className="mt-4 p-3 rounded-md bg-[#EF4444]/10 border border-[#EF4444]/20 text-xs space-y-1">
-              <div className="flex items-center gap-2 font-semibold text-[#EF4444]">
-                <BadgeAlert className="w-4 h-4 shrink-0" />
-                <span>Cảnh Báo Dấu Hiệu Vi Phạm Nghiêm Trọng</span>
+            <div className="card-inner p-4 bg-red-500/[0.06] border border-red-500/20 text-xs space-y-1.5">
+              <div className="flex items-center gap-2 font-semibold text-red-400">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Cơ Chế Bồi Thường Tức Thì</span>
               </div>
-              <p className="text-[#94A3B8] text-[11px] leading-relaxed">
-                Nếu Broker có dấu hiệu vi phạm thỏa thuận, gian lận hoặc cố tình từ chối giải ngân/hoàn tiền theo đúng cam kết, quản trị viên sẽ áp dụng lệnh tịch thu cọc bảo chứng để bồi hoàn ngay 100% cho bên bị hại.
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Nếu Broker gian lận hoặc từ chối giải ngân/hoàn tiền theo đúng cam kết, quản trị viên sẽ áp dụng lệnh tịch thu cọc bảo chứng để bồi hoàn ngay 100% cho bên bị hại.
               </p>
             </div>
           </div>
         </div>
 
         {/* RIGHT PANE: SLASHING EXECUTION CONSOLE (6 COLS) */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="relative border border-[#1E222D] bg-[#101217] rounded-lg overflow-hidden shadow-2xl">
-            <BorderBeam colorFrom="#EF4444" colorTo="#E84142" duration={10} borderWidth={1.5} size={250} />
-            <CardSpotlight className="p-5 relative z-10" color="rgba(239, 68, 68, 0.08)" radius={300}>
-              <div className="flex items-center gap-2 pb-3 border-b border-[#1E222D]">
-                <Gavel className="w-4 h-4 text-[#EF4444]" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">
-                  Bảng Điều Khiển Xử Phạt &amp; Bồi Hoàn (Restitution Console)
-                </h2>
-              </div>
+        <div className="lg:col-span-6 space-y-6">
+          <div className="card-elevated p-6 space-y-5">
+            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.06]">
+              <Gavel className="w-4 h-4 text-red-400" />
+              <h2 className="section-title text-sm">
+                Bảng Điều Khiển Xử Phạt &amp; Bồi Hoàn
+              </h2>
+            </div>
 
             {/* Invariant Explanation Box */}
-            <div className="mt-4 p-3.5 rounded-md bg-[#161922] border border-[#1E222D] space-y-2 text-xs">
-              <span className="text-[11px] font-semibold text-[#F1F5F9] block uppercase tracking-wider">
-                Quy Trình Tịch Thu Cọc Bảo Chứng &amp; Bồi Hoàn On-Chain:
+            <div className="card-inner p-4 space-y-2 text-xs">
+              <span className="font-semibold text-white block uppercase tracking-wider">
+                Quy Trình Tịch Thu Cọc &amp; Bồi Hoàn:
               </span>
-              <ul className="space-y-1.5 text-[#94A3B8] text-[11px]">
+              <ul className="space-y-1.5 text-slate-300">
                 <li className="flex items-start gap-2">
-                  <span className="text-[#10B981] font-bold">1.</span>
+                  <span className="text-emerald-400 font-bold">1.</span>
                   <span>
-                    Hoàn trả <strong className="text-[#F1F5F9]">100% số tiền két sắt ({escrow ? formatUsdc(escrow.amount) : "0"} USDC)</strong> từ Smart Contract về ví Người Mua (Buyer).
+                    Hoàn trả <strong className="text-white">100% số tiền két sắt ({escrow ? formatUsdc(escrow.amount) : "0"} USDC)</strong> về ví Người Mua.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#EF4444] font-bold">2.</span>
+                  <span className="text-red-400 font-bold">2.</span>
                   <span>
-                    Rút phạt thêm <strong className="text-[#EF4444]">{compensationInput || "0"} USDC</strong> từ Quỹ Cọc Aave V3 của Broker để bồi thường thiệt hại cho nạn nhân.
+                    Rút phạt thêm <strong className="text-red-400">{compensationInput || "0"} USDC</strong> từ Quỹ Cọc Aave V3 của Broker để bồi thường thiệt hại.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#EF4444] font-bold">3.</span>
+                  <span className="text-red-400 font-bold">3.</span>
                   <span>
-                    Vĩnh viễn gắn cờ <strong className="text-[#EF4444]">Blacklist</strong> và hủy tư cách Trung Gian của Broker trên toàn mạng lưới TrustPact.
+                    Vĩnh viễn gắn cờ <strong className="text-red-400">Blacklist</strong> và hủy tư cách Trung Gian của Broker.
                   </span>
                 </li>
               </ul>
             </div>
 
             {/* Slashing Parameters Form */}
-            <form onSubmit={handleSlashSubmit} className="mt-5 space-y-4">
+            <form onSubmit={handleSlashSubmit} className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-[#94A3B8] block mb-1.5">
+                <label className="text-xs font-semibold text-slate-400 block mb-1.5">
                   Mã Giao Dịch Bị Xử Phạt (Escrow ID)
                 </label>
                 <input
                   type="text"
                   disabled
                   value={`Kèo #${activeEscrowId.toString()}`}
-                  className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3.5 py-2 text-xs font-mono text-[#94A3B8] cursor-not-allowed"
+                  className="input-field py-2.5 text-xs font-medium text-slate-400 cursor-not-allowed bg-black/50"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-[#94A3B8] block mb-1.5">
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
                   Mức Tiền Phạt Trừ Cọc Broker Bồi Thường (USDC)
                 </label>
                 <div className="relative">
@@ -524,36 +487,37 @@ export default function AdminDisputesPage() {
                     type="number"
                     step="0.01"
                     min="0"
+                    max={escrow ? Number(formatUsdc(escrow.amount)) : undefined}
                     disabled={!isAdminOrTreasury}
                     value={compensationInput}
                     onChange={(e) => setCompensationInput(e.target.value)}
-                    placeholder="VD: 50.00"
-                    className="w-full bg-[#161922] border border-[#1E222D] rounded-md px-3.5 py-2 text-xs font-mono text-[#F1F5F9] focus:outline-none focus:border-[#EF4444] disabled:opacity-50"
+                    placeholder="VD: 6.00"
+                    className="input-field py-2.5 pr-14 text-xs font-mono disabled:opacity-50"
                   />
-                  <span className="absolute right-3.5 top-2 text-xs font-mono text-[#64748B]">USDC</span>
+                  <span className="absolute right-3.5 top-2.5 text-xs font-mono text-slate-500">USDC</span>
                 </div>
-                <span className="text-[10px] text-[#64748B] block mt-1">
-                  Khoản tiền này sẽ được rút trực tiếp từ số dư cọc {formatUsdc(brokerStakedBalance)} USDC của Broker trên Aave.
+                <span className="text-xs text-slate-500 block mt-1">
+                  Tối đa bằng 100% giá trị kèo ({escrow ? formatUsdc(escrow.amount) : "0"} USDC), trích từ cọc {formatUsdc(brokerStakedBalance)} USDC của Broker trên Aave.
                 </span>
               </div>
 
               {/* Settlement Summary Table */}
-              <div className="p-3 rounded-md bg-[#090A0D] border border-[#1E222D] space-y-2 text-xs font-mono">
-                <div className="flex justify-between text-[#94A3B8]">
+              <div className="card-inner p-4 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-400">
                   <span>Hoàn Tiền Két Sắt:</span>
-                  <span className="text-[#10B981] tabular-nums font-bold">
+                  <span className="text-emerald-400 font-mono tabular-nums font-bold">
                     +{escrow ? formatUsdc(escrow.amount) : "0"} USDC
                   </span>
                 </div>
-                <div className="flex justify-between text-[#94A3B8]">
+                <div className="flex justify-between text-slate-400">
                   <span>Đền Bù Trừ Cọc:</span>
-                  <span className="text-[#10B981] tabular-nums font-bold">
+                  <span className="text-emerald-400 font-mono tabular-nums font-bold">
                     +{compensationInput || "0"} USDC
                   </span>
                 </div>
-                <div className="border-t border-[#1E222D] pt-1.5 flex justify-between text-xs font-bold">
-                  <span className="text-[#F1F5F9]">Tổng Nạn Nhân Nhận:</span>
-                  <span className="text-[#10B981] tabular-nums">
+                <div className="border-t border-white/[0.06] pt-2 flex justify-between text-sm font-bold">
+                  <span className="text-white">Tổng Nạn Nhân Nhận:</span>
+                  <span className="text-emerald-400 font-mono tabular-nums">
                     {(
                       (escrow ? Number(formatUsdc(escrow.amount)) : 0) +
                       Number(compensationInput || 0)
@@ -561,27 +525,23 @@ export default function AdminDisputesPage() {
                     USDC
                   </span>
                 </div>
-                <div className="flex justify-between text-[#EF4444] text-[11px] pt-1 border-t border-[#1E222D]/50">
-                  <span>Trạng Thái Broker:</span>
-                  <span className="font-bold">KHÓA BLACKLIST TOÀN BỘ</span>
-                </div>
               </div>
 
               {/* Confirmation Checkbox */}
-              <label className="flex items-start gap-2.5 p-3 rounded-md bg-[#161922] border border-[#1E222D] cursor-pointer hover:border-[#1E222D]/80">
+              <label className="flex items-start gap-3 p-3.5 rounded-xl card-inner cursor-pointer hover:border-white/[0.1] transition-colors">
                 <input
                   type="checkbox"
                   checked={evidenceConfirmed}
                   disabled={!isAdminOrTreasury}
                   onChange={(e) => setEvidenceConfirmed(e.target.checked)}
-                  className="mt-0.5 rounded border-[#1E222D] bg-[#090A0D] text-[#EF4444] focus:ring-0 disabled:opacity-50"
+                  className="mt-0.5 rounded border-white/[0.1] bg-black/50 text-brand focus:ring-0"
                 />
-                <span className="text-[11px] text-[#94A3B8] leading-tight select-none">
-                  Tôi xác nhận đã kiểm toán toàn bộ chứng từ và bằng chứng vi phạm của Broker trên hợp đồng thông minh. Tôi thực thi lệnh tịch thu cọc bảo chứng và bồi hoàn trực tiếp cho người dùng.
+                <span className="text-xs text-slate-300 leading-relaxed select-none">
+                  Tôi xác nhận đã kiểm toán toàn bộ chứng từ và bằng chứng vi phạm của Broker. Tôi thực thi lệnh tịch thu cọc bảo chứng và bồi hoàn trực tiếp cho người dùng.
                 </span>
               </label>
 
-              {/* Big Red Terminal Execution Button */}
+              {/* Action Button */}
               <ShimmerButton
                 type="submit"
                 variant="danger"
@@ -589,11 +549,11 @@ export default function AdminDisputesPage() {
                   !isAdminOrTreasury ||
                   !evidenceConfirmed ||
                   !escrow ||
-                  escrow.status !== 0 ||
+                  (escrow.status !== 0 && escrow.status !== 3) ||
                   isSlashPending ||
                   isSlashConfirming
                 }
-                className="w-full py-3.5 px-4 rounded-md text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-40"
+                className="w-full py-3.5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg disabled:opacity-40"
               >
                 <Gavel className="w-4 h-4" />
                 <span>
@@ -601,16 +561,14 @@ export default function AdminDisputesPage() {
                     ? "Đang Chờ Ký Ví..."
                     : isSlashConfirming
                     ? "Đang Xác Nhận Giao Dịch..."
-                    : "KÍCH HOẠT TỊCH THU CỌC & BỒI HOÀN NẠN NHÂN (EXECUTE RESTITUTION)"}
+                    : "Thực Thi Tịch Thu Cọc & Bồi Hoàn Nạn Nhân"}
                 </span>
               </ShimmerButton>
             </form>
-            </CardSpotlight>
           </div>
         </div>
       </div>
 
-      {/* ── TRANSACTION FEEDBACK NOTIFICATIONS ───────────────────────────── */}
       <TransactionFeedback
         status={txStatus}
         onClose={() => {
