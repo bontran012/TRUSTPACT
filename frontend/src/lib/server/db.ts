@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { SEED_SCAM_DATABASE } from "../../data/seedScamDatabase";
 
 export interface DBMessage {
   id: string;
@@ -254,50 +255,25 @@ function getDefaultData(): DBStore {
         updatedAt: Date.now() - 1200000,
       },
     },
-    scams: [
-      {
-        id: "scam-1",
-        identifier: "1903889922101",
-        bankName: "Techcombank",
-        type: "Tài khoản ngân hàng",
-        reason: "Giả mạo GDTG Telegram trung gian chiếm đoạt 1,200 USDC giao dịch P2P",
-        victimLoss: "1,200 USDC (~30.5 Triệu VNĐ)",
-        reportsCount: 5,
-        isVerified: true,
-        timestamp: "2026-10-18 14:22",
-      },
-      {
-        id: "scam-2",
-        identifier: "0451000399482",
-        bankName: "Vietcombank",
-        type: "Tài khoản ngân hàng",
-        reason: "Nhận cọc mua USDT rồi cắt đứt liên lạc, chặn Telegram nạn nhân",
-        victimLoss: "500 USDC (~12.7 Triệu VNĐ)",
-        reportsCount: 3,
-        isVerified: true,
-        timestamp: "2026-10-19 09:15",
-      },
-      {
-        id: "scam-3",
-        identifier: "@hoangminh_otc_fake",
-        type: "Username Telegram",
-        reason: "Fake nick GDTG Hoàng Minh (thay chữ l bằng chữ I hoa) để lừa nhận cọc",
-        victimLoss: "2,500 USDC (~63.5 Triệu VNĐ)",
-        reportsCount: 8,
-        isVerified: true,
-        timestamp: "2026-10-20 16:40",
-      },
-      {
-        id: "scam-4",
-        identifier: "0x71C836000000000000000000000000000000BEEF",
-        type: "Địa chỉ ví Web3",
-        reason: "Địa chỉ ví phát tán mã độc Phishing Drainer qua bot Telegram giả",
-        victimLoss: "14,800 USDC",
-        reportsCount: 12,
-        isVerified: true,
-        timestamp: "2026-10-21 11:05",
-      },
-    ],
+    scams: SEED_SCAM_DATABASE.map((s, idx) => ({
+      id: `scam-seed-${idx + 1}`,
+      identifier: s.target,
+      bankName: s.type === "bank" ? s.bankName : undefined,
+      type:
+        s.type === "bank"
+          ? "Tài khoản ngân hàng"
+          : s.type === "telegram"
+          ? "Username Telegram"
+          : s.type === "phone"
+          ? "Số điện thoại / Ví điện tử"
+          : "Địa chỉ ví Web3",
+      reason: `${s.description} [Xác thực bởi: ${s.verifiedBy}]`,
+      victimLoss: s.amountLoss,
+      reportsCount: s.flagsCount,
+      isVerified: s.status === "VERIFIED",
+      evidenceUrl: s.evidenceIpfs,
+      timestamp: "2026-11-18 20:00",
+    })),
   };
 }
 

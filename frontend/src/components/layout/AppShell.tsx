@@ -164,7 +164,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium hover:bg-amber-500/20 whitespace-nowrap transition-colors"
               >
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                <span>Chuyển sang Fuji</span>
+                <span>{t("Chuyển sang Fuji", "Switch to Fuji")}</span>
               </button>
             )}
 
@@ -247,7 +247,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                               ? currentUser.email
                               : currentUser.walletAddress
                               ? shortenAddress(currentUser.walletAddress)
-                              : "Chưa liên kết ví"}
+                              : t("Chưa liên kết ví", "Wallet not linked")}
                           </span>
                         </div>
                       </div>
@@ -257,10 +257,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           <div className="flex items-center justify-between text-[11px]">
                             <span className="text-amber-300 font-medium flex items-center gap-1.5">
                               <Wallet className="w-3.5 h-3.5 text-amber-400" />
-                              <span>Ví Web3 Avalanche</span>
+                              <span>{t("Ví Web3 Avalanche", "Avalanche Web3 Wallet")}</span>
                             </span>
                             <span className="text-[10px] text-amber-300 bg-amber-500/15 px-1.5 py-0.5 rounded">
-                              Chưa liên kết
+                              {t("Chưa liên kết", "Not linked")}
                             </span>
                           </div>
                           <button
@@ -272,14 +272,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             className="w-full py-1.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-[11px] flex items-center justify-center gap-1.5 transition-colors"
                           >
                             <LinkIcon className="w-3.5 h-3.5" />
-                            <span>Liên kết ví Web3</span>
+                            <span>{t("Liên kết ví Web3", "Link Web3 Wallet")}</span>
                           </button>
                         </div>
                       )}
 
                       <div className="px-1.5 py-1 space-y-1.5 text-xs">
                         <div className="flex justify-between items-center text-slate-400">
-                          <span>Số dư khả dụng</span>
+                          <span>{t("Số dư khả dụng", "Available Balance")}</span>
                           <span className="font-mono font-semibold text-slate-100 tabular-nums">
                             {isConnected && usdcBalance
                               ? `${formatUsdc(usdcBalance as bigint)} USDC`
@@ -288,7 +288,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
                         {currentUser.sbtId && (
                           <div className="flex justify-between items-center text-slate-400">
-                            <span>Định danh SBT</span>
+                            <span>{t("Định danh SBT", "SBT Identity")}</span>
                             <span className="font-mono font-semibold text-emerald-400">{currentUser.sbtId}</span>
                           </div>
                         )}
@@ -415,14 +415,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="hover:text-slate-200 inline-flex items-center gap-1.5 transition-colors"
             >
               <Scale className="w-3.5 h-3.5 text-slate-500" />
-              <span>Kiến trúc &amp; Pháp lý</span>
+              <span>{t("Kiến trúc & Pháp lý", "Architecture & Legal")}</span>
             </Link>
             <Link
               href="/admin/disputes"
               className="hover:text-slate-200 inline-flex items-center gap-1.5 transition-colors"
             >
               <Gavel className="w-3.5 h-3.5 text-slate-500" />
-              <span>Phân xử tranh chấp</span>
+              <span>{t("Phân xử tranh chấp", "Dispute Resolution")}</span>
             </Link>
             <a
               href="https://t.me/TrustPact_Sentinel_bot"

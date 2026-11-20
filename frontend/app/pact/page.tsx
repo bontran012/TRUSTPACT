@@ -19,10 +19,12 @@ import {
   shortenAddress,
 } from "@/src/lib/contracts";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 interface PactSummary {
   id: number;
   title: string;
+  titleEn?: string;
   amount: number;
   buyer: `0x${string}`;
   seller: `0x${string}`;
@@ -45,6 +47,7 @@ const DEFAULT_PACTS: PactSummary[] = [
   {
     id: 4,
     title: "Chuyển nhượng tài khoản số & bản quyền phần mềm (Fuji #4)",
+    titleEn: "Digital account & software license transfer (Fuji #4)",
     amount: 6,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
@@ -56,6 +59,7 @@ const DEFAULT_PACTS: PactSummary[] = [
   {
     id: 1,
     title: "Bàn giao mã nguồn Smart Contract DeFi Vault (Fuji #1)",
+    titleEn: "DeFi Vault Smart Contract source code handover (Fuji #1)",
     amount: 5,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
@@ -67,6 +71,7 @@ const DEFAULT_PACTS: PactSummary[] = [
   {
     id: 3,
     title: "Chuyển nhượng tên miền Web3 doanh nghiệp (Fuji #3 · Hòa giải)",
+    titleEn: "Corporate Web3 domain transfer (Fuji #3 · Mediated)",
     amount: 4,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
@@ -78,6 +83,7 @@ const DEFAULT_PACTS: PactSummary[] = [
   {
     id: 2,
     title: "Giao dịch tài sản số sai thông tin cam kết (Fuji #2 · Hoàn 100%)",
+    titleEn: "Digital asset transaction misrepresentation (Fuji #2 · 100% Refunded)",
     amount: 3,
     buyer: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
     seller: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
@@ -97,6 +103,9 @@ function mapNumericStatus(status?: number): PactSummary["status"] {
 
 export default function MyEscrowPactsPage() {
   const { address } = useAccount();
+  const { t, language } = useLanguage();
+  const isEn = language === "en";
+
   const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED" | "CANCELLED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [allPacts, setAllPacts] = useState<PactSummary[]>(DEFAULT_PACTS);
@@ -176,6 +185,7 @@ export default function MyEscrowPactsPage() {
     return (
       p.id.toString().includes(q) ||
       p.title.toLowerCase().includes(q) ||
+      (p.titleEn && p.titleEn.toLowerCase().includes(q)) ||
       p.brokerName.toLowerCase().includes(q) ||
       p.buyer.toLowerCase().includes(q) ||
       p.seller.toLowerCase().includes(q) ||
@@ -193,7 +203,7 @@ export default function MyEscrowPactsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-            Danh sách giao dịch ký quỹ
+            {t("Danh sách giao dịch ký quỹ", "Escrow Pact Directory")}
           </h1>
           <span className="px-2.5 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-xs font-mono text-slate-400">
             UniversalEscrow · Fuji
@@ -203,7 +213,7 @@ export default function MyEscrowPactsPage() {
         <Link href="/pact/create" className="self-start sm:self-auto shrink-0">
           <ShimmerButton variant="primary" className="px-4 py-2 text-sm font-medium">
             <Plus className="w-4 h-4" />
-            <span>Tạo giao dịch</span>
+            <span>{t("Tạo giao dịch", "Create Pact")}</span>
           </ShimmerButton>
         </Link>
       </div>
@@ -212,7 +222,7 @@ export default function MyEscrowPactsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Tổng số hợp đồng</span>
+            <span className="text-xs font-medium text-slate-400">{t("Tổng số hợp đồng", "Total Pacts")}</span>
             <div className="w-8 h-8 rounded-lg bg-[#0B0F17] border border-slate-800 flex items-center justify-center text-slate-400">
               <FileText className="w-4 h-4" />
             </div>
@@ -224,7 +234,7 @@ export default function MyEscrowPactsPage() {
 
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Đang ký quỹ</span>
+            <span className="text-xs font-medium text-slate-400">{t("Đang ký quỹ", "Active Escrows")}</span>
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
               <Clock className="w-4 h-4" />
             </div>
@@ -236,7 +246,7 @@ export default function MyEscrowPactsPage() {
 
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Đã tất toán</span>
+            <span className="text-xs font-medium text-slate-400">{t("Đã tất toán", "Settled")}</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <CheckCircle2 className="w-4 h-4" />
             </div>
@@ -248,7 +258,7 @@ export default function MyEscrowPactsPage() {
 
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-4 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Tổng giá trị (USDC)</span>
+            <span className="text-xs font-medium text-slate-400">{t("Tổng giá trị (USDC)", "Total Value (USDC)")}</span>
             <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
               <Wallet className="w-4 h-4" />
             </div>
@@ -263,10 +273,10 @@ export default function MyEscrowPactsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[#111827] border border-slate-800 w-fit overflow-x-auto">
           {[
-            { id: "ALL", label: "Tất cả" },
-            { id: "ACTIVE", label: "Đang ký quỹ" },
-            { id: "COMPLETED", label: "Đã tất toán" },
-            { id: "CANCELLED", label: "Đã hoàn tiền" },
+            { id: "ALL", label: t("Tất cả", "All") },
+            { id: "ACTIVE", label: t("Đang ký quỹ", "Active") },
+            { id: "COMPLETED", label: t("Đã tất toán", "Settled") },
+            { id: "CANCELLED", label: t("Đã hoàn tiền", "Refunded") },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -291,7 +301,7 @@ export default function MyEscrowPactsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo mã HĐ, nội dung, địa chỉ ví, GDTG..."
+            placeholder={t("Tìm theo mã HĐ, nội dung, địa chỉ ví, GDTG...", "Search by Pact ID, terms, address, broker...")}
             className="w-full rounded-lg bg-[#0B0F17] border border-slate-800 focus:border-blue-500 focus:outline-none pl-10 pr-3.5 py-2 text-sm text-slate-100 placeholder:text-slate-500 transition-colors"
           />
         </div>
@@ -304,13 +314,13 @@ export default function MyEscrowPactsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-800 bg-[#0B0F17]/70 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-4 whitespace-nowrap">Mã HĐ</th>
-                  <th className="py-3.5 px-4 min-w-[240px]">Nội dung giao dịch</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Bên bán</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">GDTG bảo chứng</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap text-right">Giá trị (USDC)</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Trạng thái</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap text-right">Thao tác</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">{t("Mã HĐ", "Pact ID")}</th>
+                  <th className="py-3.5 px-4 min-w-[240px]">{t("Nội dung giao dịch", "Transaction Terms")}</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">{t("Bên bán", "Seller")}</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">{t("GDTG bảo chứng", "Escrow Broker")}</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap text-right">{t("Giá trị (USDC)", "Value (USDC)")}</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">{t("Trạng thái", "Status")}</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap text-right">{t("Thao tác", "Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80 text-sm">
@@ -327,7 +337,7 @@ export default function MyEscrowPactsPage() {
                         </span>
                         {p.isCustom && (
                           <span className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/25 text-[10px] font-semibold text-blue-400">
-                            MỚI
+                            {t("MỚI", "NEW")}
                           </span>
                         )}
                       </div>
@@ -339,10 +349,10 @@ export default function MyEscrowPactsPage() {
                         href={`/pact/${p.id}`}
                         className="font-medium text-slate-100 group-hover:text-blue-400 transition-colors line-clamp-1"
                       >
-                        {p.title}
+                        {isEn && p.titleEn ? p.titleEn : p.title}
                       </Link>
                       <span className="text-xs font-mono text-slate-500 block mt-0.5">
-                        Bên mua: {shortenAddress(p.buyer)}
+                        {t("Bên mua", "Buyer")}: {shortenAddress(p.buyer)}
                       </span>
                     </td>
 
@@ -381,21 +391,21 @@ export default function MyEscrowPactsPage() {
                       {p.status === "ACTIVE" ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-400 text-xs font-semibold">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                          <span>Đang ký quỹ</span>
+                          <span>{t("Đang ký quỹ", "Active")}</span>
                         </span>
                       ) : p.status === "DISPUTED" ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/25 text-red-400 text-xs font-semibold">
                           <AlertTriangle className="w-3 h-3" />
-                          <span>Đang tranh chấp</span>
+                          <span>{t("Đang tranh chấp", "Disputed")}</span>
                         </span>
                       ) : p.status === "COMPLETED" ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                          <span>Đã tất toán</span>
+                          <span>{t("Đã tất toán", "Settled")}</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-400 text-xs font-semibold">
-                          <span>Đã hoàn tiền</span>
+                          <span>{t("Đã hoàn tiền", "Refunded")}</span>
                         </span>
                       )}
                     </td>
@@ -406,7 +416,7 @@ export default function MyEscrowPactsPage() {
                         href={`/pact/${p.id}`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-100 transition-colors"
                       >
-                        <span>Chi tiết</span>
+                        <span>{t("Chi tiết", "Details")}</span>
                         <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-colors" />
                       </Link>
                     </td>
@@ -422,10 +432,10 @@ export default function MyEscrowPactsPage() {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-slate-200">
-                Không tìm thấy giao dịch phù hợp
+                {t("Không tìm thấy giao dịch phù hợp", "No matching transactions found")}
               </p>
               <p className="text-xs text-slate-400">
-                Thử thay đổi bộ lọc tìm kiếm hoặc khởi tạo giao dịch ký quỹ mới.
+                {t("Thử thay đổi bộ lọc tìm kiếm hoặc khởi tạo giao dịch ký quỹ mới.", "Try adjusting your search filters or create a new escrow pact.")}
               </p>
             </div>
             <div className="pt-1">
@@ -434,7 +444,7 @@ export default function MyEscrowPactsPage() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500/30 text-white text-xs font-semibold transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                <span>Tạo giao dịch</span>
+                <span>{t("Tạo giao dịch", "Create Pact")}</span>
               </Link>
             </div>
           </div>

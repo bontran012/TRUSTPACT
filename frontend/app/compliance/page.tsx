@@ -14,8 +14,10 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { VERIFIED_FUJI_CONTRACTS } from "@/src/lib/contracts";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function SecurityAndTransparencyPage() {
+  const { t } = useLanguage();
   const [copiedAddr, setCopiedAddr] = useState<string | null>(null);
 
   const handleCopy = (address: string) => {
@@ -30,13 +32,16 @@ export default function SecurityAndTransparencyPage() {
       <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-2.5">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300">
           <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-          <span>Kiến trúc kỹ thuật &amp; Pháp lý</span>
+          <span>{t("Kiến trúc kỹ thuật & Pháp lý", "Technical & Legal Architecture")}</span>
         </div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-100">
-          Kiến trúc bảo vệ dòng tiền &amp; Khung tuân thủ pháp lý
+          {t("Kiến trúc bảo vệ dòng tiền & Khung tuân thủ pháp lý", "Fund Protection Architecture & Legal Framework")}
         </h1>
         <p className="text-sm text-slate-400 leading-relaxed max-w-3xl">
-          Toàn bộ quy trình ký quỹ và bảo chứng thanh khoản trên TrustPact được thực thi phi tập trung thông qua hệ thống hợp đồng thông minh trên mạng Avalanche. Không cá nhân hay đơn vị vận hành nào có quyền đơn phương lưu giữ hoặc chiếm dụng tài sản của người dùng.
+          {t(
+            "Toàn bộ quy trình ký quỹ và bảo chứng thanh khoản trên TrustPact được thực thi phi tập trung thông qua hệ thống hợp đồng thông minh trên mạng Avalanche. Không cá nhân hay đơn vị vận hành nào có quyền đơn phương lưu giữ hoặc chiếm dụng tài sản của người dùng.",
+            "All escrow and liquidity underwriting on TrustPact is executed in a non-custodial manner via Avalanche smart contracts. No single operator has unilateral access to user funds."
+          )}
         </p>
       </div>
 
@@ -45,7 +50,7 @@ export default function SecurityAndTransparencyPage() {
         <div className="flex items-center gap-2">
           <Lock className="w-4 h-4 text-blue-400" />
           <h2 className="text-base font-bold text-slate-100">
-            1. Cơ chế bảo vệ dòng tiền ba lớp (Core Security Architecture)
+            {t("1. Cơ chế bảo vệ dòng tiền ba lớp (Core Security Architecture)", "1. Three-Tier Fund Security Architecture")}
           </h2>
         </div>
 
@@ -55,10 +60,13 @@ export default function SecurityAndTransparencyPage() {
               <span className="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-blue-400 flex items-center justify-center font-mono text-xs font-bold shrink-0">
                 01
               </span>
-              <span>Hợp đồng ký quỹ đồng thuận 2/2</span>
+              <span>{t("Hợp đồng ký quỹ đồng thuận 2/2", "2-of-2 Consensus Escrow")}</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Tiền ký quỹ chỉ được giải ngân cho Bên bán khi có đủ xác nhận của cả Bên mua và GDTG, hoặc theo phán quyết trọng tài khi phát sinh tranh chấp.
+              {t(
+                "Tiền ký quỹ chỉ được giải ngân cho Bên bán khi có đủ xác nhận của cả Bên mua và GDTG, hoặc theo phán quyết trọng tài khi phát sinh tranh chấp.",
+                "Funds are only released to the seller upon mutual confirmation from both the buyer and broker, or through arbitration ruling in case of disputes."
+              )}
             </p>
           </div>
 
@@ -67,10 +75,13 @@ export default function SecurityAndTransparencyPage() {
               <span className="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-amber-400 flex items-center justify-center font-mono text-xs font-bold shrink-0">
                 02
               </span>
-              <span>Khấu trừ thế chấp GDTG (Slashing)</span>
+              <span>{t("Khấu trừ thế chấp GDTG (Slashing)", "Broker Collateral Slashing")}</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              GDTG bắt buộc duy trì vốn thế chấp USDC tỷ lệ 1:1 trước khi bảo chứng giao dịch. Khi có bằng chứng GDTG thông đồng hoặc vi phạm nghĩa vụ, vốn thế chấp bị khấu trừ trực tiếp để bồi hoàn cho người dùng.
+              {t(
+                "GDTG bắt buộc duy trì vốn thế chấp USDC tỷ lệ 1:1 trước khi bảo chứng giao dịch. Khi có bằng chứng GDTG thông đồng hoặc vi phạm nghĩa vụ, vốn thế chấp bị khấu trừ trực tiếp để bồi hoàn cho người dùng.",
+                "Brokers must maintain a 1:1 USDC collateral ratio. In event of foul play or breach of duty, their staked collateral is directly slashed to indemnify the victim."
+              )}
             </p>
           </div>
 
@@ -79,10 +90,13 @@ export default function SecurityAndTransparencyPage() {
               <span className="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-emerald-400 flex items-center justify-center font-mono text-xs font-bold shrink-0">
                 03
               </span>
-              <span>Hoàn tiền tự động khi quá hạn</span>
+              <span>{t("Hoàn tiền tự động khi quá hạn", "Auto-Refund on Timeout")}</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Trường hợp quá thời hạn cam kết mà Bên bán không hoàn tất nghĩa vụ bàn giao, Bên mua có toàn quyền kích hoạt lệnh thu hồi 100% tiền ký quỹ trực tiếp từ hợp đồng thông minh.
+              {t(
+                "Trường hợp quá thời hạn cam kết mà Bên bán không hoàn tất nghĩa vụ bàn giao, Bên mua có toàn quyền kích hoạt lệnh thu hồi 100% tiền ký quỹ trực tiếp từ hợp đồng thông minh.",
+                "If the handover deadline lapses without fulfillment, the buyer has unilateral rights to claim a 100% full refund directly from the smart contract."
+              )}
             </p>
           </div>
         </div>
@@ -94,7 +108,7 @@ export default function SecurityAndTransparencyPage() {
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-blue-400" />
             <h2 className="text-base font-bold text-slate-100">
-              2. Danh mục hợp đồng thông minh đã kiểm chứng
+              {t("2. Danh mục hợp đồng thông minh đã kiểm chứng", "2. Verified On-Chain Smart Contracts")}
             </h2>
           </div>
           <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 rounded-md font-semibold">
@@ -130,12 +144,12 @@ export default function SecurityAndTransparencyPage() {
                   {copiedAddr === c.address ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400">Đã chép</span>
+                      <span className="text-emerald-400">{t("Đã chép", "Copied")}</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Sao chép</span>
+                      <span>{t("Sao chép", "Copy")}</span>
                     </>
                   )}
                 </button>
@@ -159,26 +173,32 @@ export default function SecurityAndTransparencyPage() {
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-emerald-400" />
           <h2 className="text-base font-bold text-slate-100">
-            3. Quản trị vốn thế chấp GDTG &amp; Lợi tức thực Aave V3
+            {t("3. Quản trị vốn thế chấp GDTG & Lợi tức thực Aave V3", "3. Broker Collateral Management & Aave V3 Yield")}
           </h2>
         </div>
 
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
           <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-1.5">
             <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider block">
-              Ủy thác thanh khoản minh bạch
+              {t("Ủy thác thanh khoản minh bạch", "Transparent Liquidity Delegation")}
             </span>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Vốn thế chấp của GDTG tại <code className="font-mono text-slate-200">StakedBrokerRegistry</code> được nạp trực tiếp vào <strong className="text-slate-200">Aave V3 Lending Pool trên Avalanche (0x8B9b...bb40)</strong> để nhận lợi tức thực tế từ nhu cầu vay thanh khoản thị trường.
+              {t(
+                "Vốn thế chấp của GDTG tại StakedBrokerRegistry được nạp trực tiếp vào Aave V3 Lending Pool trên Avalanche (0x8B9b...bb40) để nhận lợi tức thực tế từ nhu cầu vay thanh khoản thị trường.",
+                "Broker collateral in StakedBrokerRegistry is routed directly to the Aave V3 Lending Pool on Avalanche (0x8B9b...bb40) to earn real organic yield."
+              )}
             </p>
           </div>
 
           <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-1.5">
             <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider block">
-              Nguyên tắc bảo toàn 100% vốn gốc
+              {t("Nguyên tắc bảo toàn 100% vốn gốc", "100% Principal Protection")}
             </span>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Lợi tức phát sinh được phân bổ tự động 80% cho GDTG và 20% vào Quỹ dự phòng hệ thống. Vốn thế chấp gốc luôn duy trì tỷ lệ bảo chứng 1:1 cho hạn mức giao dịch, tuyệt đối không sử dụng cho hoạt động đầu cơ rủi ro.
+              {t(
+                "Lợi tức phát sinh được phân bổ tự động 80% cho GDTG và 20% vào Quỹ dự phòng hệ thống. Vốn thế chấp gốc luôn duy trì tỷ lệ bảo chứng 1:1 cho hạn mức giao dịch, tuyệt đối không sử dụng cho hoạt động đầu cơ rủi ro.",
+                "Accrued yield is split 80% to the broker and 20% to the protocol reserve fund. Principal is pegged 1:1 against transaction volume and never subjected to speculative risks."
+              )}
             </p>
           </div>
         </div>
@@ -189,29 +209,38 @@ export default function SecurityAndTransparencyPage() {
         <div className="flex items-center gap-2">
           <Scale className="w-4 h-4 text-amber-400" />
           <h2 className="text-base font-bold text-slate-100">
-            4. Tuyên bố pháp lý &amp; Giới hạn trách nhiệm
+            {t("4. Tuyên bố pháp lý & Giới hạn trách nhiệm", "4. Legal Disclaimers & Responsibility Limits")}
           </h2>
         </div>
 
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3 text-xs text-slate-400 leading-relaxed">
           <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-1">
-            <strong className="text-slate-200 block">Bản chất hạ tầng phần mềm phi lưu ký</strong>
+            <strong className="text-slate-200 block">{t("Bản chất hạ tầng phần mềm phi lưu ký", "Non-Custodial Protocol Infrastructure")}</strong>
             <p>
-              TrustPact là giao thức phần mềm phi tập trung vận hành bằng hợp đồng thông minh mã nguồn mở. Hệ thống không phải tổ chức tín dụng, không nhận tiền gửi tiết kiệm, không cam kết lợi nhuận cố định và không cung cấp dịch vụ trung gian thanh toán tiền pháp định.
+              {t(
+                "TrustPact là giao thức phần mềm phi tập trung vận hành bằng hợp đồng thông minh mã nguồn mở. Hệ thống không phải tổ chức tín dụng, không nhận tiền gửi tiết kiệm, không cam kết lợi nhuận cố định và không cung cấp dịch vụ trung gian thanh toán tiền pháp định.",
+                "TrustPact is a decentralized, non-custodial software protocol governed by open-source smart contracts. It is not a financial institution, does not take deposits, and does not act as a fiat payment intermediary."
+              )}
             </p>
           </div>
 
           <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-1">
-            <strong className="text-slate-200 block">Tuân thủ quy định pháp luật hiện hành</strong>
+            <strong className="text-slate-200 block">{t("Tuân thủ quy định pháp luật hiện hành", "Regulatory Compliance")}</strong>
             <p>
-              Giao thức không sử dụng tài sản mã hóa làm phương tiện thanh toán thay thế tiền pháp định (VND) theo Nghị định 80/2016/NĐ-CP. Cơ chế hợp đồng ký quỹ vận hành trên nguyên tắc biện pháp bảo đảm thực hiện nghĩa vụ dân sự (ký quỹ, ký cược) theo Điều 292 và Điều 328 Bộ luật Dân sự 2015 đối với giao dịch tài sản số và dịch vụ kỹ thuật.
+              {t(
+                "Giao thức không sử dụng tài sản mã hóa làm phương tiện thanh toán thay thế tiền pháp định (VND) theo Nghị định 80/2016/NĐ-CP. Cơ chế hợp đồng ký quỹ vận hành trên nguyên tắc biện pháp bảo đảm thực hiện nghĩa vụ dân sự (ký quỹ, ký cược) theo Điều 292 và Điều 328 Bộ luật Dân sự 2015 đối với giao dịch tài sản số và dịch vụ kỹ thuật.",
+                "The protocol operates strictly on civil collateral & escrow principles under Civil Code 2015 provisions for secure digital asset and technical service transactions."
+              )}
             </p>
           </div>
 
           <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-1">
-            <strong className="text-slate-200 block">Trách nhiệm thẩm định của các bên tham gia</strong>
+            <strong className="text-slate-200 block">{t("Trách nhiệm thẩm định của các bên tham gia", "Participant Due Diligence")}</strong>
             <p>
-              Người dùng có trách nhiệm kiểm tra chính xác địa chỉ ví, điều khoản nghiệm thu và định danh đối tác trước khi ký xác nhận giao dịch trên ví Web3. Giao thức không chịu trách nhiệm đối với các thỏa thuận chuyển khoản riêng lẻ nằm ngoài phạm vi Hợp đồng ký quỹ.
+              {t(
+                "Người dùng có trách nhiệm kiểm tra chính xác địa chỉ ví, điều khoản nghiệm thu và định danh đối tác trước khi ký xác nhận giao dịch trên ví Web3. Giao thức không chịu trách nhiệm đối với các thỏa thuận chuyển khoản riêng lẻ nằm ngoài phạm vi Hợp đồng ký quỹ.",
+                "Users must verify counterparty credentials, terms, and addresses prior to signing transactions with Web3 wallets. The protocol is not responsible for off-contract transactions."
+              )}
             </p>
           </div>
         </div>
@@ -220,13 +249,13 @@ export default function SecurityAndTransparencyPage() {
       {/* ── BOTTOM ACTION BAR ───────────────────────────────────────────── */}
       <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <span className="text-xs text-slate-400 font-mono">
-          Mã nguồn kiểm chứng công khai · Phi lưu ký · Avalanche C-Chain
+          {t("Mã nguồn kiểm chứng công khai · Phi lưu ký · Avalanche C-Chain", "Publicly Verified Source Code · Non-Custodial · Avalanche C-Chain")}
         </span>
         <Link
           href="/pact/create"
           className="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500/30 text-white text-xs font-semibold transition-colors inline-flex items-center justify-center gap-2 shrink-0"
         >
-          <span>Tạo giao dịch ký quỹ</span>
+          <span>{t("Tạo giao dịch ký quỹ", "Create Escrow Pact")}</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>

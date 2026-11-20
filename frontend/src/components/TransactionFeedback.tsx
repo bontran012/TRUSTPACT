@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Loader2, CheckCircle2, AlertTriangle, ExternalLink, X } from "lucide-react";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export interface TxStatus {
   step: "idle" | "awaiting_signature" | "confirming" | "success" | "error";
@@ -16,6 +17,7 @@ interface TransactionFeedbackProps {
 }
 
 export function TransactionFeedback({ status, onClose }: TransactionFeedbackProps) {
+  const { t } = useLanguage();
   if (status.step === "idle") return null;
 
   return (
@@ -46,13 +48,13 @@ export function TransactionFeedback({ status, onClose }: TransactionFeedbackProp
 
             <div className="flex flex-col">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                {status.actionTitle || "Giao dịch hợp đồng thông minh"}
+                {status.actionTitle || t("Giao dịch hợp đồng thông minh", "Smart Contract Transaction")}
               </span>
               <span className="text-sm font-medium text-slate-100">
-                {status.step === "awaiting_signature" && "Đang chờ xác nhận chữ ký trên ví..."}
-                {status.step === "confirming" && "Đang ghi nhận giao dịch trên Avalanche Fuji..."}
-                {status.step === "success" && "Giao dịch đã xác nhận trên chuỗi"}
-                {status.step === "error" && "Giao dịch không thành công"}
+                {status.step === "awaiting_signature" && t("Đang chờ xác nhận chữ ký trên ví...", "Awaiting wallet signature...")}
+                {status.step === "confirming" && t("Đang ghi nhận giao dịch trên Avalanche Fuji...", "Confirming on Avalanche Fuji...")}
+                {status.step === "success" && t("Giao dịch đã xác nhận trên chuỗi", "Transaction confirmed on-chain")}
+                {status.step === "error" && t("Giao dịch không thành công", "Transaction failed")}
               </span>
             </div>
           </div>
@@ -61,7 +63,7 @@ export function TransactionFeedback({ status, onClose }: TransactionFeedbackProp
             <button
               onClick={onClose}
               className="text-slate-500 hover:text-slate-200 transition-colors p-1 rounded-lg hover:bg-slate-800"
-              aria-label="Đóng"
+              aria-label={t("Đóng", "Close")}
             >
               <X className="w-4 h-4" />
             </button>
@@ -70,7 +72,7 @@ export function TransactionFeedback({ status, onClose }: TransactionFeedbackProp
 
         {status.txHash && (
           <div className="pt-2.5 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400">Mã giao dịch:</span>
+            <span className="text-slate-400">{t("Mã giao dịch:", "Tx Hash:")}</span>
             <a
               href={`https://testnet.snowtrace.io/tx/${status.txHash}`}
               target="_blank"

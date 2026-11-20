@@ -25,10 +25,12 @@ import {
 import { TransactionFeedback, TxStatus } from "@/src/components/TransactionFeedback";
 import { ShimmerButton } from "@/src/components/ui/ShimmerButton";
 import { useAuth } from "@/src/context/AuthContext";
+import { useLanguage } from "@/src/context/LanguageContext";
 
 export default function BrokerStakingAndYieldPage() {
   const { address } = useAccount();
   const { currentUser, setIsAuthModalOpen, setIsLinkWalletModalOpen } = useAuth();
+  const { t } = useLanguage();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
@@ -244,20 +246,25 @@ export default function BrokerStakingAndYieldPage() {
             <span className="font-mono">StakedBrokerRegistry · Aave V3 Fuji</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-100 tracking-tight">
-            Quản lý thế chấp GDTG &amp; Lãi suất Aave V3
+            {t("Quản lý thế chấp GDTG & Lãi suất Aave V3", "GDTG Collateral & Aave V3 Yield Console")}
           </h1>
           <p className="text-sm text-slate-400">
-            Vốn thế chấp bảo chứng của GDTG tự động ủy thác sinh lời trên Aave V3 (phân bổ 80% cho GDTG / 20% Quỹ dự phòng).
+            {t(
+              "Vốn thế chấp bảo chứng của GDTG tự động ủy thác sinh lời trên Aave V3 (phân bổ 80% cho GDTG / 20% Quỹ dự phòng).",
+              "Broker collateral is automatically deposited into Aave V3 liquidity pools (80% yield allocated to Broker / 20% to Reserve Fund)."
+            )}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap shrink-0">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold">
-            {isBrokerProfile ? "Tài khoản GDTG bảo chứng" : "Đăng ký hạn mức GDTG"}
+            {isBrokerProfile
+              ? t("Tài khoản GDTG bảo chứng", "Verified Broker Account")
+              : t("Đăng ký hạn mức GDTG", "Register Broker Quota")}
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Tỷ lệ bảo chứng 1:1 (100% Quota)</span>
+            <span>{t("Tỷ lệ bảo chứng 1:1 (100% Quota)", "1:1 Collateral Ratio (100% Quota)")}</span>
           </span>
         </div>
       </div>
@@ -267,7 +274,9 @@ export default function BrokerStakingAndYieldPage() {
         {/* Card 1: Vốn thế chấp gốc */}
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Vốn thế chấp gốc</span>
+            <span className="text-xs text-slate-400 font-medium">
+              {t("Vốn thế chấp gốc", "Principal Collateral")}
+            </span>
             <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
               <Landmark className="w-4 h-4" />
             </div>
@@ -279,16 +288,16 @@ export default function BrokerStakingAndYieldPage() {
           <div className="pt-1 border-t border-slate-800/80">
             {isBlacklisted ? (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 text-red-400 border border-red-500/30 text-[11px] font-semibold">
-                Đình chỉ hoạt động
+                {t("Đình chỉ hoạt động", "Suspended")}
               </span>
             ) : isVerified ? (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold">
                 <Check className="w-3 h-3" />
-                <span>Đã xác thực</span>
+                <span>{t("Đã xác thực", "Verified")}</span>
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-medium">
-                Chưa kích hoạt
+                {t("Chưa kích hoạt", "Inactive")}
               </span>
             )}
           </div>
@@ -297,7 +306,9 @@ export default function BrokerStakingAndYieldPage() {
         {/* Card 2: Hạn mức khả dụng */}
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Hạn mức khả dụng</span>
+            <span className="text-xs text-slate-400 font-medium">
+              {t("Hạn mức khả dụng", "Available Quota")}
+            </span>
             <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-blue-400">
               <ShieldCheck className="w-4 h-4" />
             </div>
@@ -319,10 +330,12 @@ export default function BrokerStakingAndYieldPage() {
             </div>
             <div className="flex justify-between text-[11px] text-slate-400">
               <span>
-                Đang bảo lãnh: <strong className="font-mono tabular-nums text-slate-200">{activeAllocatedNum.toLocaleString()}</strong>
+                {t("Đang bảo lãnh", "Allocated")}:{" "}
+                <strong className="font-mono tabular-nums text-slate-200">{activeAllocatedNum.toLocaleString()}</strong>
               </span>
               <span>
-                Khả dụng: <strong className="font-mono tabular-nums text-emerald-400">{availableQuotaNum.toLocaleString()}</strong>
+                {t("Khả dụng", "Available")}:{" "}
+                <strong className="font-mono tabular-nums text-emerald-400">{availableQuotaNum.toLocaleString()}</strong>
               </span>
             </div>
           </div>
@@ -331,7 +344,9 @@ export default function BrokerStakingAndYieldPage() {
         {/* Card 3: Lãi thực Aave V3 */}
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Lãi thực Aave V3</span>
+            <span className="text-xs text-slate-400 font-medium">
+              {t("Lãi thực Aave V3", "Aave V3 Real Yield")}
+            </span>
             <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
               <TrendingUp className="w-4 h-4" />
             </div>
@@ -342,10 +357,12 @@ export default function BrokerStakingAndYieldPage() {
           </div>
           <div className="text-[11px] text-slate-400 flex justify-between pt-1 border-t border-slate-800/80">
             <span>
-              GDTG nhận (80%): <strong className="text-emerald-400 font-mono tabular-nums">+{brokerShare80.toFixed(2)}</strong>
+              {t("GDTG nhận (80%)", "Broker Share (80%)")}:{" "}
+              <strong className="text-emerald-400 font-mono tabular-nums">+{brokerShare80.toFixed(2)}</strong>
             </span>
             <span>
-              Dự phòng (20%): <strong className="text-slate-200 font-mono tabular-nums">+{treasuryShare20.toFixed(2)}</strong>
+              {t("Dự phòng (20%)", "Treasury (20%)")}:{" "}
+              <strong className="text-slate-200 font-mono tabular-nums">+{treasuryShare20.toFixed(2)}</strong>
             </span>
           </div>
         </div>
@@ -353,21 +370,23 @@ export default function BrokerStakingAndYieldPage() {
         {/* Card 4: Hiệu suất giao dịch */}
         <div className="bg-[#111827] border border-slate-800 rounded-xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">Hiệu suất giao dịch</span>
+            <span className="text-xs text-slate-400 font-medium">
+              {t("Hiệu suất giao dịch", "Deal Performance")}
+            </span>
             <div className="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
               <Award className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-100 font-mono tabular-nums">
             {successfulDeals}/{totalDeals}
-            <span className="text-xs font-sans text-slate-400 font-normal ml-1.5">hợp đồng</span>
+            <span className="text-xs font-sans text-slate-400 font-normal ml-1.5">{t("hợp đồng", "pacts")}</span>
           </div>
           <div className="flex justify-between text-[11px] pt-1 border-t border-slate-800/80">
             <span className="text-emerald-400 font-semibold font-mono tabular-nums">
-              Hoàn thành {totalDeals > 0 ? ((successfulDeals / totalDeals) * 100).toFixed(1) : "100"}%
+              {t("Hoàn thành", "Success rate")} {totalDeals > 0 ? ((successfulDeals / totalDeals) * 100).toFixed(1) : "100"}%
             </span>
             <span className="text-slate-400">
-              Khấu trừ: <strong className="font-mono tabular-nums text-slate-200">{slashedCount}</strong>
+              {t("Khấu trừ", "Slashed")}: <strong className="font-mono tabular-nums text-slate-200">{slashedCount}</strong>
             </span>
           </div>
         </div>
@@ -390,7 +409,7 @@ export default function BrokerStakingAndYieldPage() {
                 }`}
               >
                 <ArrowUpRight className="w-4 h-4 text-emerald-400" />
-                <span>Nạp vốn thế chấp</span>
+                <span>{t("Nạp vốn thế chấp", "Deposit Collateral")}</span>
               </button>
               <button
                 type="button"
@@ -402,7 +421,7 @@ export default function BrokerStakingAndYieldPage() {
                 }`}
               >
                 <ArrowDownLeft className="w-4 h-4 text-amber-400" />
-                <span>Rút vốn &amp; Nhận lãi</span>
+                <span>{t("Rút vốn & Nhận lãi", "Withdraw & Claim Yield")}</span>
               </button>
             </div>
 
@@ -412,10 +431,10 @@ export default function BrokerStakingAndYieldPage() {
                 <div className="space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
                     <label className="font-semibold text-slate-300">
-                      Số lượng USDC nạp thế chấp bảo chứng
+                      {t("Số lượng USDC nạp thế chấp bảo chứng", "USDC Collateral Amount")}
                     </label>
                     <span className="text-slate-400">
-                      Số dư ví:{" "}
+                      {t("Số dư ví", "Wallet balance")}:{" "}
                       <strong className="font-mono tabular-nums text-slate-100">
                         {formatUsdc(userUsdcBalance as bigint)} USDC
                       </strong>
@@ -429,7 +448,7 @@ export default function BrokerStakingAndYieldPage() {
                       step="any"
                       value={stakeInput}
                       onChange={(e) => setStakeInput(e.target.value)}
-                      placeholder="Nhập số lượng USDC..."
+                      placeholder={t("Nhập số lượng USDC...", "Enter USDC amount...")}
                       className="w-full bg-[#0B0F17] border border-slate-700 focus:border-blue-500 focus:outline-none rounded-lg pl-4 pr-20 py-3 text-lg font-mono font-bold text-slate-100 tabular-nums transition-colors"
                       required
                     />
@@ -459,11 +478,11 @@ export default function BrokerStakingAndYieldPage() {
                 {/* Routing Flow */}
                 <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-3">
                   <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">
-                    Luồng lưu ký &amp; sinh lời tự động
+                    {t("Luồng lưu ký & sinh lời tự động", "Automated Custody & Yield Routing")}
                   </span>
                   <div className="flex items-center justify-between text-center gap-2 text-xs font-mono">
                     <div className="py-2 px-2.5 rounded-lg bg-slate-900 border border-slate-800 flex-1 text-slate-200">
-                      Ví GDTG
+                      {t("Ví GDTG", "Broker Wallet")}
                     </div>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                     <div className="py-2 px-2.5 rounded-lg bg-slate-900 border border-slate-800 flex-1 text-blue-400">
@@ -475,7 +494,7 @@ export default function BrokerStakingAndYieldPage() {
                     </div>
                   </div>
                   <div className="flex justify-between items-center pt-2.5 border-t border-slate-800 text-xs text-slate-400">
-                    <span>Hạn mức bảo chứng mở thêm (100% 1:1):</span>
+                    <span>{t("Hạn mức bảo chứng mở thêm (100% 1:1):", "Additional Underwriting Quota (1:1):")}</span>
                     <strong className="text-emerald-400 font-mono font-bold tabular-nums">
                       +{(parseFloat(stakeInput || "0") * 1.0).toLocaleString()} USDC
                     </strong>
@@ -493,10 +512,10 @@ export default function BrokerStakingAndYieldPage() {
                     {isStakeApproved ? (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>1. Đã cấp quyền USDC</span>
+                        <span>{t("1. Đã cấp quyền USDC", "1. USDC Approved")}</span>
                       </>
                     ) : (
-                      <span>1. Cấp quyền USDC (Approve)</span>
+                      <span>{t("1. Cấp quyền USDC (Approve)", "1. Approve USDC")}</span>
                     )}
                   </ShimmerButton>
 
@@ -507,7 +526,7 @@ export default function BrokerStakingAndYieldPage() {
                     className="py-3 rounded-lg"
                   >
                     <ArrowUpRight className="w-4 h-4" />
-                    <span>2. Nạp thế chấp &amp; Kích hoạt lãi</span>
+                    <span>{t("2. Nạp thế chấp & Kích hoạt lãi", "2. Deposit & Activate Yield")}</span>
                   </ShimmerButton>
                 </div>
               </form>
@@ -519,10 +538,10 @@ export default function BrokerStakingAndYieldPage() {
                 <div className="space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
                     <label className="font-semibold text-slate-300">
-                      Số lượng vốn thế chấp muốn rút về ví
+                      {t("Số lượng vốn thế chấp muốn rút về ví", "Collateral Amount to Withdraw")}
                     </label>
                     <span className="text-slate-400">
-                      Tối đa khả dụng:{" "}
+                      {t("Tối đa khả dụng", "Max available")}:{" "}
                       <strong className="font-mono tabular-nums text-slate-100">
                         {maxFreeStakeToUnstake.toLocaleString()} USDC
                       </strong>
@@ -536,7 +555,7 @@ export default function BrokerStakingAndYieldPage() {
                       step="any"
                       value={unstakeInput}
                       onChange={(e) => setUnstakeInput(e.target.value)}
-                      placeholder={`Tối đa ${maxFreeStakeToUnstake} USDC`}
+                      placeholder={t(`Tối đa ${maxFreeStakeToUnstake} USDC`, `Max ${maxFreeStakeToUnstake} USDC`)}
                       className="w-full bg-[#0B0F17] border border-slate-700 focus:border-blue-500 focus:outline-none rounded-lg pl-4 pr-24 py-3 text-lg font-mono font-bold text-slate-100 tabular-nums transition-colors"
                       required
                     />
@@ -545,29 +564,29 @@ export default function BrokerStakingAndYieldPage() {
                       onClick={() => setUnstakeInput(String(maxFreeStakeToUnstake))}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-200 font-semibold transition-colors"
                     >
-                      TỐI ĐA
+                      {t("TỐI ĐA", "MAX")}
                     </button>
                   </div>
                 </div>
 
                 <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-2.5 text-xs">
                   <span className="text-slate-400 font-semibold uppercase tracking-wider block">
-                    Bảng kê tất toán rút vốn
+                    {t("Bảng kê tất toán rút vốn", "Settlement Breakdown")}
                   </span>
                   <div className="flex justify-between text-slate-400">
-                    <span>Vốn thế chấp gốc rút về</span>
+                    <span>{t("Vốn thế chấp gốc rút về", "Principal collateral withdrawal")}</span>
                     <span className="text-slate-100 font-mono font-semibold tabular-nums">
                       {unstakeAmountNum.toFixed(2)} USDC
                     </span>
                   </div>
                   <div className="flex justify-between text-slate-400">
-                    <span>80% lợi tức Aave V3 tích lũy</span>
+                    <span>{t("80% lợi tức Aave V3 tích lũy", "80% Accrued Aave V3 yield")}</span>
                     <span className="text-emerald-400 font-mono font-semibold tabular-nums">
                       +{brokerShare80.toFixed(2)} USDC
                     </span>
                   </div>
                   <div className="pt-2.5 border-t border-slate-800 flex justify-between font-bold text-sm text-slate-100">
-                    <span>Tổng thực nhận về ví</span>
+                    <span>{t("Tổng thực nhận về ví", "Net Received in Wallet")}</span>
                     <span className="text-emerald-400 font-mono tabular-nums">
                       {(unstakeAmountNum + Number(brokerShare80)).toFixed(2)} USDC
                     </span>
@@ -576,7 +595,10 @@ export default function BrokerStakingAndYieldPage() {
 
                 {!isUnstakeValid && unstakeAmountNum > maxFreeStakeToUnstake && (
                   <div className="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
-                    Số tiền rút vượt quá hạn mức khả dụng ({maxFreeStakeToUnstake.toLocaleString()} USDC). Phần vốn còn lại đang bảo chứng cho các hợp đồng đang mở.
+                    {t(
+                      `Số tiền rút vượt quá hạn mức khả dụng (${maxFreeStakeToUnstake.toLocaleString()} USDC). Phần vốn còn lại đang bảo chứng cho các hợp đồng đang mở.`,
+                      `Withdrawal exceeds available quota (${maxFreeStakeToUnstake.toLocaleString()} USDC). Remaining funds are actively underwriting ongoing escrow pacts.`
+                    )}
                   </div>
                 )}
 
@@ -587,7 +609,7 @@ export default function BrokerStakingAndYieldPage() {
                   className="w-full py-3 rounded-lg"
                 >
                   <ArrowDownLeft className="w-4 h-4" />
-                  <span>Rút vốn gốc &amp; Nhận lãi về ví</span>
+                  <span>{t("Rút vốn gốc & Nhận lãi về ví", "Withdraw Principal & Claim Yield")}</span>
                 </ShimmerButton>
               </form>
             )}
@@ -599,7 +621,7 @@ export default function BrokerStakingAndYieldPage() {
           <div className="bg-[#111827] border border-slate-800 rounded-xl p-6 space-y-5">
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
               <h3 className="text-sm font-bold text-slate-100">
-                Đối soát kế toán On-Chain
+                {t("Đối soát kế toán On-Chain", "On-Chain Accounting Proof")}
               </h3>
               <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold">
                 Real-Yield Proof
@@ -608,19 +630,19 @@ export default function BrokerStakingAndYieldPage() {
 
             <div className="space-y-3 text-xs sm:text-sm">
               <div className="flex justify-between items-center text-slate-400">
-                <span>Tổng vốn thế chấp hệ thống</span>
+                <span>{t("Tổng vốn thế chấp hệ thống", "Total System Principal")}</span>
                 <span className="font-bold font-mono text-slate-100 tabular-nums">
                   {principalTotalNum.toLocaleString("en-US")} USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-slate-400">
-                <span>Số dư aUSDC tại Registry</span>
+                <span>{t("Số dư aUSDC tại Registry", "aUSDC Balance at Registry")}</span>
                 <span className="font-bold font-mono text-emerald-400 tabular-nums">
                   {aaveBalanceNum.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 6 })} aUSDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-slate-400">
-                <span>Lợi tức Aave V3 tích lũy</span>
+                <span>{t("Lợi tức Aave V3 tích lũy", "Cumulative Aave V3 Yield")}</span>
                 <span className="font-bold font-mono text-emerald-400 tabular-nums">
                   +{totalAccruedYieldNum.toFixed(6)} USDC
                 </span>
@@ -629,19 +651,22 @@ export default function BrokerStakingAndYieldPage() {
 
             <div className="bg-[#0B0F17] border border-slate-800/80 rounded-lg p-4 space-y-2.5">
               <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block">
-                Công thức phân bổ lợi tức bất biến
+                {t("Công thức phân bổ lợi tức bất biến", "Immutable Yield Allocation Formula")}
               </span>
               <code className="text-xs font-mono text-slate-200 block bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                 Yield_GDTG = (aUSDC_Bal - Principal) × Share × 80%
               </code>
               <p className="text-xs text-slate-400 leading-relaxed">
-                20% lợi tức còn lại chuyển vào Quỹ dự phòng bảo hiểm nhằm bảo vệ an toàn thanh khoản cho hệ thống.
+                {t(
+                  "20% lợi tức còn lại chuyển vào Quỹ dự phòng bảo hiểm nhằm bảo vệ an toàn thanh khoản cho hệ thống.",
+                  "Remaining 20% of yield flows into the Reserve Fund to ensure system solvency and insurance buffer."
+                )}
               </p>
             </div>
 
             <div className="pt-3 border-t border-slate-800 space-y-2.5 text-xs">
               <span className="text-slate-400 block font-semibold">
-                Hợp đồng kiểm chứng trên Snowtrace:
+                {t("Hợp đồng kiểm chứng trên Snowtrace:", "Verified Contracts on Snowtrace:")}
               </span>
               <div className="space-y-2">
                 {[
