@@ -341,7 +341,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-blue-400 hover:bg-blue-500/10 transition-colors"
                         >
                           <Wallet className="w-4 h-4" />
-                          <span>{t("Chuyển đổi ví / Ban Giám Khảo", "Switch Wallet / Roles")}</span>
+                          <span>{t("Đổi ví kết nối", "Switch Wallet")}</span>
                         </button>
 
                         <button

@@ -27,134 +27,11 @@ export interface UserProfile {
   authProvider?: "wallet" | "gmail" | "email" | "preset";
 }
 
-export const PRESET_ACCOUNTS: UserProfile[] = [
-  {
-    id: "TP-1001",
-    username: "tuan_buyer",
-    name: "Lê Minh Tuấn (Bên mua)",
-    role: "BUYER",
-    walletAddress: "0x3b37DC6eB5C492c5023B4F7a8A5a7D955E0787A5",
-    telegram: "@tuan_buyer",
-    zalo: "0909112233",
-    facebook: "facebook.com/tuan.le.crypto",
-    avatarUrl: "",
-    sbtId: "#TP-1001",
-    successRate: 100,
-    completedDeals: 18,
-    balanceUsdc: 5000,
-    registeredAt: "2024-01-15",
-    hasCustomUsername: true,
-    isWalletLinked: true,
-    authProvider: "preset",
-  },
-  {
-    id: "TP-2002",
-    username: "hoangminh_otc",
-    name: "Hoàng Minh (Đối tác OTC)",
-    role: "SELLER",
-    walletAddress: "0xaa6a4B6F817bE5E7D4C025b4f32b0651EED33c2c",
-    telegram: "@hoangminh_otc",
-    zalo: "0988776655",
-    facebook: "facebook.com/hoangminh.otc",
-    avatarUrl: "",
-    sbtId: "#TP-2002",
-    successRate: 99.4,
-    completedDeals: 142,
-    balanceUsdc: 12450,
-    registeredAt: "2023-11-20",
-    hasCustomUsername: true,
-    isWalletLinked: true,
-    authProvider: "preset",
-  },
-  {
-    id: "TP-3003",
-    username: "nam_broker",
-    name: "Nguyễn Nam (GDTG Bảo chứng)",
-    role: "BROKER",
-    walletAddress: "0x3B1C113A5230b027757D6f45F0819c48E8F2BBc5",
-    telegram: "@nam_escrow_official",
-    zalo: "0912345678",
-    facebook: "facebook.com/nam.escrow.official",
-    avatarUrl: "",
-    sbtId: "#TP-1",
-    successRate: 100,
-    completedDeals: 130,
-    balanceUsdc: 5000,
-    registeredAt: "2023-08-04",
-    hasCustomUsername: true,
-    isWalletLinked: true,
-    authProvider: "preset",
-  },
-  {
-    id: "TP-3004",
-    username: "trantuan_broker",
-    name: "Trần Tuấn (GDTG Mã nguồn)",
-    role: "BROKER",
-    walletAddress: "0x44B1492bC78E12a899Ad34De91eF11B12E7a889B",
-    telegram: "@trantuan_escrow",
-    zalo: "0933445566",
-    facebook: "facebook.com/trantuan.dev",
-    avatarUrl: "",
-    sbtId: "#TP-44B1",
-    successRate: 100,
-    completedDeals: 215,
-    balanceUsdc: 15000,
-    registeredAt: "2023-05-12",
-    hasCustomUsername: true,
-    isWalletLinked: true,
-    authProvider: "preset",
-  },
-  {
-    id: "TP-3005",
-    username: "anhthu_broker",
-    name: "Đặng Anh Thư (GDTG Tài sản số)",
-    role: "BROKER",
-    walletAddress: "0x77D1492bC78E12a899Ad34De91eF11B12E7a889C",
-    telegram: "@anhthu_pact",
-    zalo: "0944556677",
-    facebook: "facebook.com/anhthu.broker",
-    avatarUrl: "",
-    sbtId: "#TP-77D1",
-    successRate: 98.8,
-    completedDeals: 42,
-    balanceUsdc: 2500,
-    registeredAt: "2024-02-18",
-    hasCustomUsername: true,
-    isWalletLinked: true,
-    authProvider: "preset",
-  },
-  {
-    id: "TP-9999",
-    username: "super_admin",
-    name: "Quản trị viên hệ thống",
-    role: "ADMIN",
-    walletAddress: "0xe85eE178537fa93392d82114A33f6B204Ea7c6aE",
-    telegram: "@TrustPact_Sentinel_bot",
-    zalo: "0900009999",
-    facebook: "facebook.com/trustpact.official",
-    avatarUrl: "",
-    sbtId: "#TP-ADMIN",
-    successRate: 100,
-    completedDeals: 999,
-    balanceUsdc: 50000,
-    registeredAt: "2023-01-01",
-    hasCustomUsername: true,
-    isWalletLinked: true,
-    authProvider: "preset",
-  },
-];
+export const PRESET_ACCOUNTS: UserProfile[] = [];
 
 function sanitizeStoredUser(user: UserProfile): UserProfile {
-  const presetMatch = PRESET_ACCOUNTS.find(
-    (p) =>
-      p.id === user.id ||
-      (p.walletAddress &&
-        user.walletAddress &&
-        p.walletAddress.toLowerCase() === user.walletAddress.toLowerCase())
-  );
   return {
     ...user,
-    name: presetMatch ? presetMatch.name : user.name,
     avatarUrl: "",
     email: undefined,
     password: undefined,
@@ -230,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { address } = useAccount();
   const { disconnect } = useDisconnect();
 
-  const [registeredUsers, setRegisteredUsers] = useState<UserProfile[]>(PRESET_ACCOUNTS);
+  const [registeredUsers, setRegisteredUsers] = useState<UserProfile[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const isInitialized = useRef(false);
 
@@ -246,23 +123,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (savedUsers) {
           const parsed = JSON.parse(savedUsers);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setRegisteredUsers(parsed.map(sanitizeStoredUser));
+            const realWalletsOnly = parsed.filter(
+              (u: any) => u.walletAddress && u.walletAddress.startsWith("0x") && u.authProvider !== "preset"
+            );
+            setRegisteredUsers(realWalletsOnly.map(sanitizeStoredUser));
           }
         }
         const savedSession = localStorage.getItem("trustpact_user_session");
         if (savedSession) {
           const parsed = JSON.parse(savedSession);
-          // Purge legacy email mock session to enforce 100% pure Web3 wallet UX
+          // Purge legacy mock or email sessions to enforce 100% pure Web3 wallet UX
           if (
             parsed &&
             (parsed.email === "nguoidung@gmail.com" ||
               parsed.authProvider === "gmail" ||
               parsed.authProvider === "email" ||
+              parsed.authProvider === "preset" ||
               !parsed.walletAddress)
           ) {
             localStorage.removeItem("trustpact_user_session");
             setCurrentUser(null);
-          } else {
+          } else if (parsed && parsed.walletAddress) {
             setCurrentUser(sanitizeStoredUser(parsed));
           }
         }
@@ -284,6 +165,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           currentUser.walletAddress.toLowerCase() !== address.toLowerCase())
       ) {
         loginWithWallet(address as `0x${string}`);
+      }
+    } else if (!isConnected && currentUser) {
+      setCurrentUser(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("trustpact_user_session");
       }
     }
   }, [isConnected, address]);
@@ -433,16 +319,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [registeredUsers]
   );
 
-  const loginWithPreset = (presetId: string) => {
-    const found =
-      registeredUsers.find((p) => p.id === presetId) ||
-      PRESET_ACCOUNTS.find((p) => p.id === presetId);
-    if (found) {
-      setCurrentUser(found);
-      setIsAuthModalOpen(false);
-      setIsLinkWalletModalOpen(false);
-      setIsOnboardingModalOpen(false);
-    }
+  const loginWithPreset = (_presetId: string) => {
+    // Deprecated: No mock presets allowed, authentication is 100% Web3 wallet based
   };
 
   const loginWithWallet = (walletAddr: `0x${string}`, name?: string, role: UserRole = "BUYER") => {

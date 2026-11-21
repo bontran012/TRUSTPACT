@@ -217,7 +217,7 @@ export default function ProfilePage() {
               {t("Hồ sơ & Định danh SBT", "Profile & SBT Credential")}
             </h1>
             <span className="font-mono text-xs font-semibold text-slate-200 bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-md">
-              {currentUser?.id || "TP-1001"}
+              {currentUser?.id || (activeWallet ? shortenAddress(activeWallet) : "Web3")}
             </span>
           </div>
           <p className="text-sm text-slate-400">
@@ -234,8 +234,8 @@ export default function ProfilePage() {
             onClick={() => setIsLinkWalletModalOpen(true)}
             className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-100 flex items-center gap-2 transition-colors whitespace-nowrap"
           >
-            <Users className="w-3.5 h-3.5 text-slate-300" />
-            <span>{t("Chuyển đổi ví / Ban Giám Khảo", "Switch Wallet / Roles")}</span>
+            <Wallet className="w-3.5 h-3.5 text-blue-400" />
+            <span>{t("Đổi ví kết nối", "Switch Wallet")}</span>
           </button>
 
           <Link href="/pact">
