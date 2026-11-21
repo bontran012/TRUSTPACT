@@ -3,7 +3,7 @@
 > **Avalanche UniHack 2026** — *Track A: Social Finance (SocialFi) & Security*
 
 [![Live Web](https://img.shields.io/badge/Live%20Demo-trustpact--mocha.vercel.app-E84142?style=for-the-badge&logo=vercel&logoColor=white)](https://trustpact-mocha.vercel.app/)
-[![Demo Video](https://img.shields.io/badge/Demo%20Video-Full%20HD%20(2m03s)-00C49F?style=for-the-badge&logo=youtube&logoColor=white)](./TrustPact_UniHack2026_Demo.mp4)
+[![Feature Demo Video](https://img.shields.io/badge/Web%20Demo%20Video-Full%20HD%20(2m01s)-00C49F?style=for-the-badge&logo=youtube&logoColor=white)](./TrustPact_Web_Feature_Demo_2026.mp4)
 [![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-@TrustPact__Sentinel__bot-229ED9?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/TrustPact_Sentinel_bot)
 [![Network](https://img.shields.io/badge/Avalanche%20Fuji-C--Chain%20%2343113-E84142?style=for-the-badge&logo=avalanche&logoColor=white)](https://testnet.snowtrace.io/address/0xEe86802fA1e1098797c2980D9E1D73175f35Dd22)
 [![Solidity](https://img.shields.io/badge/Solidity-%5E0.8.24-363636?style=for-the-badge&logo=solidity)](https://soliditylang.org/)
@@ -13,7 +13,7 @@
 
 ## 🌐 Hệ Sinh Thái Trực Tuyến (Live Ecosystem)
 
-- 🎥 **Video Thuyết Minh Demo (Full HD 1080p · 2 phút 03 giây):** [TrustPact_UniHack2026_Demo.mp4](./TrustPact_UniHack2026_Demo.mp4)
+- 🎥 **Video Demo Trực Tiếp Tính Năng Web (Full HD 1080p · 2m 01s · 100% Giao diện Web):** [TrustPact_Web_Feature_Demo_2026.mp4](./TrustPact_Web_Feature_Demo_2026.mp4)
 - 🚀 **Production Web Application:** [https://trustpact-mocha.vercel.app](https://trustpact-mocha.vercel.app)
 - 📊 **Pitch Deck Trực Tuyến (10 Slides Dark Grid):** [PITCH_DECK_UNIHACK_2026.html](./PITCH_DECK_UNIHACK_2026.html) · [Tải Bản PDF](./TrustPact%20Protocol%20%E2%80%94%20Executive%20Pitch%20Deck%20_%20Avalanche%20UniHack%202026.pdf)
 - 🤖 **Telegram Sentinel Bot (Tra cứu rủi ro 24/7):** [@TrustPact_Sentinel_bot](https://t.me/TrustPact_Sentinel_bot)
