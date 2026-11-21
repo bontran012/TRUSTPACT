@@ -15,7 +15,7 @@
 
 - 🎥 **Video Demo Trực Tiếp Tính Năng Web (Full HD 1080p · 2m 01s · 100% Giao diện Web):** [TrustPact_Web_Feature_Demo_2026.mp4](./TrustPact_Web_Feature_Demo_2026.mp4)
 - 🚀 **Production Web Application:** [https://trustpact-mocha.vercel.app](https://trustpact-mocha.vercel.app)
-- 📊 **Pitch Deck Trực Tuyến (10 Slides Dark Grid):** [PITCH_DECK_UNIHACK_2026.html](./PITCH_DECK_UNIHACK_2026.html) · [Tải Bản PDF](./TrustPact%20Protocol%20%E2%80%94%20Executive%20Pitch%20Deck%20_%20Avalanche%20UniHack%202026.pdf)
+- 📊 **Pitch Deck Trực Tuyến (10 Slides Dark Grid):** [PITCH_DECK_UNIHACK_2026.html](./PITCH_DECK_UNIHACK_2026.html) · [Tải Bản PDF](./TrustPact_Pitch_Deck_UniHack2026.pdf)
 - 🤖 **Telegram Sentinel Bot (Tra cứu rủi ro 24/7):** [@TrustPact_Sentinel_bot](https://t.me/TrustPact_Sentinel_bot)
 - 📜 **Trung Tâm Tuân Thủ Pháp Lý & Công Nghệ:** [https://trustpact-mocha.vercel.app/compliance](https://trustpact-mocha.vercel.app/compliance)
 
