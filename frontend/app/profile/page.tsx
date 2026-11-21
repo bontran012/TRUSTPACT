@@ -231,11 +231,11 @@ export default function ProfilePage() {
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
             type="button"
-            onClick={() => setIsAuthModalOpen(true)}
+            onClick={() => setIsLinkWalletModalOpen(true)}
             className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-100 flex items-center gap-2 transition-colors whitespace-nowrap"
           >
             <Users className="w-3.5 h-3.5 text-slate-300" />
-            <span>{t("Chuyển đổi tài khoản", "Switch Account")}</span>
+            <span>{t("Chuyển đổi ví / Ban Giám Khảo", "Switch Wallet / Roles")}</span>
           </button>
 
           <Link href="/pact">
@@ -401,7 +401,7 @@ export default function ProfilePage() {
                       </span>
                     </div>
                     <p className="text-xs text-slate-400 leading-relaxed">
-                      Tài khoản đang đăng nhập qua email ({currentUser?.email || "chưa cập nhật"}). Liên kết ví Web3 để thực hiện giao dịch ký quỹ hoặc nạp thế chấp trên chuỗi.
+                      Chưa kết nối ví Web3. Vui lòng kết nối ví MetaMask hoặc Core Wallet để thực hiện giao dịch ký quỹ hoặc nạp thế chấp trên chuỗi Avalanche Fuji.
                     </p>
                     <button
                       type="button"
@@ -409,7 +409,7 @@ export default function ProfilePage() {
                       className="w-full py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <Wallet className="w-3.5 h-3.5" />
-                      <span>Liên kết ví Web3</span>
+                      <span>Kết nối ví Web3</span>
                     </button>
                   </div>
                 )}

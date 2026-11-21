@@ -122,7 +122,7 @@ function getCategoryBadge(type: CategoryKey, isEn?: boolean): { label: string; c
 
 export default function ScamRadarAndReputationPage() {
   const { address } = useAccount();
-  const { findUserByQuery, setIsAuthModalOpen } = useAuth();
+  const { findUserByQuery, setIsLinkWalletModalOpen } = useAuth();
   const { language, t } = useLanguage();
   const isEn = language === "en";
 
@@ -448,7 +448,7 @@ export default function ScamRadarAndReputationPage() {
         errorMessage:
           "Thao tác gửi báo cáo vi phạm lên ScamRegistryL1 yêu cầu chữ ký ví trên mạng Avalanche Fuji. Vui lòng kết nối ví để tiếp tục.",
       });
-      setIsAuthModalOpen(true);
+      setIsLinkWalletModalOpen(true);
       return;
     }
 

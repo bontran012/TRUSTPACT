@@ -208,7 +208,7 @@ export default function BrokerStakingAndYieldPage() {
         actionTitle: "Yêu cầu kết nối ví Web3",
         errorMessage: "Vui lòng kết nối ví Web3 (MetaMask hoặc Core Wallet) để rút vốn thế chấp gốc và nhận lãi thực Aave V3.",
       });
-      setIsAuthModalOpen(true);
+      setIsLinkWalletModalOpen(true);
       return;
     }
     if (!isUnstakeValid) return;

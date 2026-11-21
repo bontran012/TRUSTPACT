@@ -537,40 +537,39 @@ function CreateEscrowPactContent() {
         </div>
       </div>
 
-      {/* ── WALLET LINKING PROMPT (FOR EMAIL ACCOUNTS) ───────────────────── */}
-      {currentUser &&
-        (!currentUser.isWalletLinked ||
-          !address ||
-          currentUser.walletAddress === "0x0000000000000000000000000000000000000000") && (
-          <div className="p-4 rounded-xl bg-[#111827] border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0">
-                <Wallet className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-slate-100 text-sm">
-                    {currentUser.email ? `Tài khoản: ${currentUser.email}` : "Chưa liên kết ví Web3"}
-                  </span>
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 font-medium">
-                    Yêu cầu ký giao dịch On-Chain
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Vui lòng liên kết ví MetaMask hoặc Core Wallet để cấp quyền USDC và khởi tạo hợp đồng UniversalEscrow.
-                </p>
-              </div>
+      {/* ── WALLET CONNECT PROMPT ───────────────────── */}
+      {(!currentUser?.walletAddress ||
+        !address ||
+        currentUser.walletAddress === "0x0000000000000000000000000000000000000000") && (
+        <div className="p-4 rounded-xl bg-[#111827] border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0">
+              <Wallet className="w-4 h-4" />
             </div>
-            <button
-              type="button"
-              onClick={() => setIsLinkWalletModalOpen(true)}
-              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500/30 text-white font-medium text-xs whitespace-nowrap flex items-center justify-center gap-2 transition-colors self-start sm:self-auto"
-            >
-              <Wallet className="w-3.5 h-3.5" />
-              <span>Liên kết ví Web3</span>
-            </button>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-slate-100 text-sm">
+                  Yêu cầu kết nối ví Web3
+                </span>
+                <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 font-medium">
+                  Avalanche Fuji #43113
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Vui lòng kết nối ví MetaMask hoặc Core Wallet để cấp quyền USDC và khởi tạo hợp đồng UniversalEscrow trên chuỗi.
+              </p>
+            </div>
           </div>
-        )}
+          <button
+            type="button"
+            onClick={() => setIsLinkWalletModalOpen(true)}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-500/30 text-white font-medium text-xs whitespace-nowrap flex items-center justify-center gap-2 transition-colors self-start sm:self-auto"
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            <span>Kết nối ví Web3</span>
+          </button>
+        </div>
+      )}
 
       {/* ── 2-COLUMN BANKING FORM (LEFT 7 COLS · RIGHT 5 COLS) ───────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
