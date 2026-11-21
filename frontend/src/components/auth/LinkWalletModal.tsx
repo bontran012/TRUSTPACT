@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Info,
 } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import { useLanguage } from "@/src/context/LanguageContext";
@@ -34,21 +35,101 @@ export function LinkWalletModal() {
 
   if (!isLinkWalletModalOpen) return null;
 
-  const handleConnectWallet = (connector?: any) => {
+  const handleConnectByWalletId = (
+    walletId: "metaMask" | "core" | "rabby" | "phantom" | "injected"
+  ) => {
     setFeedback({ type: "idle", msg: "" });
-    try {
-      if (connector) {
-        connect({ connector });
-      } else if (connectors && connectors.length > 0) {
-        connect({ connector: connectors[0] });
-      } else {
-        setFeedback({
-          type: "error",
-          msg: "Không tìm thấy tiện ích mở rộng ví Web3 (MetaMask/Core Wallet). Vui lòng cài đặt để tiếp tục.",
-        });
+
+    if (typeof window !== "undefined") {
+      const w = window as any;
+
+      if (walletId === "metaMask") {
+        const hasMetaMask =
+          w.ethereum?.providers?.some((p: any) => p.isMetaMask && !p.isPhantom) ||
+          (w.ethereum?.isMetaMask && !w.ethereum?.isPhantom);
+
+        if (!hasMetaMask) {
+          if (w.phantom?.ethereum || w.ethereum?.isPhantom) {
+            setFeedback({
+              type: "error",
+              msg: "Trình duyệt của bạn đang cài ví Phantom làm mặc định và chưa bật tiện ích MetaMask. Vui lòng bấm chọn 'Ví Phantom' bên dưới hoặc bật MetaMask trong quản lý tiện ích mở rộng.",
+            });
+          } else {
+            setFeedback({
+              type: "error",
+              msg: "Không tìm thấy tiện ích MetaMask trên trình duyệt. Vui lòng cài đặt MetaMask hoặc chọn ví khác.",
+            });
+          }
+          return;
+        }
       }
+
+      if (walletId === "core") {
+        const hasCore =
+          w.avalanche ||
+          w.ethereum?.providers?.some((p: any) => p.isAvalanche) ||
+          w.ethereum?.isAvalanche;
+
+        if (!hasCore) {
+          setFeedback({
+            type: "error",
+            msg: "Không tìm thấy ví Avalanche Core Wallet. Vui lòng cài tiện ích Core Wallet hoặc chọn ví khác.",
+          });
+          return;
+        }
+      }
+
+      if (walletId === "rabby") {
+        const hasRabby =
+          w.rabby ||
+          w.ethereum?.providers?.some((p: any) => p.isRabby) ||
+          w.ethereum?.isRabby;
+
+        if (!hasRabby) {
+          setFeedback({
+            type: "error",
+            msg: "Không tìm thấy ví Rabby trên trình duyệt. Vui lòng cài tiện ích Rabby Wallet hoặc chọn ví khác.",
+          });
+          return;
+        }
+      }
+
+      if (walletId === "phantom") {
+        const hasPhantom =
+          w.phantom?.ethereum ||
+          w.ethereum?.providers?.some((p: any) => p.isPhantom) ||
+          w.ethereum?.isPhantom;
+
+        if (!hasPhantom) {
+          setFeedback({
+            type: "error",
+            msg: "Không tìm thấy tiện ích ví Phantom trên trình duyệt của bạn.",
+          });
+          return;
+        }
+      }
+    }
+
+    const targetConnector =
+      connectors.find((c) => c.id === walletId) ||
+      connectors.find((c) => c.id === "injected") ||
+      connectors[0];
+
+    if (!targetConnector) {
+      setFeedback({
+        type: "error",
+        msg: "Không tìm thấy trình kết nối ví Web3 phù hợp trên trình duyệt.",
+      });
+      return;
+    }
+
+    try {
+      connect({ connector: targetConnector });
     } catch (err: any) {
-      setFeedback({ type: "error", msg: err?.message || "Không thể kết nối ví Web3" });
+      setFeedback({
+        type: "error",
+        msg: err?.message || "Không thể mở kết nối ví Web3",
+      });
     }
   };
 
@@ -62,7 +143,7 @@ export function LinkWalletModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-700/90 bg-[#111827] shadow-2xl p-6 text-slate-100">
+      <div className="relative w-full max-w-lg rounded-2xl border border-slate-700/90 bg-[#111827] shadow-2xl p-6 text-slate-100 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={() => {
@@ -148,12 +229,13 @@ export function LinkWalletModal() {
             /* Connect Wallet Providers List */
             <div className="space-y-2.5">
               <span className="text-slate-300 font-medium block text-xs">
-                {t("Chọn ví Web3 để kết nối:", "Select wallet to connect:")}
+                {t("Chọn ví Web3 của bạn để kết nối:", "Select your Web3 wallet:")}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {/* MetaMask */}
                 <button
                   type="button"
-                  onClick={() => handleConnectWallet(connectors?.[0])}
+                  onClick={() => handleConnectByWalletId("metaMask")}
                   className="p-3 rounded-xl bg-[#0B0F17] hover:bg-slate-800/80 border border-slate-700/80 hover:border-blue-500/50 text-left transition-all group flex items-start gap-3"
                 >
                   <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0 font-bold text-xs group-hover:scale-105 transition-transform">
@@ -169,9 +251,10 @@ export function LinkWalletModal() {
                   </div>
                 </button>
 
+                {/* Core Wallet */}
                 <button
                   type="button"
-                  onClick={() => handleConnectWallet(connectors?.[0])}
+                  onClick={() => handleConnectByWalletId("core")}
                   className="p-3 rounded-xl bg-[#0B0F17] hover:bg-slate-800/80 border border-slate-700/80 hover:border-red-500/50 text-left transition-all group flex items-start gap-3"
                 >
                   <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0 font-bold text-xs group-hover:scale-105 transition-transform">
@@ -187,9 +270,29 @@ export function LinkWalletModal() {
                   </div>
                 </button>
 
+                {/* Phantom Wallet */}
                 <button
                   type="button"
-                  onClick={() => handleConnectWallet(connectors?.[0])}
+                  onClick={() => handleConnectByWalletId("phantom")}
+                  className="p-3 rounded-xl bg-[#0B0F17] hover:bg-slate-800/80 border border-purple-500/30 hover:border-purple-500/60 text-left transition-all group flex items-start gap-3"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0 font-bold text-xs group-hover:scale-105 transition-transform">
+                    👻
+                  </div>
+                  <div>
+                    <span className="font-semibold text-slate-100 text-xs block group-hover:text-purple-400 transition-colors">
+                      Phantom Wallet
+                    </span>
+                    <span className="text-[11px] text-purple-300/80 block mt-0.5">
+                      Ví đa chuỗi (Hỗ trợ EVM)
+                    </span>
+                  </div>
+                </button>
+
+                {/* Rabby Wallet */}
+                <button
+                  type="button"
+                  onClick={() => handleConnectByWalletId("rabby")}
                   className="p-3 rounded-xl bg-[#0B0F17] hover:bg-slate-800/80 border border-slate-700/80 hover:border-blue-500/50 text-left transition-all group flex items-start gap-3"
                 >
                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 font-bold text-xs group-hover:scale-105 transition-transform">
@@ -205,41 +308,49 @@ export function LinkWalletModal() {
                   </div>
                 </button>
 
+                {/* Universal Injected / Browser Wallet */}
                 <button
                   type="button"
-                  onClick={() => handleConnectWallet(connectors?.[0])}
-                  className="p-3 rounded-xl bg-[#0B0F17] hover:bg-slate-800/80 border border-slate-700/80 hover:border-blue-500/50 text-left transition-all group flex items-start gap-3"
+                  onClick={() => handleConnectByWalletId("injected")}
+                  className="p-3 rounded-xl bg-[#0B0F17] hover:bg-slate-800/80 border border-slate-700/80 hover:border-emerald-500/50 text-left transition-all group flex items-start gap-3 sm:col-span-2"
                 >
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 font-bold text-xs group-hover:scale-105 transition-transform">
                     🛡️
                   </div>
                   <div>
                     <span className="font-semibold text-slate-100 text-xs block group-hover:text-emerald-400 transition-colors">
-                      Trình duyệt Web3
+                      Trình duyệt Web3 mặc định
                     </span>
                     <span className="text-[11px] text-slate-400 block mt-0.5">
-                      Tiêu chuẩn Injected EIP-1193
+                      Tự động kết nối ví đang ưu tiên trên trình duyệt (EIP-1193)
                     </span>
                   </div>
                 </button>
+              </div>
+
+              <div className="mt-2 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                <span>
+                  Nếu bạn cài đặt nhiều ví (như Phantom và MetaMask cùng lúc), bạn có thể chọn đích danh ví cần dùng ở trên hoặc tùy chỉnh ví mặc định trong cài đặt tiện ích mở rộng của trình duyệt.
+                </span>
               </div>
             </div>
           )}
 
           {feedback.msg && (
             <div
-              className={`p-3 rounded-lg border text-xs flex items-center gap-2 ${
+              className={`p-3 rounded-lg border text-xs flex items-start gap-2 ${
                 feedback.type === "success"
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                  : "bg-red-500/10 border-red-500/30 text-red-400"
+                  : "bg-amber-500/10 border-amber-500/30 text-amber-300"
               }`}
             >
               {feedback.type === "success" ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-4 h-4 shrink-0" />
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               )}
-              <span>{feedback.msg}</span>
+              <span className="leading-relaxed">{feedback.msg}</span>
             </div>
           )}
         </div>

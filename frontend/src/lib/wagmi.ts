@@ -28,6 +28,78 @@ export const config = createConfig({
   chains: [avalancheFuji, trustpactL1],
   connectors: [
     injected({
+      target: {
+        id: "metaMask",
+        name: "MetaMask",
+        provider: (window: any) => {
+          if (!window) return undefined;
+          if (window.ethereum?.providers?.length) {
+            return window.ethereum.providers.find(
+              (p: any) => p.isMetaMask && !p.isPhantom
+            );
+          }
+          if (window.ethereum?.isMetaMask && !window.ethereum?.isPhantom) {
+            return window.ethereum;
+          }
+          return undefined;
+        },
+      },
+      shimDisconnect: true,
+    }),
+    injected({
+      target: {
+        id: "core",
+        name: "Core Wallet",
+        provider: (window: any) => {
+          if (!window) return undefined;
+          if (window.avalanche) return window.avalanche;
+          if (window.ethereum?.providers?.length) {
+            return window.ethereum.providers.find((p: any) => p.isAvalanche);
+          }
+          if (window.ethereum?.isAvalanche) return window.ethereum;
+          return undefined;
+        },
+      },
+      shimDisconnect: true,
+    }),
+    injected({
+      target: {
+        id: "rabby",
+        name: "Rabby Wallet",
+        provider: (window: any) => {
+          if (!window) return undefined;
+          if (window.rabby) return window.rabby;
+          if (window.ethereum?.providers?.length) {
+            return window.ethereum.providers.find((p: any) => p.isRabby);
+          }
+          if (window.ethereum?.isRabby) return window.ethereum;
+          return undefined;
+        },
+      },
+      shimDisconnect: true,
+    }),
+    injected({
+      target: {
+        id: "phantom",
+        name: "Phantom",
+        provider: (window: any) => {
+          if (!window) return undefined;
+          if (window.phantom?.ethereum) return window.phantom.ethereum;
+          if (window.ethereum?.providers?.length) {
+            return window.ethereum.providers.find((p: any) => p.isPhantom);
+          }
+          if (window.ethereum?.isPhantom) return window.ethereum;
+          return undefined;
+        },
+      },
+      shimDisconnect: true,
+    }),
+    injected({
+      target: {
+        id: "injected",
+        name: "Trình duyệt Web3",
+        provider: (window: any) => window?.ethereum,
+      },
       shimDisconnect: true,
     }),
   ],
