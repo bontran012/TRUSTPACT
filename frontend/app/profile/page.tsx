@@ -8,6 +8,7 @@ import {
   CONTRACT_ADDRESSES,
   ERC20_ABI,
   TRUST_PASSPORT_SBT_ABI,
+  shortenAddress,
 } from "@/src/lib/contracts";
 import {
   Fingerprint,
