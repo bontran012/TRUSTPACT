@@ -233,9 +233,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             <span className="text-[10px] font-mono font-semibold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                               {currentUser.role}
                             </span>
-                            {currentUser.authProvider === "gmail" && (
+                            {(currentUser.authProvider === "gmail" || currentUser.authProvider === "email") && (
                               <span className="text-[10px] font-medium text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/25">
-                                Gmail
+                                Email
                               </span>
                             )}
                           </div>
@@ -243,7 +243,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             {currentUser.name}
                           </span>
                           <span className="text-[11px] font-mono text-slate-400 truncate block">
-                            {currentUser.authProvider === "gmail"
+                            {currentUser.authProvider === "gmail" || currentUser.authProvider === "email"
                               ? currentUser.email
                               : currentUser.walletAddress
                               ? shortenAddress(currentUser.walletAddress)
@@ -252,7 +252,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         </div>
                       </div>
 
-                      {currentUser.authProvider === "gmail" && !currentUser.isWalletLinked && (
+                      {(currentUser.authProvider === "gmail" || currentUser.authProvider === "email") && !currentUser.isWalletLinked && (
                         <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 space-y-2 text-xs">
                           <div className="flex items-center justify-between text-[11px]">
                             <span className="text-amber-300 font-medium flex items-center gap-1.5">

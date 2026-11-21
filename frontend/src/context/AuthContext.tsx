@@ -12,6 +12,7 @@ export interface UserProfile {
   role: UserRole;
   walletAddress?: `0x${string}`;
   email?: string;
+  password?: string;
   telegram?: string;
   zalo?: string;
   facebook?: string;
@@ -23,7 +24,7 @@ export interface UserProfile {
   registeredAt?: string;
   hasCustomUsername?: boolean;
   isWalletLinked?: boolean;
-  authProvider?: "wallet" | "gmail" | "preset";
+  authProvider?: "wallet" | "gmail" | "email" | "preset";
 }
 
 export const PRESET_ACCOUNTS: UserProfile[] = [
@@ -163,6 +164,8 @@ interface AuthContextType {
   registeredUsers: UserProfile[];
   loginWithPreset: (presetId: string) => void;
   loginWithWallet: (address: `0x${string}`, name?: string, role?: UserRole) => void;
+  loginWithEmail: (email: string, password: string) => { success: boolean; error?: string; user?: UserProfile };
+  registerWithEmail: (email: string, password: string, name?: string) => { success: boolean; error?: string; user?: UserProfile };
   loginWithGmail: (email: string, displayName?: string) => { success: boolean; error?: string; user?: UserProfile };
   linkWalletToUser: (walletAddress: `0x${string}`) => { success: boolean; error?: string; user?: UserProfile };
   registerOrUpdateUser: (profile: Partial<UserProfile> & { username: string }) => {
@@ -191,6 +194,8 @@ const AuthContext = createContext<AuthContextType>({
   registeredUsers: [],
   loginWithPreset: () => {},
   loginWithWallet: () => {},
+  loginWithEmail: () => ({ success: false }),
+  registerWithEmail: () => ({ success: false }),
   loginWithGmail: () => ({ success: false }),
   linkWalletToUser: () => ({ success: false }),
   registerOrUpdateUser: () => ({ success: false }),
@@ -426,6 +431,98 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsOnboardingModalOpen(true);
   };
 
+  const loginWithEmail = useCallback(
+    (emailInput: string, passwordInput: string) => {
+      const cleanEmail = emailInput.trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes("@")) {
+        return { success: false, error: "Vui lòng nhập địa chỉ email hợp lệ" };
+      }
+      if (!passwordInput || passwordInput.length < 6) {
+        return { success: false, error: "Mật khẩu phải có ít nhất 6 ký tự" };
+      }
+
+      const existing = registeredUsers.find(
+        (u) => u.email && u.email.toLowerCase() === cleanEmail
+      );
+
+      if (!existing) {
+        return { success: false, error: "Email này chưa được đăng ký. Vui lòng chuyển sang tab Đăng ký." };
+      }
+
+      if (existing.password && existing.password !== passwordInput) {
+        return { success: false, error: "Mật khẩu không chính xác. Vui lòng thử lại." };
+      }
+
+      if (!existing.password) {
+        existing.password = passwordInput;
+      }
+
+      setCurrentUser(existing);
+      setIsAuthModalOpen(false);
+      return { success: true, user: existing };
+    },
+    [registeredUsers]
+  );
+
+  const registerWithEmail = useCallback(
+    (emailInput: string, passwordInput: string, customDisplayName?: string) => {
+      const cleanEmail = emailInput.trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes("@")) {
+        return { success: false, error: "Vui lòng nhập địa chỉ email hợp lệ" };
+      }
+      if (!passwordInput || passwordInput.length < 6) {
+        return { success: false, error: "Mật khẩu phải có ít nhất 6 ký tự" };
+      }
+
+      const existing = registeredUsers.find(
+        (u) => u.email && u.email.toLowerCase() === cleanEmail
+      );
+
+      if (existing) {
+        return { success: false, error: "Email này đã được đăng ký. Vui lòng chuyển sang tab Đăng nhập." };
+      }
+
+      const rawHandle = cleanEmail.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
+      let uniqueUsername = rawHandle;
+      let counter = 1;
+      while (registeredUsers.some((u) => u.username.toLowerCase() === uniqueUsername.toLowerCase())) {
+        uniqueUsername = `${rawHandle}_${counter}`;
+        counter++;
+      }
+
+      const existingIds = registeredUsers.map((u) => u.id);
+      const newId = generateUniqueUserId(existingIds);
+      const derivedName =
+        customDisplayName?.trim() ||
+        cleanEmail
+          .split("@")[0]
+          .replace(/[._]/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+
+      const newUser: UserProfile = {
+        id: newId,
+        username: uniqueUsername,
+        name: derivedName,
+        role: "BUYER",
+        email: cleanEmail,
+        password: passwordInput,
+        telegram: `@${uniqueUsername}`,
+        avatarUrl: "",
+        balanceUsdc: 2500,
+        registeredAt: new Date().toISOString().split("T")[0],
+        hasCustomUsername: true,
+        isWalletLinked: false,
+        authProvider: "email",
+      };
+
+      setRegisteredUsers((prev) => [...prev, newUser]);
+      setCurrentUser(newUser);
+      setIsAuthModalOpen(false);
+      return { success: true, user: newUser };
+    },
+    [registeredUsers]
+  );
+
   const loginWithGmail = useCallback(
     (emailInput: string, customDisplayName?: string) => {
       const cleanEmail = emailInput.trim().toLowerCase();
@@ -543,6 +640,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         registeredUsers,
         loginWithPreset,
         loginWithWallet,
+        loginWithEmail,
+        registerWithEmail,
         loginWithGmail,
         linkWalletToUser,
         registerOrUpdateUser,
